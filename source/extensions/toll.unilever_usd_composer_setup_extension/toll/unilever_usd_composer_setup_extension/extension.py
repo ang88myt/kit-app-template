@@ -38,7 +38,7 @@ from omni.kit.quicklayout import QuickLayout
 from omni.kit.window.title import get_main_window_title
 
 DATA_PATH = Path(carb.tokens.get_tokens_interface().resolve(
-    "${% raw %}{{% endraw %}{{ extension_name }}{% raw %}}{% endraw %}")
+    "${toll.unilever_usd_composer_setup_extension}")
 )
 
 
