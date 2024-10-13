@@ -15,3 +15,5 @@ repo_build.prebuild_copy {
 -- Apps: for each app generate batch files and a project based on kit files (e.g. my_name.my_app.kit)
 define_app("toll.usd_composer.unilever.kit")
 define_app("toll.usd_composer.unilever_streaming.kit")
+define_app("toll.explorer.kit")
+define_app("toll.explorer_streaming.kit")
