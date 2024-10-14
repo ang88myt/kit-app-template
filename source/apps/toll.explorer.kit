@@ -180,7 +180,7 @@ template_name = "omni.usd_explorer"
 [settings.app]
 name = "Toll Explorer"
 fastShutdown = true  # Fast shutdown by default
-useFabricSceneDelegate = true  # Turn on the Fabric scene delegate by default
+useFabricSceneDelegate = false  # Turn off the Fabric scene delegate by default
 
 [settings.app.content]
 emptyStageOnStart = true # This will create a stage during the startup process.
@@ -263,6 +263,7 @@ modal_tool_active = false  # Tool State Management
 [settings.app.usdrt.population.utils]
 mergeInstances = false # When populating Fabric from USD, merge meshes under scene graph instances.
 mergeMaterials = false
+
 [settings.app.viewport]
 boundingBoxes.hideWhenManipulating = true
 createCameraModelRep = true  # Enable creation of camera meshes in USD
