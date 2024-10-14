@@ -47,16 +47,7 @@ class Window(ui.Window):
 
         # Set the function that is called to build widgets when the window is visible
         self.frame.set_build_fn(self._build_fn)
-        # self._show_pallet_notification()
-        pallets_about_to_expire = [
-            "UINT0000082525", "UINT0000082525", "UINT0000082521", "0UINT0000082522",
-            "SYS16242516", "SYS16242525", "SYS16242523", "SYS16242522", "SYS16154632",
-            "SYS16154632", "SYS16154607", "SYS16242524A", "SYS16242515A"
-        ]
 
-        # Create a message for the notification
-        message = "Pallets about to expire in 1 week time:\n" + "\n".join(pallets_about_to_expire)
-        _show_notification(message=message, title="Pallets Expire",status="warning")
     def destroy(self):
         # Destroys all the children
         super().destroy()
@@ -119,31 +110,31 @@ class Window(ui.Window):
         with ui.CollapsableFrame("Expiry", name="group", build_header_fn=self._build_collapsable_header):
             with ui.VStack(height=0, spacing=SPACING):
                 ui.Spacer(height=6)
-                CustomInfoWidget(
-                    label="Expired Date Before",
-                    placeholder="yyyy-mm-dd",
-                    btn_callback=self._btn_exipry_date  # Pass the button callback function
-                )
-                ui.Spacer(height=6)
-
-                CustomDateSearchWidget(label="Expired Date Range",
-                                       placeholder1="dd-mm-yyyy",
-                                       placeholder2="dd-mm-yyyy",
-                                       btn_callback=self._btn_search_date_range
-                                       )
-                ui.Spacer(height=6)
-                CustomInfoWidget(
-                    label="Expiring Within",
-                    placeholder="yyyy-mm-dd",
-                    btn_callback=self._btn_exipring_1week  # Pass the button callback function
-                )
+                # CustomInfoWidget(
+                #     label="Expired Date Before",
+                #     placeholder="yyyy-mm-dd",
+                #     btn_callback=self._btn_exipry_date  # Pass the button callback function
+                # )
+                # ui.Spacer(height=6)
+                #
+                # CustomDateSearchWidget(label="Expired Date Range",
+                #                        placeholder1="dd-mm-yyyy",
+                #                        placeholder2="dd-mm-yyyy",
+                #                        btn_callback=self._btn_search_date_range
+                #                        )
+                # ui.Spacer(height=6)
+                # CustomInfoWidget(
+                #     label="Expiring Within",
+                #     placeholder="yyyy-mm-dd",
+                #     btn_callback=self._btn_exipring_1week  # Pass the button callback function
+                # )
                 # combobox_widget=CustomComboboxWidget(
                 #     label="Expiring Within",
                 #     options=["One Week", "Two Week", "Three Week","One Month"]
                 # )
                 # combobox_widget.add_value_changed_callback(self._cbx_expiring_items)
 
-                ui.Spacer(height=6)
+                # ui.Spacer(height=6)
                 # ui.Label("Expired Pallets")
                 # ui.Label(str(self._info_label), word_wrap=1)
 
