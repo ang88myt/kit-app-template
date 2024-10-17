@@ -81,6 +81,19 @@ dependencies = [
     "omni.kit.viewport.utility",
 ]
 
+[python.pipapi]
+requirements = [
+    "requests",
+    "openai",
+    "pandas",
+    "langchain",
+    "paho-mqtt",
+    "numpy",
+    "isaacsim"
+]
+#"langchain"
+use_online_index = true
+
 args = [
     "--/app/fastShutdown=1",
     "--/app/file/ignoreUnsavedOnExit=true",

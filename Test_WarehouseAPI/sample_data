@@ -1,0 +1,82 @@
+ def __init__(self):
+        self.base_url = "https://digital-twin.expangea.com/"
+        self.headers = {
+            'X-API-KEY': '2c38e689-8bac-4ec6-9e0e-70e98222dc2d'
+        }
+
+endpoint = "/rack/5BTG/3/21/"
+
+data > rack_locations > inventory > Stock Status Code
+
+"data": {
+        "id": 59,
+        "warehouse_id": 2,
+        "floor_no": "3",
+        "rack_no": 21,
+        "depth": 1,
+        "pallet_positions": null,
+        "filled_pallet_positions": 0,
+        "warehouse_code": "5BTG",
+        "rack_locations":
+        [
+            {
+                "id": 26317,
+                "rack_id": 59,
+                "location_id": "3211031",
+                "coordinates": {
+                    "x": -2652.0,
+                    "y": 9151.1,
+                    "z": 0.0
+                },
+                "pallets": [
+                    {
+                        "id": 96960,
+                        "warehouse_id": 2,
+                        "rack_location_id": 26317,
+                        "pallet_id": "UINT0000086004",
+                        "created": "2024-08-01T02:32:06.541Z",
+                        "inventory": {
+                            "Alias": "",
+                            "Owner": "UI Unilever Asia Private Limited",
+                            "ASN No": "79020",
+                            "Doc No": "26577",
+                            "Sender": "PT ALLIANCE CONSUMER PRODUCTS",
+                            "Product": "69789677",
+                            "Base UOM": "PC",
+                            "Floor No": "3",
+                            "Location": "3211031",
+                            "Permit No": "NULL",
+                            "Warehouse": "5BTG 5B Toh Guan Warehouse",
+                            "Lot Number": "4179 AU",
+                            "Attribute 1": "RETAIL",
+                            "Expiry Date": "Monday, December 14, 2026",
+                            "Denomination": "144",
+                            "Description1": "VASELINE BAR TOTAL MOISTURE EU 144X75G",
+                            "Document Date": "7/19/2024",
+                            "Pallet Number": "UINT0000086004",
+                            "Product Group": "HPC",
+                            "Serial Number": "NULL",
+                            "Warehouse Code": "5BTG",
+                            "Stock Status Code": "CHD",
+                            "Sub Product Group": "4",
+                            "MANUFACTURING DATE": "6/27/2024",
+                            "Product Shelf Life": "900",
+                            "QTY On Hand(Loose)": "0",
+                            "QTY On Hand(Whole)": "54",
+                            "Pallet Denomination": "7776",
+                            "Inbound Container No": "MRKU4796965",
+                            "QTY Available(Loose)": "0",
+                            "QTY Available(Whole)": "0",
+                            "Unit of Measure Code": "CS",
+                            "OPTION CHAR KEY FIELD6": "NULL",
+                            "Qty Available in Loose": "0",
+                            "Balance Shelf Life Range": ">80% ",
+                            "Quantity on Hand in Loose": "7776",
+                            "Balance Shelf Life Percentage": "96.33%",
+                            "Balance Shelf Life to Expiry (days)": "867"
+                        }
+                    }
+                ]
+            }
+        ]
+}

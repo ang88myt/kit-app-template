@@ -70,7 +70,8 @@ requirements = [
     "openai",
     "pandas",
     "langchain",
-    "paho-mqtt"
+    "paho-mqtt",
+    "numpy"
 ]
 #"langchain"
 use_online_index = true

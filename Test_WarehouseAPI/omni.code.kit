@@ -1,0 +1,429 @@
+[package]
+title = "Code"
+description = "Developer focused Omniverse application."
+version = "2023.1.1-rc.18"
+
+# That makes it browsable in UI with "experience" filter
+keywords = ["experience", "app", "developer", "code"]
+
+[dependencies]
+# One and only, the base for all the editor-like apps!
+"omni.app.editor.base" = {}
+
+# The Main UI App
+"omni.code.app.resources" = { order = -10000 }
+"omni.code.app.setup" = { order = 1000 } # we are running that at the end
+
+"filter:platform"."windows-x86_64"."omni.kit.window.modifier.titlebar" = { version="105.1.10", exact=true }
+
+# Compatibility Checker
+"omni.kit.compatibility_checker" = {}
+
+# Required for phyx extensions
+"omni.usd.schema.physx" = {}
+
+# Requited for metrics
+"omni.usd.schema.metrics.assembler" = {}
+
+# OM-99568: omni.replicator.core must be loaded during startup
+"omni.replicator.core" = {}
+
+# OM-100097: Force this to load earlier than it needs as it is fast and avoids error later.
+"omni.hydra.scene_api" = {}
+
+# No Code UI support
+"omni.no_code_ui.bundle" = {version="1.0.7", exact=true}
+
+[settings.exts."omni.app.setup".menu_order]
+window = -7
+Microservices = 80
+Layout = 90
+Help = 100
+
+[settings.exts."omni.app.setup".imgui.color]
+ScrollbarGrab = 0.4
+ScrollbarGrabHovered = 0.6
+ScrollbarGrabActive = 0.8
+MenuBarBg = 0.058
+TitleBg = 0.08
+TitleBgActive = 0.08
+WindowBg = 0.22
+ChildBg = 0.22
+PopupBg = 0.12
+Tab = 0.12
+TabUnfocused = 0.1467
+TabActive = 0.22
+TabUnfocusedActive = 0.22
+FrameBg = 0.08
+
+[settings.exts."omni.app.setup".imgui.float]
+DockSplitterSize = 2
+
+[[settings.exts."omni.app.setup".workflow]]
+name = "startup"
+workflow = "omni.app.workflow.code_startup"
+
+[[settings.exts."omni.app.setup".workflow]]
+name = "documentation"
+workflow = "omni.app.workflow.documentation"
+
+[[settings.exts."omni.app.setup".workflow]]
+name = "browsers"
+workflow = "omni.app.workflow.browsers"
+
+[[settings.exts."omni.app.setup".workflow]]
+name = "Visual Scripting"
+workflow = "omni.app.workflow.visual_scripting"
+
+[settings.exts."omni.app.setup".menu_layout.Layout]
+items = [
+    "Default=Reset Layout",
+    "Viewport Only",
+    "Startup",
+    "Documentation",
+    "Browsers",
+    "Visual Scripting",
+    "",
+    "UI Toggle Visibility=Window/UI Toggle Visibility",
+    "Fullscreen Mode=Window/Fullscreen Mode",
+    "",
+    "Save Layout=Window/Layout/Save Layout...",
+    "Load Layout=Window/Layout/Load Layout...",
+    "",
+    "Quick Save=Window/Layout/Quick Save",
+    "Quick Load=Window/Layout/Quick Load",
+]
+
+[settings.exts."omni.app.setup".menu_layout.Window]
+items = ["Animation", "Browsers", "Rendering", "Simulation", "Synthetic Data", "Utilities", "sort"]
+
+Animation.type = "SubMenu"
+Animation.items = ["Timeline", "Curve Processing", "Convert"]
+
+Browsers.type = "SubMenu"
+Browsers.items = ["Browser=Window/Content", "Materials", "Skies"]
+
+Rendering.type = "SubMenu"
+Rendering.items = ["Render Settings", "Movie Capture", "MDL Material Graph"]
+
+Simulation.type = "SubMenu"
+Simulation.items = ["Debug", "Physics"]
+Simulation.Physics.type = "Group"
+Simulation.Physics.items = ["Demo Scenes", "Settings=Window/Physics/Settings", "Debug", "Test Runner", "Character Controller"]
+
+"Synthetic Data".type = "SubMenu"
+"Synthetic Data".items = ["Semantics Schema Editor"]
+
+Utilities.type = "SubMenu"
+Utilities.items = ["Activity Progress", "USD Paths", "Statistics"]
+
+sort.type = "Sort"
+sort.exclude_items = ["Extensions"]
+sort.sort_submenus = false
+
+[settings.exts."omni.app.setup".menu_layout."-Tools"]
+
+[settings.exts."omni.app.setup".menu_layout.Help]
+items = [
+    "-API", "-Omni UI Scene Doc", "-USD Docs",
+    "Code Documentation", "",
+    "Developer Resource Center", "",
+    "Kit Developer Documentation Search", "Kit SDK: Home", "Kit SDK: Getting Started: Extensions", "Omni UI API", "Omni UI Scene API", "",
+    "Omniverse USD Docs", "Pixar USD Docs", "Kit Omni.usd", "",
+    "Omniverse Documentation", "",
+    "About"
+]
+
+[settings]
+exts."omni.kit.viewport.window".startup.windowName="Viewport"
+exts."omni.kit.viewport.menubar.camera".expand = false # Collapse the extra-camera settings by default
+exts."omni.kit.window.file".useNewFilePicker = true
+exts."omni.kit.tool.asset_importer".useNewFilePicker = true
+exts."omni.kit.tool.collect".useNewFilePicker = true
+exts."omni.kit.widget.layers".useNewFilePicker = true
+exts."omni.kit.renderer.core".imgui.enableMips = true
+app.content.emptyStageOnStart = false
+exts."omni.kit.window.script_editor".windowOpenByDefault = true
+exts."omni.kit.window.commands".windowOpenByDefault = true
+
+exts."omni.kit.window.content_browser".enable_checkpoints = true
+
+# Fast shutdown by default
+app.fastShutdown = true
+
+app.viewport.forceHideFps = false
+
+# Default layout for omni.app.setup
+# app.layout.default = "${omni.code.app.setup}/layouts/default.json"
+
+#Eco Mode
+rtx.ecoMode.enabled = true
+app.renderer.skipWhileMinimized = true
+
+# Setting the port for the embedded http server
+exts."omni.services.transport.server.http".port = 8211
+
+# default viewport is fill
+exts."omni.kit.window.viewport".blockingGetViewportDrawable = false
+
+persistent.app.viewport.Viewport.Viewport0.fillViewport = true
+persistent.app.viewport.Viewport.Viewport1.fillViewport = true
+
+app.renderer.resolution.width = 1920
+app.renderer.resolution.height = 1080
+
+
+exts."omni.kit.browser.sample".data.timeout = 10
+
+# Browsers
+exts."omni.kit.browser.asset".folders = [
+        "http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Vegetation",
+		"http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/ArchVis/Commercial",
+		"http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/ArchVis/Industrial",
+		"http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/ArchVis/Residential",
+		"http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/DigitalTwin/Assets/Warehouse/Equipment",
+		"http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/DigitalTwin/Assets/Warehouse/Safety",
+		"http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/DigitalTwin/Assets/Warehouse/Shipping",
+		"http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/DigitalTwin/Assets/Warehouse/Storage",
+    ]
+
+exts."omni.kit.browser.texture".folders = [
+        "http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Vegetation",
+ ]
+
+exts."omni.simready.explorer".folders = [
+    "https://omniverse-content-production.s3.us-west-2.amazonaws.com/Assets/simready_content/"
+]
+
+# No Iray
+renderer.enabled = "rtx,iray,pxr"
+renderer.active = "rtx"
+
+# vsync by default
+# renderer.vsync = true
+
+# Basic Kit App
+################################
+app.name = "Code"
+app.titleVersion = "2023.1.1"
+persistent.app.window.uiStyle = "NvidiaDark"
+
+# deprecate support for old kit.ui.menu
+app.menu.legacy_mode = false
+
+# Force enable Axis, Grid, Outline and Lights at startup
+app.create.forceViewportSettings = true
+
+# use omni.ui.Menu for the MenuBar
+app.menu.compatibility_mode = false
+
+# Privacy
+################################
+privacy.externalBuild = true
+structuredLog.enable = true
+
+exts."omni.kit.browser.material".enabled = false
+exts."omni.kit.window.material".load_after_startup = true
+
+# Hang Detector
+################################
+app.hangDetector.enabled = false
+app.hangDetector.timeout = 120
+
+# Misc Settings
+###############################
+persistent.app.stage.movePrimInPlace = false
+persistent.app.file.recentFiles = []
+persistent.app.viewport.displayOptions = 32255 # everything visible except Skeletons
+persistent.app.transform.gizmoUseSRT = true
+
+# Make Detail panel visible by default
+persistent.app.omniverse.content_browser.options_menu.show_details = true
+persistent.app.omniverse.filepicker.options_menu.show_details = true
+
+persistent.app.stage.instanceableOnCreatingReference = false
+
+persistent.app.viewport.previewOnPeek = false
+persistent.app.viewport.noPaddin = true
+persistent.app.captureFrame.viewport = true
+
+# Camera Inertia
+persistent.app.viewport.camInertiaEnabled = true # Enabled
+persistent.app.viewport.camInertiaAmount = 0.55 # Current default in Kit
+
+plugins.'carb.profiler-cpu.plugin'.filePath = "${shared_documents}/create_profile.ct.json.gz"
+
+
+[settings.app.settings]
+persistent = true
+dev_build = false
+# OM-93187
+fabricDefaultStageFrameHistoryCount = 3
+
+[settings.app.window]
+title = "Code"
+width = 1800
+height = 940
+x = -1
+y = -1
+iconPath = "${omni.code.app.resources}/data/nvidia-omniverse-code.ico"
+
+# Fonts
+[settings.app.font]
+file = "${fonts}/OpenSans-SemiBold.ttf"
+size = 16
+
+
+# Splash Setup
+################################
+[settings.exts."omni.kit.window.splash"]
+imagePath = "${omni.code.app.resources}/data/code_splash_screen@1x.png"
+
+
+# # FOR PRODUCTION
+[settings.exts."omni.kit.registry.nucleus"]
+registries = [
+	# { name = "kit/default", url = "omniverse://kit-extensions.ov.nvidia.com/exts/kit/default" },
+    # { name = "kit/sdk", url = "omniverse://kit-extensions.ov.nvidia.com/exts/kit/sdk/${kit_version_short}/${kit_git_hash}" },
+    { name = "kit/default", url = "https://ovextensionsprod.blob.core.windows.net/exts/kit/prod/shared" },
+    { name = "kit/sdk", url = "https://ovextensionsprod.blob.core.windows.net/exts/kit/prod/sdk/${kit_version_short}/${kit_git_hash}" },
+#    { name = "kit/public", url = "https://kit-103-0-public-extensions.s3.amazonaws.com/public"},
+    { name = "kit/community", url = "https://dw290v42wisod.cloudfront.net/exts/kit/community"},
+   # { name = "kit/public-103.5", url = "https://d1aiacozzchaiq.cloudfront.net//exts/kit/public/103.5"},
+]
+
+[settings.exts."omni.kit.window.modifier.titlebar"]
+titleFormatString = "  CODE {verKey:/app/titleVersion,font_color=0x909090}"
+showFileFullPath = true
+icon.file = "${omni.code.app.resources}/data/nvidia-omniverse-code.ico"
+#icon.file = "${omni.code.app.resources}/data/icon.ico"
+
+icon.size = 256
+defaultFont.name = "Arial"
+defaultFont.size = 16
+defaultFont.color = 0xD0D0D0
+separator.color = 0x00B976
+separator.width = 1
+windowBorder.color = 0x0F0F0F
+windowBorder.width = 0
+colors.caption = 0x0F0F0F
+colors.client = 0x0F0F0F
+
+[settings.exts."omni.kit.welcome.whats_new"]
+url = "${omni.code.app.resources}/docs/whats_new.md"
+web_url = "https://docs.omniverse.nvidia.com/app_code/app_code/overview.html"
+
+[settings.exts."omni.kit.welcome.learn"]
+url = "${omni.code.app.resources}/docs/learn.md"
+web_url = "https://docs.omniverse.nvidia.com/app_code/app_code/overview.html"
+
+
+[settings.exts.'omni.kit.window.extensions']
+# hide NonToggleable Exts
+hideNonToggleableExts = true
+showFeatureOnly = false
+
+# Enable "COMMUNITY" tab
+communityTabEnabled = true
+
+# Register extension folder from this repo in kit
+[settings.app.exts]
+folders.'++' = ["${app}/../exts", "${app}/../extscache"]
+
+[settings.crashreporter.data]
+experience = "Code"
+
+[settings.exts."omni.kit.compatibility_checker"]
+supportedGpus = [
+    "*GeForce RTX ????*",
+    "*Quadro RTX ????*",
+    "*RTX ?????*",
+    "*RTX????*",
+    "*TITAN RTX*"
+]
+
+"windows-x86_64".minOsVersion = 0 #19042
+"windows-x86_64".driverBlacklistRanges = [
+    ["0.0", "456.39", "The minimum RTX requirement"],
+    ["460.0", "461.92", "Driver crashes or image artifacts"],
+]
+"linux-x86_64".minOsVersion = 0
+"linux-x86_64".driverBlacklistRanges = [
+    ["0.0", "450.57", "The minimum RTX requirement"],
+    ["455.23", "455.24", "NVIDIA OptiX bug"],
+    ["460.0", "460.62", "Driver crashes or image artifacts"],
+]
+"linux-aarch64".minOsVersion = 0
+"linux-aarch64".driverBlacklistRanges = [
+    ["0.0", "450.57", "The minimum RTX requirement"]
+]
+
+[[test]]
+args = [
+    "--/app/window/width=1600",
+    "--/app/window/height=900",
+    "--/app/window/dpiScaleOverride=1.0",
+    "--/app/window/scaleToMonitor=false",
+    "--/app/file/ignoreUnsavedOnExit=true",
+    "--/app/testMode=1",
+    "--/exts/omni.kit.window.viewport/blockingGetViewportDrawable=1"
+]
+stdoutFailPatterns.exclude = [
+    "*extension object is still alive*",
+    "*Error *Animation_Camera_Animation* creating menu*",
+    "*audio device is misconfigured or broken*",
+    "*weakly-referenced object no longer exists*",
+    "*Failed while calling `shutdown_extensions` function*",
+    "*Failed to acquire interface*while unloading all plugins*",
+    "*omni.kit.search.service*Connection error*",
+	"*Failed to read texture file http://*",
+	"*Failed to load texture http://*",
+	"*Cannot use omni.hydra.pxr without OpenGL interop*",
+    "*was never awaited*",
+    "*TF_PYTHON_EXCEPTION*",
+	"*Stream Server: Net Stream Creation failed*",
+	"*Could not initialize streaming components*",
+	"*Couldn't initialize the capture device*",
+    "*AttributeError: 'ContentBrowserExtension' object has no attribute*",
+	"*AttributeError: 'EditorMenuItem' object has no attribute 'unsubscribe'*",
+	"*USD stage detach not called, holding a loose ptr to a stage*" # omni.physx
+]
+
+pythonTests.include = [
+	"omni.code.app.setup.*",
+]
+
+timeout = 3600
+
+
+########################################################################################################################
+# BEGIN GENERATED PART (Remove from 'BEGIN' to 'END' to regenerate)
+########################################################################################################################
+
+# Kit SDK Version: 105.0.2+release.109445.ed1fc8a4.tc
+
+# Exact Version dependencies:
+# 	omni.kit.window.modifier.titlebar-105.1.10
+# 	omni.no_code_ui.bundle-1.0.7
+
+# Version lock for all dependencies:
+[settings.app.exts]
+enabled = [
+	"omni.code.app.resources-2021.4.0",
+	"omni.code.app.setup-2022.1.1-beta.5",
+	"omni.kit.data2ui.core-1.0.7",
+	"omni.kit.data2ui.usd-1.0.7",
+	"omni.kit.graph.delegate.default-1.1.0",
+	"omni.kit.graph.editor.core-1.5.1",
+	"omni.kit.graph.usd.commands-1.2.0",
+	"omni.kit.widget.material_preview-1.0.7",
+	"omni.kit.window.material_graph-1.8.7",
+	"omni.pip.compute-1.1.0",
+	"omni.replicator.core-1.9.8",
+	"omni.usd.schema.metrics.assembler-105.1.2",
+	"omni.warp-0.8.2"
+]
+
+########################################################################################################################
+# END GENERATED PART
+########################################################################################################################

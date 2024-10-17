@@ -23,8 +23,11 @@ from .cube_mover_data import CubeMoverDataLayer
 from .spawn_cube import SpawnObjects
 # from .chat_assist import MyAssistantExtension
 import omni.kit.commands
-
+import carb
+import omni.kit.viewport.utility as viewport_utility
+from omni.ui import DockPosition
 SPACING = 5
+
 
 
 class Window(ui.Window):
@@ -47,6 +50,7 @@ class Window(ui.Window):
 
         # Set the function that is called to build widgets when the window is visible
         self.frame.set_build_fn(self._build_fn)
+        # self._btn_stock_status()
 
     def destroy(self):
         # Destroys all the children
@@ -83,6 +87,7 @@ class Window(ui.Window):
             ui.Line(style_type_name_override="HeaderLine")
 
     def _build_scene(self):
+
         """Build the widgets of the 'Scene' group"""
         with ui.CollapsableFrame("Warehouse", name="group", build_header_fn=self._build_collapsable_header):
             with ui.VStack(height=0, spacing=SPACING):
@@ -97,46 +102,114 @@ class Window(ui.Window):
 
                 CustomButtonWidget(
                     btn_label="Show Damaged Goods",
+                    tooltip="",
                     btn_callback=self._btn_damaged_goods
                 )
                 ui.Spacer(height=6)
 
                 CustomButtonWidget(
                     btn_label="Chat Assistant",
+                    tooltip="",
                     btn_callback=self._btn_chat
                 )
 
-    def _build_expiry(self):
-        with ui.CollapsableFrame("Expiry", name="group", build_header_fn=self._build_collapsable_header):
-            with ui.VStack(height=0, spacing=SPACING):
-                ui.Spacer(height=6)
-                # CustomInfoWidget(
-                #     label="Expired Date Before",
-                #     placeholder="yyyy-mm-dd",
-                #     btn_callback=self._btn_exipry_date  # Pass the button callback function
-                # )
-                # ui.Spacer(height=6)
-                #
-                # CustomDateSearchWidget(label="Expired Date Range",
-                #                        placeholder1="dd-mm-yyyy",
-                #                        placeholder2="dd-mm-yyyy",
-                #                        btn_callback=self._btn_search_date_range
-                #                        )
-                # ui.Spacer(height=6)
-                # CustomInfoWidget(
-                #     label="Expiring Within",
-                #     placeholder="yyyy-mm-dd",
-                #     btn_callback=self._btn_exipring_1week  # Pass the button callback function
-                # )
-                # combobox_widget=CustomComboboxWidget(
-                #     label="Expiring Within",
-                #     options=["One Week", "Two Week", "Three Week","One Month"]
-                # )
-                # combobox_widget.add_value_changed_callback(self._cbx_expiring_items)
+                CustomButtonWidget(
+                    btn_label="Stock Status",
+                    tooltip="",
+                    btn_callback=self._btn_stock_status
+                )
 
-                # ui.Spacer(height=6)
-                # ui.Label("Expired Pallets")
-                # ui.Label(str(self._info_label), word_wrap=1)
+    def _btn_stock_status(self):
+        """
+        Creates the Omniverse UI with CollapsableFrames for each rack,
+        shows total critical status codes found at the top, and
+        buttons for critical pallets.
+        """
+
+        # Fetch the critical data from the data service
+        critical_status_count, critical_pallets_by_rack = self._data_service.fetch_status_code_data()
+
+        # Initialize the window for displaying pallet stock statuses
+
+        self.window = ui.Window(
+            "Pallet Stock Status",
+            width=400,
+            height=600,
+
+            # flags=ui.WINDOW_FLAGS_NO_COLLAPSE | ui.WINDOW_FLAGS_NO_CLOSE | ui.WINDOW_FLAGS_NO_RESIZE
+        )
+        total_critical_count = sum(critical_status_count.values())
+
+
+        # Create a scrolling frame for the main content
+        with self.window.frame:
+            with ui.ScrollingFrame(height=800):  # Ensure the content is scrollable
+                with ui.VStack(spacing=10):
+                    # Display grand total of critical statuses at the top
+                    ui.Label(f"Grand Total Critical Items Found: {total_critical_count}",
+                             style={"font_size": 18, "color": "orange"})
+
+                    # Display individual critical status counts
+                    for status_code, count in critical_status_count.items():
+                        ui.Label(f"{status_code}: {count} items", style={"font_size": 14, "color": "white"})
+
+                    ui.Spacer(height=10)  # Add some space between the summary and collapsable frames
+
+                    # Display collapsable frames for each rack with critical pallets
+                    for rack_no, pallets in critical_pallets_by_rack.items():
+                        # Only create a collapsable frame if there are critical items
+                        if pallets:
+                            # Create a collapsable frame for each rack number
+                            with ui.CollapsableFrame(f"Rack {rack_no}"):
+                                with ui.VStack(spacing=5):
+                                    # List critical pallets found in this rack
+                                    for pallet in pallets:
+                                        pallet_id = pallet["pallet_id"]
+                                        location_id = pallet["location_id"]
+                                        stock_status_code = pallet["stock_status_code"]
+
+                                        # Create a button for each critical pallet under the rack
+                                        # Explicitly pass pallet_id to avoid lambda capturing issues
+                                        CustomButtonWidget(f"Pallet ID: {pallet_id} | Status: {stock_status_code}",
+                                                           tooltip=f"Location ID: {location_id}",
+                                                           btn_callback=lambda p=pallet_id: self._navigate_to_pallet(p)
+
+                                                           )
+
+    def _navigate_to_pallet(self,pallet_id):
+        self._data_service.show_pallet_info(pallet_id)
+
+    def _build_expiry(self):
+            with ui.CollapsableFrame("Expiry", name="group", build_header_fn=self._build_collapsable_header):
+                with ui.VStack(height=0, spacing=SPACING):
+                    ui.Spacer(height=6)
+                    CustomInfoWidget(
+                        label="Expired Date Before",
+                        placeholder="yyyy-mm-dd",
+                        btn_callback=self._btn_exipry_date  # Pass the button callback function
+                    )
+                    # ui.Spacer(height=6)
+                    #
+                    # CustomDateSearchWidget(label="Expired Date Range",
+                    #                        placeholder1="dd-mm-yyyy",
+                    #                        placeholder2="dd-mm-yyyy",
+                    #                        btn_callback=self._btn_search_date_range
+                    #                        )
+                    # ui.Spacer(height=6)
+                    CustomInfoWidget(
+                        label="Expiring Within",
+                        placeholder="yyyy-mm-dd",
+                        btn_callback=self._btn_exipring_1week  # Pass the button callback function
+                    )
+                    # combobox_widget=CustomComboboxWidget(
+                    #     label="Expiring Within",
+                    #     options=["One Week", "Two Week", "Three Week","One Month"]
+                    # )
+                    # combobox_widget.add_value_changed_callback(self._cbx_expiring_items)
+
+                    # ui.Spacer(height=6)
+                    # ui.Label("Expired Pallets")
+                    # ui.Label(str(self._info_label), word_wrap=1)
 
     def _build_tracking(self):
         """Build the widgets of tracking devices"""
@@ -144,27 +217,11 @@ class Window(ui.Window):
             with ui.VStack(height=0, spacing=SPACING):
                 ui.Spacer(height=6)
                 # Custom widget for tracking devices
-
-                widget = CustomBoolWidget(
+                CustomBoolWidget(
                     label="Track UWB",
                     default_value=False ,
                     on_change_callback=self._cbx_on_value_change
                 )
-
-
-
-                # CustomBoolWidget(
-                #     label="Track Personals",
-                #     default_value=False
-                # )
-                # CustomBoolWidget(
-                #     label="Device 01",
-                #     default_value=False
-                # )
-                # CustomBoolWidget(
-                #     label="Device 02",
-                #     default_value=False
-                # )
                 ui.Spacer(height=6)
 
     def _build_camera_option(self):
@@ -240,7 +297,7 @@ class Window(ui.Window):
             cube_mover.stop_moving()
 
     def _pgb_on_mouse_pressed(self, x, y, button, modifiers):
-        # self.window.set_position(100, 0)
+        self.window.set_position(100, 0)
         # Create a new window
 
         self.window = ui.Window(
@@ -251,8 +308,6 @@ class Window(ui.Window):
 
         )
 
-        # self.window.dock_in("right")
-
         self.window.frame.set_style({"background_color": (0, 0, 0, 0)})
         with self.window.frame:
             with ui.VStack(height=0, spacing=SPACING):
@@ -262,33 +317,12 @@ class Window(ui.Window):
                 ui.Label(f"Used: {self.used_percentage}%",
                          alignment=ui.Alignment.CENTER,
                          style={"color": ui.color.pink, "font_size": 18},
-
                          )
                 ui.Label(f"Free: {self.free_percentage}%",
                          alignment=ui.Alignment.CENTER,
                          style={"color": ui.color.lightblue,"font_size": 18},
+                         )
 
-                             )
-        # _show_notification(title="Free Storage %", message="Free Storage Space: 60%",status="info")
-        # _show_notification(title="Used Storage %", message="Used Storage Space: 40%",status="warning")
-        # level = "3"
-        # rack_number = "9"
-        # x_start_1 = -2670.00
-        # y_start_1 = 8308.57
-        # z_base = 0.0
-        # distance_between_columns = -140
-        # cube_size = 100  # Adjust the cube size as needed
-        # rack_depth = 2  # Starting rack depth (set to 2)
-        # offset_y = 130  # Offset for the second rack depth, can be +130 or -130
-        # col_start = 1  # Start column
-        # col_end = 58  # End column
-        #
-        # # Instantiate the SpawnObjects class with the parameters
-        # spawner = SpawnObjects(level=level, rack_number=rack_number, x_start=x_start_1, y_start=y_start_1,
-        #                        z_base=z_base, distance_between_columns=distance_between_columns, cube_size=cube_size,
-        #                        rack_depth=rack_depth, offset_y=offset_y, col_start=col_start, col_end=col_end)
-        # # Create racks with depth and offset
-        # spawner.create_racks_with_depth()
 
     def _btn_exipring_1week(self, date):
         date="2024-10-08"
@@ -332,7 +366,7 @@ class Window(ui.Window):
                 self._build_scene()
                 self._build_expiry()
                 self._build_tracking()
-                self._build_camera_option()
+                # self._build_camera_option()
 
 
 def _show_notification(title: str, message: str, status: str):
