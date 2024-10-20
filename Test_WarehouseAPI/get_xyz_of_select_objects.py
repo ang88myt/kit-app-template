@@ -159,7 +159,7 @@ try:
         # Assuming warehouse and rack number are predefined
         warehouse = "5BTG"
         floor_no = "3"
-        rack_no = "23"
+        rack_no = "26"
 
         # Format the translation values to 2 decimal places
         rounded_translation = [round(coord, 2) for coord in translation]
@@ -179,8 +179,8 @@ try:
         transforms.append(transform_data)
 
     # Define the path for saving the CSV file
-    csv_file_path = os.path.join('D:\\Toll Innovation\\TC Level 3 Demo\\_Update', 'upload_rack_location.csv')
-
+    # csv_file_path = os.path.join('D:\\Toll Innovation\\TC Level 3 Demo\\_Update', 'upload_rack_location.csv')
+    csv_file_path = os.path.join('C:\\_Update_', 'upload_rack_location.csv')
     # Save data to CSV
     save_transforms_to_csv(transforms, csv_file_path)
     print(f"Transforms saved to {csv_file_path}")

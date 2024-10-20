@@ -2,30 +2,21 @@
 __all__ = ["Window"]
 
 import logging
-import omni.kit.notification_manager as nm
 import omni.ui as ui
-
+import omni.kit.notification_manager as nm
 from .style import julia_modeler_style, ATTR_LABEL_WIDTH
 
-import requests
-from .custom_date_search_widget import CustomDateSearchWidget
 from .custom_button import CustomButtonWidget
 from .custom_info_button import CustomInfoWidget
 from .custom_bool_widget import CustomBoolWidget
 from .custom_color_widget import CustomColorWidget
-from .custom_combobox_widget import CustomComboboxWidget
 from .custom_multifield_widget import CustomMultifieldWidget
-from .custom_path_button import CustomPathButtonWidget
-from .custom_radio_collection import CustomRadioCollection
 from .custom_slider_widget import CustomSliderWidget
 from .data_service import DataService
 from .cube_mover_data import CubeMoverDataLayer
-from .spawn_cube import SpawnObjects
 # from .chat_assist import MyAssistantExtension
 import omni.kit.commands
 import carb
-import omni.kit.viewport.utility as viewport_utility
-from omni.ui import DockPosition
 SPACING = 5
 
 
@@ -297,7 +288,7 @@ class Window(ui.Window):
             cube_mover.stop_moving()
 
     def _pgb_on_mouse_pressed(self, x, y, button, modifiers):
-        self.window.set_position(100, 0)
+        # self.window.set_position(100, 0)
         # Create a new window
 
         self.window = ui.Window(

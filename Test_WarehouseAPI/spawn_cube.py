@@ -10,11 +10,11 @@
 #
 # # Define the base parameters for the naming convention
 # level = "3"
-# rack_number = "20"
-# rack_depth = "1"  # Assuming depth remains constant
+# rack_number = "26"
+# rack_depth = "2"  # Assuming depth remains constant
 # # Base coordinates for the first column
-# x_start_1 = -2667.53
-# y_start_1 = 9420.21
+# x_start_1 = -2661
+# y_start_1 = 7130
 # z_base = 0.0
 #
 # # Distance between columns
@@ -71,7 +71,7 @@
 #         carb.log_error(f"Material not found at path: {material_path}")
 #         return
 #
-#     # Get the prim at the ref_prim_path and apply the material binding
+#     # Get the prim at the ref_prima_path and apply the material binding
 #     prim = stage.GetPrimAtPath(prim_path)
 #     if not prim:
 #         carb.log_error(f"Prim not found at path: {prim_path}")
@@ -83,7 +83,7 @@
 #     carb.log_info(f"Material {material_path} applied to {prim_path}")
 #
 # # Create multiple rack columns and spawn cubes
-# for col in range(58):
+# for col in range(56):
 #     create_rack_column(x_start_1 + col * distance_between_columns, y_start_1, col + 1)
 #
 
@@ -175,6 +175,7 @@ class SpawnObjects:
             if self.rack_depth > 1:
                 x_pos = self.x_start + (col - self.col_start) * self.distance_between_columns
                 self.create_rack_column(x_pos, self.y_start + self.offset_y, col, rack_depth=self.rack_depth+1)
+
     def _apply_material_to_prim(stage, prim_path, material_path):
         """Applies the specified material to the given prim."""
         material_prim = stage.GetPrimAtPath(material_path)

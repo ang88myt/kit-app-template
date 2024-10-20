@@ -10,7 +10,7 @@
 # stage = omni.usd.get_context().get_stage()
 #
 # # API details
-# api_url = "https://digital-twin.expangea.com/rack/5BTG/3/10/"
+# api_url = "https://digital-twin.expangea.com/rack/5BTG/3/26/"
 # headers = {
 #     "X-API-KEY": "2c38e689-8bac-4ec6-9e0e-70e98222dc2d"
 # }
@@ -217,7 +217,7 @@ def spawn_pallet_at_location(location, pallet_id):
 
 
 # Loop through rack numbers from 21 to 39
-for rack_number in range(21, 25):
+for rack_number in range(25, 26):
     logger.info(f"Processing rack {rack_number}")
 
     # Fetch data for the current rack
