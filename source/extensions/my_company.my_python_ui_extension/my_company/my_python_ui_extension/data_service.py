@@ -12,11 +12,12 @@ import omni.usd
 
 from pxr import UsdGeom
 from pxr import Usd, UsdGeom, Gf, Sdf, Kind, UsdShade
+
 from typing import Optional, Tuple, Dict, Any
 
 from datetime import datetime, timedelta
 import time
-stage = omni.usd.get_context().get_stage()
+# stage = omni.usd.get_context().get_stage()
 
 # from paho.mqtt import client as mqtt_client
 # from .custom_events import CustomEvents
@@ -28,7 +29,7 @@ class DataService:
         self.headers = {
             'X-API-KEY': '2c38e689-8bac-4ec6-9e0e-70e98222dc2d'
         }
-        self.stage = stage
+        # self.stage = stage
         self.status_counters=0
         self.session = requests.Session()
         self.result_dict = {}
@@ -72,31 +73,54 @@ class DataService:
     def construct_api_url(self, endpoint: str) -> str:
         return f"{self.base_url}{endpoint}"
 
-    def handle_api_request(self, api_url: str) -> Response | dict[Any, Any]:
+    def handle_api_request(self, api_url: str) -> requests.Response | dict:
         try:
             response = requests.post(api_url, headers=self.headers)
             response.raise_for_status()  # Raise an HTTPError for bad responses
             return response
         except requests.RequestException as e:
-
-            return {}
+            print(f"Error occurred during API request: {e}")
+            return {}  # Return an empty dict to indicate failure
 
 
     def fetch_stock_info(self, endpoint: str) -> dict:
         api_url = self.construct_api_url(endpoint)
         response = self.handle_api_request(api_url)
         return response.json().get("data", {})
-        # api_url = self.construct_api_url(endpoint)
-        # stock_info = self.handle_api_request(api_url)
-        # CustomEvents.emit_stock_info(stock_info)  # Emit the custom event with stock info
-        # return stock_info
 
+    # def fetch_coordinates(self, endpoint: str) -> tuple:
+    #     api_url = self.construct_api_url(endpoint)
+    #     response = self.handle_api_request(api_url)
+    #     data = response.json().get("data", {})
+    #     coordinates = data.get("rack_location", {}).get("coordinates", {})
+    #     # print(coordinates)
+    #     return coordinates.get('x'), coordinates.get('y'), coordinates.get('z')
     def fetch_coordinates(self, endpoint: str) -> tuple:
         api_url = self.construct_api_url(endpoint)
         response = self.handle_api_request(api_url)
-        data = response.json().get("data", {})
+
+        # Handle the case where the response is a dictionary (indicating failure)
+        if isinstance(response, dict):
+            print(f"Failed to fetch data from {api_url}.")
+            return None
+
+        # Parse the response as JSON
+        try:
+            data = response.json().get("data", {})
+        except ValueError:
+            print(f"Invalid JSON response from {api_url}.")
+            return None
+
+        # Extract the coordinates
         coordinates = data.get("rack_location", {}).get("coordinates", {})
-        # print(coordinates)
+
+        # If coordinates are None or incomplete, return None or handle accordingly
+        if not coordinates or coordinates.get('x') is None or coordinates.get('y') is None or coordinates.get(
+            'z') is None:
+            print(f"No valid coordinates found at {endpoint}. Skipping.")
+            return None
+
+        # Return the coordinates (x, y, z) if they are valid
         return coordinates.get('x'), coordinates.get('y'), coordinates.get('z')
 
     def fetch_rack_data(self, rack_no):
@@ -149,21 +173,28 @@ class DataService:
                                 "location_id": location_id,
                                 "stock_status_code": stock_status_code
                             })
-                            material_path = "/Environment/Looks/Light_1900K_Yellow"
-                            endpoint = f'rack-location/5BTG/{location_id}/'
+
+                            # Check stock status code and assign material path accordingly
+                            if stock_status_code == "DMG":
+                                material_path = "/Environment/Looks/Light_1900K_Red"
+                            else:
+                                material_path = "/Environment/Looks/Light_1900K_Yellow"
+
+                            # Fetch coordinates for the pallet
+                            endpoint = f"pallet/{pallet_id}/"
                             coordinates = self.fetch_coordinates(endpoint)
 
-                            # self.spawn_cube(stage, pallet_id, coordinates=coordinates, material_path=material_path)
-                            self.display_critical_pallet(pallet_id, location_id, stock_status_code)
-                            print(coordinates)
-                            critical_found = True  # Set flag to True if a critical item is found
+                            # Spawn the cube with the appropriate material based on stock status code
+                            self.spawn_cube( prim_name="Critical_Items", pallet_id=pallet_id, coordinates=coordinates,
+                                            material_path=material_path)
+
+                            # Set flag to True if a critical item is found
+                            critical_found = True
                             self.critical_status_count[
                                 stock_status_code] += 1  # Increment the individual critical status counter
 
                 if not critical_found:
                     print(f"No critical status found in Rack {rack_no}.")
-
-        self.display_total_critical_count()
         return self.critical_status_count, critical_pallets_by_rack
 
     def display_critical_pallet(self, pallet_id, location_id, stock_status_code):
@@ -198,7 +229,7 @@ class DataService:
         if data.status_code == 200:
             data = data.json()
             expired_items = data.get('expired', [])
-            self.process_expired_items(expired_items, date, other_date, stage, material_path=material_path)
+            self.process_expired_items(expired_items, date, other_date, material_path=material_path)
         else:
             carb.log_error(f"Failed to retrieve data: {data.status_code} - {data.text}")
 
@@ -206,7 +237,7 @@ class DataService:
         pallet_id_string = ", ".join(pallet_ids)
         _show_notification(title="Expired item list", message=pallet_id_string)
 
-    def process_expired_items(self, expired_items, date, other_date, stage, material_path=None):
+    def process_expired_items(self, expired_items, date, other_date, material_path=None):
         processed_locations = set()
         for item in expired_items:
             pallet_id, location_id, rack_no, floor_no, balance_shelf_life_days, coordinates = self.extract_item_details(
@@ -225,7 +256,7 @@ class DataService:
                 carb.log_warn(f"Pallet ID: {pallet_id}, Location ID: {location_id}, Rack No: {rack_no}, "
                               f"Balance Shelf Life (days): {balance_shelf_life_days}, Floor No: {floor_no}, Coordinates: ({coordinates['x']}, {coordinates['y']}, {coordinates['z']})")
 
-                self.spawn_cube(stage, pallet_id, coordinates, date, other_date,material_path=material_path)
+                self.spawn_cube(pallet_id, coordinates, date, other_date,material_path=material_path)
             else:
                 carb.log_warn(f"Duplicate location_id {location_id} detected, skipping...")
 
@@ -249,33 +280,67 @@ class DataService:
 
         return pallet_id, location_id, rack_no, floor_no, balance_shelf_life_days, {'x': x, 'y': y, 'z': z}
 
-    def spawn_cube(self, stage, pallet_id, coordinates, date=None, other_date=None, material_path=None):
-        # If date is provided, use it to format the path; otherwise, default to 'no_date'.
-        formatted_date = date.replace('-', '_') if date else "no_date"
-        other_formatted_date = other_date.replace('-', '_') if other_date else "date"
-        xform_prim_path = f"/pallet_expired_{formatted_date}_to_{other_formatted_date}/{pallet_id}"
+    def spawn_cube(self, prim_name, pallet_id, coordinates, date=None, other_date=None, material_path=None):
+        stage = omni.usd.get_context().get_stage()
 
-        if not stage.GetPrimAtPath(xform_prim_path).IsValid():
-            xform = UsdGeom.Xform.Define(stage, xform_prim_path)
-            xform.AddTranslateOp().Set(Gf.Vec3f(coordinates['x'], coordinates['y'], coordinates['z']))
+        pallet_id= pallet_id.replace(".","_")
+        if pallet_id.startswith("0"):
+            pallet_id = pallet_id.lstrip("0")
 
-            cube_prim_path = f"{xform_prim_path}/Cube"
-            cube_prim = UsdGeom.Cube.Define(stage, cube_prim_path)
+        # Construct the log message by combining the arguments into a single string
+        log_message = f"Prim Name: {prim_name}, Pallet ID: {pallet_id}, Coordinates: {coordinates}"
+
+        # Log the warning message with the concatenated string
+        carb.log_warn(log_message)
+
+        # Check if the stage is properly initialized
+        if stage is None:
+            carb.log_error("Stage is not initialized.")
+            return
+
+        # Check if coordinates is None before trying to access its elements
+        if coordinates is None:
+            carb.log_error(f"Coordinates are None for Pallet ID {pallet_id}. Skipping.")
+            return
+
+            # Construct the prim path for the parent Xform (using the prim_name parameter)
+        parent_xform_path_str = f"/{prim_name}"
+        parent_xform_path = Sdf.Path(parent_xform_path_str)
+
+        # Ensure the parent Xform exists, or create it
+        if not stage.GetPrimAtPath(parent_xform_path).IsValid():
+            # Create the parent Xform
+            parent_xform = UsdGeom.Xform.Define(stage, parent_xform_path)
+            parent_xform.AddTranslateOp().Set(Gf.Vec3f(0, 0, 0))  # Default translation for the parent Xform
+            carb.log_warn(f"Created parent Xform: {parent_xform_path_str}")
+
+        # Construct the prim path for the cube under the parent Xform, named after the pallet_id
+        pallet_prim_path_str = f"{parent_xform_path_str}/{pallet_id}"
+        pallet_prim_path = Sdf.Path(pallet_prim_path_str)
+
+        # Check if the pallet prim already exists
+        if not stage.GetPrimAtPath(pallet_prim_path).IsValid():
+            # Create the Xform for the pallet cube under the parent Xform
+            pallet_xform = UsdGeom.Xform.Define(stage, pallet_prim_path)
+            pallet_xform.AddTranslateOp().Set(Gf.Vec3f(coordinates[0], coordinates[1], coordinates[2]))
+
+            # Create the Cube prim under the pallet Xform
+            cube_prim_path_str = f"{pallet_prim_path_str}/Cube"
+            cube_prim = UsdGeom.Cube.Define(stage, Sdf.Path(cube_prim_path_str))
             cube_prim.GetSizeAttr().Set(120.0)
             cube_prim.AddTranslateOp().Set(Gf.Vec3f(0, 0, 60))
-            Usd.ModelAPI(xform).SetKind(Kind.Tokens.assembly)
 
-            _apply_material_to_prim(stage, prim_path=cube_prim_path, material_path=material_path)
+            # Mark the Xform as an assembly
+            Usd.ModelAPI(pallet_xform).SetKind(Kind.Tokens.assembly)
 
-            carb.log_warn(
-                f"Spawned cube for Pallet {pallet_id} at coordinates ({coordinates['x']}, {coordinates['y']}, {coordinates['z']})")
+            # Apply material to the cube if provided
+            if material_path:
+                _apply_material_to_prim(stage, prim_path=cube_prim_path_str, material_path=material_path)
 
+            # Log the creation of the cube
+            carb.log_warn(f"Spawned cube for Pallet {pallet_id} under {prim_name} at coordinates {coordinates}")
         else:
-            carb.log_warn(f"Xform already exists for {xform_prim_path}")
-        # Notification showing the expired item list
-        # pallet_ids = [item['pallet_id'] for item in self.result_dict.values()]
-        # pallet_id_string = ", ".join(pallet_ids)
-        # _show_notification(title="Expired item list", message=pallet_id_string)
+            carb.log_warn(f"Pallet {pallet_id} already exists under {prim_name}.")
 
     def check_expired(self):
         pass

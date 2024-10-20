@@ -88,8 +88,7 @@ requirements = [
     "pandas",
     "langchain",
     "paho-mqtt",
-    "numpy",
-    "isaacsim"
+    "numpy"
 ]
 #"langchain"
 use_online_index = true
