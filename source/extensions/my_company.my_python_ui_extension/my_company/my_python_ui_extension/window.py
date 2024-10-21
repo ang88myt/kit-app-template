@@ -137,6 +137,13 @@ class Window(ui.Window):
             with ui.ScrollingFrame(height=800):  # Ensure the content is scrollable
                 with ui.VStack(spacing=10):
                     # Display grand total of critical statuses at the top
+                    ui.Label(f"Total Storage Free: {self.free_percentage}",
+                             style={"font_size": 18, "color": "Red"})
+                    ui.Label(f"Total Storage Used: {self.used_percentage}",
+                             style={"font_size": 18, "color": "Blue"})
+
+                    ui.Spacer(height=10)
+
                     ui.Label(f"Grand Total Critical Items Found: {total_critical_count}",
                              style={"font_size": 18, "color": "orange"})
 
