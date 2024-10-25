@@ -10,7 +10,7 @@
 # stage = omni.usd.get_context().get_stage()
 #
 # # API details
-# api_url = "https://digital-twin.expangea.com/rack/5BTG/3/26/"
+# api_url = "https://digital-twin.expangea.com/rack/5BTG/3/23/"
 # headers = {
 #     "X-API-KEY": "2c38e689-8bac-4ec6-9e0e-70e98222dc2d"
 # }
@@ -130,8 +130,8 @@ headers = {
 }
 
 # Path to the pallet USD file
-pallet_usd_path = "C:/_update_/Pallet_Asm_A04_120x122x75cm_PR_V_NVD_01.usd"
-
+# pallet_usd_path = "C:/_update_/Pallet_Asm_A04_120x122x75cm_PR_V_NVD_01.usd"
+pallet_usd_path = "D:/Toll Innovation/TC Level 3 Demo/_Update/Pallet_Asm_A04_120x122x75cm_PR_V_NVD_01.usd"
 
 # Function to fetch data from the API for a specific rack number
 def fetch_rack_data(rack_number):
@@ -217,7 +217,7 @@ def spawn_pallet_at_location(location, pallet_id):
 
 
 # Loop through rack numbers from 21 to 39
-for rack_number in range(25, 26):
+for rack_number in range(23, 24):
     logger.info(f"Processing rack {rack_number}")
 
     # Fetch data for the current rack
