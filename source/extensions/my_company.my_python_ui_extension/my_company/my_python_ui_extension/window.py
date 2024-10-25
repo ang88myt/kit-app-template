@@ -211,21 +211,22 @@ class Window(ui.Window):
 
                     # Display Food pallets with collapsable HPC pallet frames under them
                     for food_pallet_id, hpc_pallets in food_pallets_with_hpc.items():
+                        food_pallet_coordi = self._data_service.fetch_coordinates(food_pallet_id)
+
+                        self._data_service.spawn_cube(prim_name="Proximity_Violations", pallet_id=food_pallet_id, coordinates=food_pallet_coordi,material_path="/Environment/Looks/Light_1900K_Yellow" )
+
                         # Create a collapsable frame for each Food pallet
                         with ui.CollapsableFrame(f"Food Pallet ID: {food_pallet_id}", collapsed=True):
-                            with ui.VStack(spacing=5):
-                                # List all HPC pallets related to this Food pallet
-                                for hpc_pallet in hpc_pallets:
-                                    hpc_pallet_id = hpc_pallet['hpc_pallet_id']
-                                    hpc_location_id = hpc_pallet['hpc_location_id']
-                                    distance = hpc_pallet['distance']
-
-                                    # Create a button for each HPC pallet under the food pallet, with distance shown
-                                    CustomButtonWidget(f"HPC Pallet ID: {hpc_pallet_id} | Distance: {distance} units",
-                                                       tooltip=f"Location ID: {hpc_location_id}",
-                                                       btn_callback=lambda p=hpc_pallet_id: self._navigate_to_pallet(p))
-
-
+                                with ui.VStack(spacing=5):
+                                    # List all HPC pallets related to this Food pallet
+                                    for hpc_pallet in hpc_pallets:
+                                        hpc_pallet_id = hpc_pallet['hpc_pallet_id']
+                                        hpc_location_id = hpc_pallet['hpc_location_id']
+                                        distance = hpc_pallet['distance']
+                                        # Create a button for each HPC pallet under the food pallet, with distance shown
+                                        CustomButtonWidget(f"HPC Pallet ID: {hpc_pallet_id} | Distance: {distance} units",
+                                                           tooltip=f"Location ID: {hpc_location_id}",
+                                                           btn_callback=lambda p=hpc_pallet_id: self._navigate_to_pallet(p))
     def _navigate_to_pallet(self,pallet_id):
         self._data_service.show_pallet_info(pallet_id)
 
@@ -245,7 +246,7 @@ class Window(ui.Window):
                     #                        placeholder2="dd-mm-yyyy",
                     #                        btn_callback=self._btn_search_date_range
                     #                        )
-                    # ui.Spacer(height=6)
+                    ui.Spacer(height=6)
                     CustomInfoWidget(
                         label="Expiring Within",
                         placeholder="yyyy-mm-dd",
@@ -257,7 +258,7 @@ class Window(ui.Window):
                     # )
                     # combobox_widget.add_value_changed_callback(self._cbx_expiring_items)
 
-                    # ui.Spacer(height=6)
+                    ui.Spacer(height=6)
                     # ui.Label("Expired Pallets")
                     # ui.Label(str(self._info_label), word_wrap=1)
 
