@@ -2,6 +2,8 @@
 __all__ = ["Window"]
 
 import logging
+from collections import defaultdict
+
 import omni.ui as ui
 import omni.kit.notification_manager as nm
 from .style import julia_modeler_style, ATTR_LABEL_WIDTH
@@ -14,6 +16,8 @@ from .custom_multifield_widget import CustomMultifieldWidget
 from .custom_slider_widget import CustomSliderWidget
 from .data_service import DataService
 from .cube_mover_data import CubeMoverDataLayer
+from .proximity_checker import ProximityChecker
+from .violation_ui import ViolationUI
 # from .chat_assist import MyAssistantExtension
 import omni.kit.commands
 import carb
@@ -28,8 +32,8 @@ class Window(ui.Window):
         self.__label_width = ATTR_LABEL_WIDTH
         self._data_service = DataService()
         # self._chat_assist = MyAssistantExtension()
-        self._pallet_info = None
-        self._pallet_info = None
+        # self._pallet_info = None
+        # self._pallet_info = None
         self._info_label = None
         self.used_percentage = 40
         self.free_percentage = 60
@@ -109,6 +113,11 @@ class Window(ui.Window):
                     tooltip="",
                     btn_callback=self._btn_stock_status
                 )
+                CustomButtonWidget(
+                    btn_label="Proximity Violation Check",
+                    tooltip="",
+                    btn_callback=self._btn_proximity_check
+                )
 
     def _btn_stock_status(self):
         """
@@ -130,8 +139,6 @@ class Window(ui.Window):
             # flags=ui.WINDOW_FLAGS_NO_COLLAPSE | ui.WINDOW_FLAGS_NO_CLOSE | ui.WINDOW_FLAGS_NO_RESIZE
         )
         total_critical_count = sum(critical_status_count.values())
-
-
         # Create a scrolling frame for the main content
         with self.window.frame:
             with ui.ScrollingFrame(height=800):  # Ensure the content is scrollable
@@ -173,6 +180,51 @@ class Window(ui.Window):
                                                            btn_callback=lambda p=pallet_id: self._navigate_to_pallet(p)
 
                                                            )
+    def _btn_proximity_check(self):
+        pro_checker = ProximityChecker(racks_range=(21, 39), distance_threshold=200.0)
+        # Perform proximity check first
+        violations = pro_checker.proximity_check_all_racks()
+
+        # Collect unique food and HPC pallets along with their location IDs and distances
+        food_pallets_with_hpc = defaultdict(list)
+        for violation in violations:
+            food_pallets_with_hpc[violation['food_pallet_id']].append({
+                "hpc_pallet_id": violation['hpc_pallet_id'],
+                "hpc_location_id": violation['hpc_location_id'],
+                "distance": violation['distance']
+            })
+
+        # Get the total number of violations
+        total_violations = pro_checker.get_total_violations()
+
+        # Create the UI window
+        self.window = ui.Window("Pallet Violations", width=400, height=600)
+
+        with self.window.frame:
+            with ui.ScrollingFrame(height=800):  # Ensure the content is scrollable
+                with ui.VStack(spacing=10):
+                    # Display total violations at the top
+                    ui.Label(f"Total Violations Found: {total_violations}", style={"font_size": 18, "color": "orange"})
+
+                    # Add a spacer for UI layout
+                    ui.Spacer(height=10)
+
+                    # Display Food pallets with collapsable HPC pallet frames under them
+                    for food_pallet_id, hpc_pallets in food_pallets_with_hpc.items():
+                        # Create a collapsable frame for each Food pallet
+                        with ui.CollapsableFrame(f"Food Pallet ID: {food_pallet_id}", collapsed=True):
+                            with ui.VStack(spacing=5):
+                                # List all HPC pallets related to this Food pallet
+                                for hpc_pallet in hpc_pallets:
+                                    hpc_pallet_id = hpc_pallet['hpc_pallet_id']
+                                    hpc_location_id = hpc_pallet['hpc_location_id']
+                                    distance = hpc_pallet['distance']
+
+                                    # Create a button for each HPC pallet under the food pallet, with distance shown
+                                    CustomButtonWidget(f"HPC Pallet ID: {hpc_pallet_id} | Distance: {distance} units",
+                                                       tooltip=f"Location ID: {hpc_location_id}",
+                                                       btn_callback=lambda p=hpc_pallet_id: self._navigate_to_pallet(p))
+
 
     def _navigate_to_pallet(self,pallet_id):
         self._data_service.show_pallet_info(pallet_id)
@@ -365,7 +417,6 @@ class Window(ui.Window):
                 self._build_expiry()
                 self._build_tracking()
                 # self._build_camera_option()
-
 
 def _show_notification(title: str, message: str, status: str):
     if status == "info":

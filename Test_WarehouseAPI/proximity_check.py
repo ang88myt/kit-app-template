@@ -1,6 +1,8 @@
 import requests
 import math
 import logging
+import csv
+from collections import defaultdict
 
 # Setup logging configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -55,6 +57,7 @@ def filter_pallets_by_group(rack_data, group_name):
 def proximity_check_all_racks():
     food_pallets = []
     hpc_pallets = []
+    violations = []
 
     # Loop through all racks from 21 to 39
     for rack_no in range(21, 40):
@@ -71,24 +74,57 @@ def proximity_check_all_racks():
     logging.info(f"Total HPC pallets found: {len(hpc_pallets)}")
 
     # Check proximity between each food pallet and each HPC pallet
-    violations = []
     for food_pallet in food_pallets:
         for hpc_pallet in hpc_pallets:
             try:
-                distance = calculate_distance(food_pallet["coordinates"], hpc_pallet["coordinates"])
+                distance = round(calculate_distance(food_pallet["coordinates"], hpc_pallet["coordinates"]), 2)
                 logging.info(
                     f"Checking distance between Food Pallet {food_pallet['pallet_id']} and HPC Pallet {hpc_pallet['pallet_id']}: {distance:.2f} units")
                 if distance < 200.0:  # Check if the distance is less than 200 units
-                    violations.append((food_pallet["pallet_id"], hpc_pallet["pallet_id"], distance))
+                    violations.append({
+                        "food_pallet_id": food_pallet["pallet_id"],
+                        "hpc_pallet_id": hpc_pallet["pallet_id"],
+                        "distance": distance,
+                        "food_location_id": food_pallet["location_id"],
+                        "hpc_location_id": hpc_pallet["location_id"]
+                    })
             except TypeError as e:
                 logging.error(f"Error calculating distance: {e}. Skipping these pallets.")
                 # Print out skipped pallet details
-                logging.info(
+                print(
                     f"Skipped Food Pallet - ID: {food_pallet.get('pallet_id', 'N/A')}, Location: {food_pallet.get('location_id', 'N/A')}, Coordinates: {food_pallet.get('coordinates', 'N/A')}")
-                logging.info(
+                print(
                     f"Skipped HPC Pallet - ID: {hpc_pallet.get('pallet_id', 'N/A')}, Location: {hpc_pallet.get('location_id', 'N/A')}, Coordinates: {hpc_pallet.get('coordinates', 'N/A')}")
 
     return violations
+
+
+# Function to save violations to a CSV file with only the first pallet and location ID shown
+def save_violations_to_csv(violations, filename="violations.csv"):
+    pallet_violations = defaultdict(list)
+
+    # Organize data for one-to-many relationships
+    for violation in violations:
+        pallet_violations[violation["food_pallet_id"]].append(violation)
+
+    # Save to CSV
+    with open(filename, mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["food_pallet_id", "food_location_id", "hpc_pallet_id", "distance", "hpc_location_id"])
+
+        # Write each violation, show the first pallet ID and first location ID, leave blank for the rest
+        for food_pallet_id, violations in pallet_violations.items():
+            first = True
+            for violation in violations:
+                if first:
+                    writer.writerow([food_pallet_id, violation["food_location_id"], violation["hpc_pallet_id"],
+                                     violation["distance"], violation["hpc_location_id"]])
+                    first = False
+                else:
+                    writer.writerow(
+                        ["", "", violation["hpc_pallet_id"], violation["distance"], violation["hpc_location_id"]])
+
+    logging.info(f"Saved {len(violations)} violations to {filename}")
 
 
 # Perform the proximity check across all racks
@@ -97,8 +133,11 @@ violations = proximity_check_all_racks()
 # Display results
 if violations:
     logging.info(f"Total violations found: {len(violations)}")
-    for food_pallet_id, hpc_pallet_id, distance in violations:
+    for violation in violations:
         logging.warning(
-            f"Violation: Food pallet {food_pallet_id} is {distance:.2f} units from HPC pallet {hpc_pallet_id}.")
+            f"Violation: Food pallet {violation['food_pallet_id']} is {violation['distance']:.2f} units from HPC pallet {violation['hpc_pallet_id']}.")
+
+    # Save violations to CSV
+    save_violations_to_csv(violations)
 else:
     logging.info("No proximity violations found.")
