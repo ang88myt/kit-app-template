@@ -3,10 +3,10 @@ __all__ = ["ProximityChecker"]
 import requests
 import math
 import logging
-
+from collections import defaultdict
+import csv
 # Setup logging configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 
 class ProximityChecker:
     BASE_URL = "https://digital-twin.expangea.com/"
@@ -61,35 +61,31 @@ class ProximityChecker:
             logging.error(f"Error processing rack data: {e}. Skipping this entry.")
         return pallets
 
+
     def proximity_check_all_racks(self):
         """Perform proximity check between FOODS and HPC pallets across all racks."""
         self.food_pallets = []
         self.hpc_pallets = []
-        self.violations = []
+        violations_dict = defaultdict(list)
 
-        # Loop through all racks in the given range
         for rack_no in range(self.racks_range[0], self.racks_range[1] + 1):
             rack_data = self.fetch_rack_data(rack_no)
             if not rack_data:
                 logging.warning(f"No data found for rack {rack_no}. Skipping...")
                 continue
 
-            # Append "FOODS" and "HPC" pallets to respective lists
             self.food_pallets += self.filter_pallets_by_group(rack_data, "FOODS")
             self.hpc_pallets += self.filter_pallets_by_group(rack_data, "HPC")
 
-        # logging.info(f"Total food pallets found: {len(self.food_pallets)}")
-        # logging.info(f"Total HPC pallets found: {len(self.hpc_pallets)}")
-
-        # Check proximity between each food pallet and each HPC pallet
         for food_pallet in self.food_pallets:
             for hpc_pallet in self.hpc_pallets:
                 try:
                     distance = round(self.calculate_distance(food_pallet["coordinates"], hpc_pallet["coordinates"]), 2)
                     logging.info(
                         f"Checking distance between Food Pallet {food_pallet['pallet_id']} and HPC Pallet {hpc_pallet['pallet_id']}: {distance:.2f} units")
-                    if distance < self.distance_threshold:  # Check if the distance is less than the threshold
-                        self.violations.append({
+                    if distance < self.distance_threshold:
+
+                        violations_dict[food_pallet["pallet_id"]].append({
                             "food_pallet_id": food_pallet["pallet_id"],
                             "hpc_pallet_id": hpc_pallet["pallet_id"],
                             "distance": distance,
@@ -98,14 +94,42 @@ class ProximityChecker:
                         })
                 except TypeError as e:
                     logging.error(f"Error calculating distance: {e}. Skipping these pallets.")
-                    # Log skipped pallet details
                     logging.error(
                         f"Skipped Food Pallet - ID: {food_pallet.get('pallet_id', 'N/A')}, Location: {food_pallet.get('location_id', 'N/A')}, Coordinates: {food_pallet.get('coordinates', 'N/A')}")
                     logging.error(
                         f"Skipped HPC Pallet - ID: {hpc_pallet.get('pallet_id', 'N/A')}, Location: {hpc_pallet.get('location_id', 'N/A')}, Coordinates: {hpc_pallet.get('coordinates', 'N/A')}")
 
+        self.violations = [item for sublist in violations_dict.values() for item in sublist]
         return self.violations
 
     def get_total_violations(self):
-        """Return the total number of violations found."""
-        return len(self.violations)
+        """Return the count of unique Food pallets involved in violations."""
+        unique_food_pallets = {violation["food_pallet_id"] for violation in self.violations}
+        return len(unique_food_pallets)
+
+    def save_violations_to_csv(self, filename="violations.csv"):
+        """Save the violations data to a CSV file with a one-to-many format for Food pallet to HPC pallets."""
+        pallet_violations = defaultdict(list)
+
+        # Organize data for one-to-many relationships
+        for violation in self.violations:
+            pallet_violations[violation["food_pallet_id"]].append(violation)
+
+        # Save to CSV
+        with open(filename, mode="w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(["food_pallet_id", "hpc_pallet_id", "distance", "food_location_id", "hpc_location_id"])
+
+            # Write each violation, show the first pallet ID and leave blank for the rest
+            for food_pallet_id, violations in pallet_violations.items():
+                first = True
+                for violation in violations:
+                    if first:
+                        writer.writerow([food_pallet_id, violation["hpc_pallet_id"], violation["distance"],
+                                         violation["food_location_id"], violation["hpc_location_id"]])
+                        first = False
+                    else:
+                        writer.writerow(["", violation["hpc_pallet_id"], violation["distance"],
+                                         violation["food_location_id"], violation["hpc_location_id"]])
+
+        logging.info(f"Saved {len(self.violations)} violations to {filename}")

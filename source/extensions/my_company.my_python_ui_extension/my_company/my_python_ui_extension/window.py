@@ -1,5 +1,5 @@
 # noinspection PyInterpreter
-__all__ = ["Window"]
+__all__ = ["Custom_Window"]
 
 import logging
 from collections import defaultdict
@@ -25,7 +25,7 @@ SPACING = 5
 
 
 
-class Window(ui.Window):
+class Custom_Window(ui.Window):
     """The class that represents the window"""
 
     def __init__(self, title: str, delegate=None, **kwargs):
@@ -82,9 +82,8 @@ class Window(ui.Window):
             ui.Line(style_type_name_override="HeaderLine")
 
     def _build_scene(self):
-
         """Build the widgets of the 'Scene' group"""
-        with ui.CollapsableFrame("Warehouse", name="group", build_header_fn=self._build_collapsable_header):
+        with ui.CollapsableFrame("WAREHOUSE", name="group", build_header_fn=self._build_collapsable_header):
             with ui.VStack(height=0, spacing=SPACING):
                 ui.Spacer(height=6)
                 # Custom widget for getting pallet info with button callback
@@ -107,40 +106,26 @@ class Window(ui.Window):
                     tooltip="",
                     btn_callback=self._btn_chat
                 )
+                ui.Spacer(height=6)
 
-                CustomButtonWidget(
-                    btn_label="Stock Status",
-                    tooltip="",
-                    btn_callback=self._btn_stock_status
-                )
-                CustomButtonWidget(
-                    btn_label="Proximity Violation Check",
-                    tooltip="",
-                    btn_callback=self._btn_proximity_check
-                )
+                # CustomButtonWidget(
+                #     btn_label="Stock Status",
+                #     tooltip="",
+                #     btn_callback=self._btn_stock_status
+                # )
+                # ui.Spacer(height=6)
 
-    def _btn_stock_status(self):
+    def _build_stock_status(self):
         """
         Creates the Omniverse UI with CollapsableFrames for each rack,
         shows total critical status codes found at the top, and
         buttons for critical pallets.
         """
-
         # Fetch the critical data from the data service
         critical_status_count, critical_pallets_by_rack = self._data_service.fetch_status_code_data()
-
-        # Initialize the window for displaying pallet stock statuses
-
-        self.window = ui.Window(
-            "Pallet Stock Status",
-            width=400,
-            height=600,
-
-            # flags=ui.WINDOW_FLAGS_NO_COLLAPSE | ui.WINDOW_FLAGS_NO_CLOSE | ui.WINDOW_FLAGS_NO_RESIZE
-        )
         total_critical_count = sum(critical_status_count.values())
         # Create a scrolling frame for the main content
-        with self.window.frame:
+        with ui.CollapsableFrame("Pallet Stock Status", name="group", build_header_fn=self._build_collapsable_header):
             with ui.ScrollingFrame(height=800):  # Ensure the content is scrollable
                 with ui.VStack(spacing=10):
                     # Display grand total of critical statuses at the top
@@ -178,11 +163,10 @@ class Window(ui.Window):
                                         CustomButtonWidget(f"Pallet ID: {pallet_id} | Status: {stock_status_code}",
                                                            tooltip=f"Location ID: {location_id}",
                                                            btn_callback=lambda p=pallet_id: self._navigate_to_pallet(p)
-
                                                            )
-    def _btn_proximity_check(self):
-        pro_checker = ProximityChecker(racks_range=(21, 39), distance_threshold=200.0)
-        # Perform proximity check first
+
+    def _build_violation_check(self):
+        pro_checker = ProximityChecker(racks_range=(19, 41), distance_threshold=200.0)
         violations = pro_checker.proximity_check_all_racks()
 
         # Collect unique food and HPC pallets along with their location IDs and distances
@@ -196,15 +180,13 @@ class Window(ui.Window):
 
         # Get the total number of violations
         total_violations = pro_checker.get_total_violations()
-
-        # Create the UI window
-        self.window = ui.Window("Pallet Violations", width=400, height=600)
-
-        with self.window.frame:
+        pro_checker.save_violations_to_csv()
+        with ui.CollapsableFrame("PALLET VIOLATIONS", name="group", build_header_fn=self._build_collapsable_header):
             with ui.ScrollingFrame(height=800):  # Ensure the content is scrollable
                 with ui.VStack(spacing=10):
                     # Display total violations at the top
-                    ui.Label(f"Total Violations Found: {total_violations}", style={"font_size": 18, "color": "orange"})
+                    ui.Label(f"Total Violations Found: {total_violations}",
+                             style={"font_size": 18, "color": "orange"})
 
                     # Add a spacer for UI layout
                     ui.Spacer(height=10)
@@ -221,9 +203,11 @@ class Window(ui.Window):
                                     distance = hpc_pallet['distance']
 
                                     # Create a button for each HPC pallet under the food pallet, with distance shown
-                                    CustomButtonWidget(f"HPC Pallet ID: {hpc_pallet_id} | Distance: {distance} units",
-                                                       tooltip=f"Location ID: {hpc_location_id}",
-                                                       btn_callback=lambda p=hpc_pallet_id: self._navigate_to_pallet(p))
+                                    CustomButtonWidget(
+                                        f"HPC Pallet ID: {hpc_pallet_id} | Distance: {distance} units",
+                                        tooltip=f"Location ID: {hpc_location_id}",
+                                        btn_callback=lambda p=hpc_pallet_id: self._navigate_to_pallet(p)
+                                    )
 
 
     def _navigate_to_pallet(self,pallet_id):
@@ -414,6 +398,8 @@ class Window(ui.Window):
                 # self._build_title()
                 self._build_storage_utilization()
                 self._build_scene()
+                # self._build_violation_check()
+                # self._build_stock_status()
                 self._build_expiry()
                 self._build_tracking()
                 # self._build_camera_option()

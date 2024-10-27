@@ -130,8 +130,8 @@ headers = {
 }
 
 # Path to the pallet USD file
-# pallet_usd_path = "C:/_update_/Pallet_Asm_A04_120x122x75cm_PR_V_NVD_01.usd"
-pallet_usd_path = "D:/Toll Innovation/TC Level 3 Demo/_Update/Pallet_Asm_A04_120x122x75cm_PR_V_NVD_01.usd"
+pallet_usd_path = "C:/_update_/Pallet_Asm_A04_120x122x75cm_PR_V_NVD_01.usd"
+# pallet_usd_path = "D:/Toll Innovation/TC Level 3 Demo/_Update/Pallet_Asm_A04_120x122x75cm_PR_V_NVD_01.usd"
 
 # Function to fetch data from the API for a specific rack number
 def fetch_rack_data(rack_number):
@@ -152,7 +152,7 @@ def spawn_pallet_at_location(location, pallet_id):
         return
 
     location_id = location.get('location_id', 'unknown')
-    xform_prim_path = f"/rack_location/_{location_id}"
+    xform_prim_path = f"/Rack_Pallets/_{location_id}"
 
     try:
         coordinates = location.get("coordinates", {})
@@ -217,7 +217,7 @@ def spawn_pallet_at_location(location, pallet_id):
 
 
 # Loop through rack numbers from 21 to 39
-for rack_number in range(23, 24):
+for rack_number in range(19, 41):
     logger.info(f"Processing rack {rack_number}")
 
     # Fetch data for the current rack

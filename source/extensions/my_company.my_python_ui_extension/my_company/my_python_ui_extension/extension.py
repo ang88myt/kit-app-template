@@ -11,7 +11,7 @@ from pxr import Usd, UsdGeom, Gf
 import omni.usd
 from omni.ui import scene as s
 from .style import WIN_WIDTH, WIN_HEIGHT
-from .window import Window
+from .window import Custom_Window
 import carb
 # from omni.kit.viewport.utility import get_active_viewport, get_active_viewport_and_window, frame_viewport_selection
 # from .data_service import DataService, move_xform_and_set_view, find_prim_then_select
@@ -62,61 +62,6 @@ class MyExtension(omni.ext.IExt):
         # self._data_service.close()
         carb.log_info("[my_company.my_python_ui_extension] Extension shutdown")
 
-    # def _create_ui(self):
-    #     self._window = ui.Window("Data Link", width=350, height=400)
-
-    # with self._window.frame:
-    #     with ui.VStack():
-    #         width = 200
-    #         height = 10
-    #         ui.Label("PalletID", height=height)
-    #         ui.Spacer(height=height)
-    #         self.endpoint_field = ui.StringField(width=width, height=height)
-    #         ui.Spacer(height=height)
-    #         ui.Label("LocationID", height=height)
-    #         self.location_field = ui.StringField(width=width, height=height)
-    #         self.info_label = ui.Label("")
-    #
-    #         with ui.HStack():
-    #             ui.Button("Submit", clicked_fn=self._on_update, height=20)
-    #             ui.Button("Place", clicked_fn=self._on_place, height=20)
-    #             ui.Button("Reset", clicked_fn=self._on_reset, height=20)
-    #             ui.Button("Test", clicked_fn=self._on_test, height=20)
-
-    # def _on_update(self):
-    #
-    #     endpoint = f"pallet/{self.endpoint_field.model.get_value_as_string()}/"
-    #     print(f"Fetching stock info from endpoint: {endpoint}")
-    #
-    #     find_prim_then_select(self.endpoint_field.model.get_value_as_string())
-    #
-    #     stock_info = self._data_service.fetch_stock_info(endpoint)
-    #
-    #     if stock_info:
-    #         limited_items = list(stock_info.items())[:11]
-    #         info_text = "\n".join([f"{key}: {value}" for key, value in limited_items])
-    #
-    #
-    #         print(info_text)
-    #         # self.info_label.text = info_text
-    #
-    #         location_id = stock_info.get("rack_location").get("location_id")
-    #         location_endpoint = f"rack-location/{location_id}/"
-    #         print(f"Fetching coordinates from endpoint: {location_endpoint}")
-    #
-    #         x, y, z = self._data_service.fetch_coordinates(endpoint)
-    #         print(x, y , z)
-    #         if x is not None and y is not None and z is not None:
-    #             self._move_camera(x, y, z)
-    #         else:
-    #             self.info_label.text = "Failed to fetch stock info"
-    # def _cleanup_viewport_window(self):
-    #     """Clean up the reference to the viewport window"""
-    #     if self._viewport_window:
-    #         # Perform any necessary disconnection or cleanup actions
-    #         self._viewport_window = None
-    #     print("Viewport window reference cleaned up.")
-
     def _set_menu(self, value):
         """Set the menu to create this window on and off"""
         editor_menu = omni.kit.ui.get_editor_menu()
@@ -144,7 +89,7 @@ class MyExtension(omni.ext.IExt):
             if not self._window:
                 try:
                     carb.log_info("Creating a new window instance...")
-                    self._window = Window(
+                    self._window = Custom_Window(
                         MyExtension.WINDOW_NAME, width=WIN_WIDTH, height=WIN_HEIGHT)
                     self._window.set_visibility_changed_fn(self._visiblity_changed_fn)
                     carb.log_warn("Window created successfully.")
