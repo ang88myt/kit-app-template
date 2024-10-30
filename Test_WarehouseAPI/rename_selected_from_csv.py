@@ -57,7 +57,7 @@ class ItemRenamer:
         index = 0  # Keep track of which name we're using
         for area, names in self.rename_data.items():
             # Check if an Xform for the area already exists; if not, create it
-            area_path = f"/World/{area}"
+            area_path = f"/World/Non_Rack_Areas/{area}"
             if not stage.GetPrimAtPath(area_path):
                 omni.kit.commands.execute("CreatePrimWithDefaultXform", prim_type="Xform", prim_path=area_path)
                 print(f"Created Xform: {area_path}")
@@ -93,6 +93,6 @@ class ItemRenamer:
 
 # Usage example:
 # Replace 'path/to/your/file.csv' with the actual path to your CSV file
-file_path = 'C:/_update_/file.csv'
+file_path = 'D:/Toll Innovation/TC Level 3 Demo/_Update/file.csv'
 renamer = ItemRenamer(file_path)
 renamer.rename_and_organize_items()

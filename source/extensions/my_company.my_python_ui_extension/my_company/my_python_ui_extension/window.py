@@ -83,7 +83,8 @@ class Custom_Window(ui.Window):
 
     def _build_scene(self):
         """Build the widgets of the 'Scene' group"""
-        with ui.CollapsableFrame("WAREHOUSE", name="group", build_header_fn=self._build_collapsable_header):
+        with ui.CollapsableFrame("WAREHOUSE", name="group",
+                                 build_header_fn=self._build_collapsable_header):
             with ui.VStack(height=0, spacing=SPACING):
                 ui.Spacer(height=6)
                 # Custom widget for getting pallet info with button callback
@@ -115,14 +116,17 @@ class Custom_Window(ui.Window):
                 # ui.Spacer(height=6)
 
     def _build_grid(self):
-        with ui.CollapsableFrame("GRID", name="group", build_header_fn=self._build_collapsable_header):
+        with ui.CollapsableFrame("GRID", name="group2",
+                                 build_header_fn=self._build_collapsable_header,
+                                 collapsed=True):
             with ui.ScrollingFrame(
                 height=425,
                 horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF,
                 vertical_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_ON,
             ):
                 # Create a grid layout with specified column and row dimensions
-                with ui.CollapsableFrame("Rack", name="group", build_header_fn=self._build_collapsable_header):
+                with ui.CollapsableFrame("Rack", name="group",
+                                         build_header_fn=self._build_collapsable_header):
                     with ui.VGrid(column_width=100, row_height=100):
                         # Loop to add elements to each grid cell
                         for i in range(100):
@@ -168,7 +172,10 @@ class Custom_Window(ui.Window):
         critical_status_count, critical_pallets_by_rack = self._data_service.fetch_status_code_data()
         total_critical_count = sum(critical_status_count.values())
         # Create a scrolling frame for the main content
-        with ui.CollapsableFrame("CRITICAL STOCK STATUS", name="group", build_header_fn=self._build_collapsable_header):
+        with ui.CollapsableFrame("CRITICAL STOCK STATUS",
+                                 name="group",
+                                 build_header_fn=self._build_collapsable_header,
+                                 collapsed=True):
             with ui.ScrollingFrame(height=800):  # Ensure the content is scrollable
                 with ui.VStack(spacing=3):
                     # # Display grand total of critical statuses at the top
@@ -200,7 +207,9 @@ class Custom_Window(ui.Window):
                         # Only create a collapsable frame if there are critical items
                         if pallets:
                             # Create a collapsable frame for each rack number
-                            with ui.CollapsableFrame(f"Rack {rack_no}",name="group", build_header_fn=self._build_collapsable_header, collapsed=True): # name="group", build_header_fn=self._build_collapsable_header
+                            with ui.CollapsableFrame(f"Rack {rack_no}",name="group",
+                                                     build_header_fn=self._build_collapsable_header,
+                                                     collapsed=True): # name="group", build_header_fn=self._build_collapsable_header
                                 with ui.VStack(spacing=6):
                                     # List critical pallets found in this rack
                                     for pallet in pallets:
@@ -231,7 +240,9 @@ class Custom_Window(ui.Window):
         # Get the total number of violations
         total_violations = pro_checker.get_total_violations()
         pro_checker.save_violations_to_csv()
-        with ui.CollapsableFrame("PALLET VIOLATIONS", name="group", build_header_fn=self._build_collapsable_header):
+        with ui.CollapsableFrame("PALLET VIOLATIONS", name="group", build_header_fn=self._build_collapsable_header,
+                                 collapsed=True
+                                 ):
             with ui.ScrollingFrame(height=800):  # Ensure the content is scrollable
                 with ui.VStack(spacing=10):
                     # Display total violations at the top
@@ -350,7 +361,7 @@ class Custom_Window(ui.Window):
                 with ui.HStack():
                     progress_bar = ui.ProgressBar()
                     progress_bar.model.set_value(self.free_percentage / 100)
-                    progress_bar.set_mouse_pressed_fn(self._pgb_on_mouse_pressed)
+                    # progress_bar.set_mouse_pressed_fn(self._pgb_on_mouse_pressed)
 
                     ui.Spacer(width=10)
 
@@ -441,9 +452,9 @@ class Custom_Window(ui.Window):
                 self._build_storage_utilization()
                 self._build_scene()
                 # self._build_violation_check()
-                self._build_stock_status()
-                # self._build_expiry()
-                self._build_tracking()
+                # self._build_stock_status()
+                self._build_expiry()
+                # self._build_tracking()
                 self._build_grid()
                 # self._build_camera_option()
 
