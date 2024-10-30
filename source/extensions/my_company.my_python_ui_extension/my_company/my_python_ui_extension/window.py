@@ -441,7 +441,7 @@ class Custom_Window(ui.Window):
                 self._build_storage_utilization()
                 self._build_scene()
                 # self._build_violation_check()
-                # self._build_stock_status()
+                self._build_stock_status()
                 # self._build_expiry()
                 self._build_tracking()
                 self._build_grid()

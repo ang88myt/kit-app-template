@@ -1,24 +1,27 @@
 # data_service.py
 __all__ = ["DataService"]
 
+from collections import defaultdict
 from html.parser import locatestarttagend_tolerant
 
 import requests
 import re
-import json
+#import json
 import carb
 from requests import Response
 
 import omni
 import omni.usd
 
-from pxr import UsdGeom
+#from pxr import UsdGeom
 from pxr import Usd, UsdGeom, Gf, Sdf, Kind, UsdShade
 
 from typing import Optional, Tuple, Dict, Any
-
-from datetime import datetime, timedelta
-import time
+import csv
+import logging
+from typing import List, Dict
+# from datetime import datetime, timedelta
+# import time
 # stage = omni.usd.get_context().get_stage()
 
 # from paho.mqtt import client as mqtt_client
@@ -201,6 +204,15 @@ class DataService:
 
                 if not critical_found:
                     print(f"No critical status found in Rack {rack_no}.")
+
+            # Flatten and save critical pallets by rack
+        flat_data_for_csv = [
+            {**{"rack_no": rack_no}, **pallet}
+            for rack_no, pallets in critical_pallets_by_rack.items()
+            for pallet in pallets
+        ]
+        save_to_csv(flat_data_for_csv, "critical_pallets_by_rack.csv")
+
         return self.critical_status_count, critical_pallets_by_rack
 
     def display_critical_pallet(self, pallet_id, location_id, stock_status_code):
@@ -672,4 +684,71 @@ def log_status(pallet_id, stock_status_code, level):
         carb.log_error(f"Pallet ID {pallet_id} has stock status {stock_status_code}.")
     elif level == "WARNING":
         carb.log_warn(f"Pallet ID {pallet_id} has stock status {stock_status_code}.")
+
+
+def save_to_csv(data: List[Dict], file_name: str, group_by_key: str = None):
+    """
+    Save a list of dictionaries to a CSV file, with optional support for grouping.
+
+    Args:
+        data (List[Dict]): A list of dictionaries, each containing data for one row.
+        file_name (str): The name of the output CSV file.
+        group_by_key (str, optional): Key to group data by, leaving subsequent rows blank for that group.
+    """
+    if not data:
+        logging.error("No data provided to save to CSV.")
+        return
+
+    # Use the keys of the first dictionary as the CSV headers
+    headers = data[0].keys()
+
+    # If a grouping key is provided, organize data by that key
+    grouped_data = defaultdict(list)
+    if group_by_key:
+        for item in data:
+            grouped_data[item[group_by_key]].append(item)
+    else:
+        grouped_data[None] = data
+
+    try:
+        with open(file_name, mode='w', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=headers)
+            writer.writeheader()
+
+            # Write rows, handling grouping if needed
+            for group_key, items in grouped_data.items():
+                first = True
+                for item in items:
+                    row = {**item}  # Copy item data to modify for grouping
+
+                    # Blank out grouped columns if not the first row in the group
+                    if not first and group_by_key:
+                        row[group_by_key] = ""
+                    writer.writerow(row)
+                    first = False
+
+        logging.info(f"Data successfully saved to {file_name}")
+
+    except Exception as e:
+        logging.error(f"Failed to save data to CSV: {e}")
+
+# # Sample Usage for Violations
+# violations = [
+#     {"food_pallet_id": "UINT000001", "food_location_id": "3211001", "hpc_pallet_id": "UINT000002", "distance": 150.5, "hpc_location_id": "3211002"},
+#     {"food_pallet_id": "UINT000001", "food_location_id": "3211001", "hpc_pallet_id": "UINT000003", "distance": 180.3, "hpc_location_id": "3211003"},
+#     {"food_pallet_id": "UINT000004", "food_location_id": "3211004", "hpc_pallet_id": "UINT000005", "distance": 200.0, "hpc_location_id": "3211005"}
+# ]
+#
+# # Save violations to CSV with grouping
+# save_to_csv(violations, "proximity_violations.csv", group_by_key="food_pallet_id")
+#
+# # Sample Usage for critical_pallets_by_rack without grouping
+# critical_pallets = [
+#     {"rack_no": 20, "pallet_id": "UINT0000081504", "location_id": "3221011", "stock_status_code": "DMG", "x": -2371.77, "y": 7860.5, "z": 0.0},
+#     {"rack_no": 21, "pallet_id": "UINT0000081505", "location_id": "3221012", "stock_status_code": "EX", "x": -2372.77, "y": 7862.0, "z": 0.0}
+# ]
+#
+# # Save critical pallets to CSV without grouping
+# save_to_csv(critical_pallets, "critical_pallets_by_rack.csv")
+
 

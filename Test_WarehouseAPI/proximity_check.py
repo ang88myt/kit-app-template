@@ -100,44 +100,44 @@ def proximity_check_all_racks():
 
 
 # Function to save violations to a CSV file with only the first pallet and location ID shown
-def save_violations_to_csv(violations, filename="violations.csv"):
-    pallet_violations = defaultdict(list)
+# def save_violations_to_csv(violations, filename="violations.csv"):
+#     pallet_violations = defaultdict(list)
+#
+#     # Organize data for one-to-many relationships
+#     for violation in violations:
+#         pallet_violations[violation["food_pallet_id"]].append(violation)
+#
+#     # Save to CSV
+#     with open(filename, mode="w", newline="") as file:
+#         writer = csv.writer(file)
+#         writer.writerow(["food_pallet_id", "food_location_id", "hpc_pallet_id", "distance", "hpc_location_id"])
+#
+#         # Write each violation, show the first pallet ID and first location ID, leave blank for the rest
+#         for food_pallet_id, violations in pallet_violations.items():
+#             first = True
+#             for violation in violations:
+#                 if first:
+#                     writer.writerow([food_pallet_id, violation["food_location_id"], violation["hpc_pallet_id"],
+#                                      violation["distance"], violation["hpc_location_id"]])
+#                     first = False
+#                 else:
+#                     writer.writerow(
+#                         ["", "", violation["hpc_pallet_id"], violation["distance"], violation["hpc_location_id"]])
+#
+#     logging.info(f"Saved {len(violations)} violations to {filename}")
 
-    # Organize data for one-to-many relationships
-    for violation in violations:
-        pallet_violations[violation["food_pallet_id"]].append(violation)
 
-    # Save to CSV
-    with open(filename, mode="w", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(["food_pallet_id", "food_location_id", "hpc_pallet_id", "distance", "hpc_location_id"])
-
-        # Write each violation, show the first pallet ID and first location ID, leave blank for the rest
-        for food_pallet_id, violations in pallet_violations.items():
-            first = True
-            for violation in violations:
-                if first:
-                    writer.writerow([food_pallet_id, violation["food_location_id"], violation["hpc_pallet_id"],
-                                     violation["distance"], violation["hpc_location_id"]])
-                    first = False
-                else:
-                    writer.writerow(
-                        ["", "", violation["hpc_pallet_id"], violation["distance"], violation["hpc_location_id"]])
-
-    logging.info(f"Saved {len(violations)} violations to {filename}")
-
-
-# Perform the proximity check across all racks
-violations = proximity_check_all_racks()
-
-# Display results
-if violations:
-    logging.info(f"Total violations found: {len(violations)}")
-    for violation in violations:
-        logging.warning(
-            f"Violation: Food pallet {violation['food_pallet_id']} is {violation['distance']:.2f} units from HPC pallet {violation['hpc_pallet_id']}.")
-
-    # Save violations to CSV
-    save_violations_to_csv(violations)
-else:
-    logging.info("No proximity violations found.")
+# # Perform the proximity check across all racks
+# violations = proximity_check_all_racks()
+#
+# # Display results
+# if violations:
+#     logging.info(f"Total violations found: {len(violations)}")
+#     for violation in violations:
+#         logging.warning(
+#             f"Violation: Food pallet {violation['food_pallet_id']} is {violation['distance']:.2f} units from HPC pallet {violation['hpc_pallet_id']}.")
+#
+#     # Save violations to CSV
+#     save_violations_to_csv(violations)
+# else:
+#     logging.info("No proximity violations found.")
