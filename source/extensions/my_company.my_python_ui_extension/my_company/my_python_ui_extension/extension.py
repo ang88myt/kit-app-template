@@ -33,8 +33,6 @@ class MyExtension(omni.ext.IExt):
 
         self._window = None
 
-        # Initialize window and data service
-        # self._data_service = DataService()
 
         # Register the window display function in the workspace
         ui.Workspace.set_show_window_fn(MyExtension.WINDOW_NAME, partial(self.show_window, None))

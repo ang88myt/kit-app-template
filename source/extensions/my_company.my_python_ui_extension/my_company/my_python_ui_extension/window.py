@@ -7,7 +7,7 @@ from collections import defaultdict
 import omni.ui as ui
 import omni.kit.notification_manager as nm
 from .style import julia_modeler_style, ATTR_LABEL_WIDTH
-
+from omni.ui import color as cl
 from .custom_button import CustomButtonWidget
 from .custom_info_button import CustomInfoWidget
 from .custom_bool_widget import CustomBoolWidget
@@ -94,26 +94,69 @@ class Custom_Window(ui.Window):
                 )
                 ui.Spacer(height=6)
 
-                CustomButtonWidget(
-                    btn_label="Show Damaged Goods",
-                    tooltip="",
-                    btn_callback=self._btn_damaged_goods
-                )
-                ui.Spacer(height=6)
-
-                CustomButtonWidget(
-                    btn_label="Chat Assistant",
-                    tooltip="",
-                    btn_callback=self._btn_chat
-                )
-                ui.Spacer(height=6)
-
                 # CustomButtonWidget(
-                #     btn_label="Stock Status",
+                #     btn_label="Show Damaged Goods",
                 #     tooltip="",
-                #     btn_callback=self._btn_stock_status
+                #     btn_callback=self._btn_damaged_goods
                 # )
                 # ui.Spacer(height=6)
+
+                # CustomButtonWidget(
+                #     btn_label="Chat Assistant",
+                #     tooltip="",
+                #     btn_callback=self._btn_chat
+                # )
+                # ui.Spacer(height=6)
+                CustomButtonWidget(
+                    btn_label="Stock Status",
+                    tooltip="Critical Stock Status",
+                    btn_callback=self._build_stock_status
+                )
+                # ui.Spacer(height=6)
+
+    def _build_grid(self):
+        with ui.CollapsableFrame("GRID", name="group", build_header_fn=self._build_collapsable_header):
+            with ui.ScrollingFrame(
+                height=425,
+                horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF,
+                vertical_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_ON,
+            ):
+                # Create a grid layout with specified column and row dimensions
+                with ui.CollapsableFrame("Rack", name="group", build_header_fn=self._build_collapsable_header):
+                    with ui.VGrid(column_width=100, row_height=100):
+                        # Loop to add elements to each grid cell
+                        for i in range(100):
+                            with ui.ZStack():
+                                # Background rectangle
+                                ui.Rectangle(
+                                    style={
+                                        "border_color": cl.black,
+                                        "background_color": cl.white,
+                                        "border_width": 1,
+                                        "margin": 0,
+                                    }
+                                )
+
+                                # Place a label and button in each cell
+                                with ui.VStack():
+                                    # Create a button styled to look like a label
+                                    def on_label_click(i=i):  # Capture the current index in the function
+                                        print(f"Label {i} clicked!")
+
+                                    ui.Button(
+                                        f"Label {i}",
+                                        alignment=ui.Alignment.CENTER,
+                                        style={"margin": 5, "background_color": cl.white, "border_width": 0,
+                                               "font_size": 14},
+                                        clicked_fn=lambda i=i: on_label_click(i),
+                                    )
+
+                                    CustomButtonWidget(
+                                        btn_label=f"Button {i}",
+                                        tooltip=f"test{i}",
+                                        btn_callback=self._btn_chat
+                                    )
+
 
     def _build_stock_status(self):
         """
@@ -125,33 +168,40 @@ class Custom_Window(ui.Window):
         critical_status_count, critical_pallets_by_rack = self._data_service.fetch_status_code_data()
         total_critical_count = sum(critical_status_count.values())
         # Create a scrolling frame for the main content
-        with ui.CollapsableFrame("Pallet Stock Status", name="group", build_header_fn=self._build_collapsable_header):
+        with ui.CollapsableFrame("CRITICAL STOCK STATUS", name="group", build_header_fn=self._build_collapsable_header):
             with ui.ScrollingFrame(height=800):  # Ensure the content is scrollable
-                with ui.VStack(spacing=10):
-                    # Display grand total of critical statuses at the top
-                    ui.Label(f"Total Storage Free: {self.free_percentage}",
-                             style={"font_size": 18, "color": "Red"})
-                    ui.Label(f"Total Storage Used: {self.used_percentage}",
-                             style={"font_size": 18, "color": "Blue"})
-
-                    ui.Spacer(height=10)
+                with ui.VStack(spacing=3):
+                    # # Display grand total of critical statuses at the top
+                    # ui.Label(f"Total Storage Free: {self.free_percentage}",
+                    #          style={"font_size": 18, "color": "Red"})
+                    # ui.Label(f"Total Storage Used: {self.used_percentage}",
+                    #          style={"font_size": 18, "color": "Blue"})
+                    #
+                    # ui.Spacer(height=10)
 
                     ui.Label(f"Grand Total Critical Items Found: {total_critical_count}",
                              style={"font_size": 18, "color": "orange"})
-
+                    status_code_colors = {
+                        "DMG": "blue",
+                        "NE": "cyan",
+                        "QAF": "purple",
+                        "EX": "red"
+                    }
                     # Display individual critical status counts
                     for status_code, count in critical_status_count.items():
-                        ui.Label(f"{status_code}: {count} items", style={"font_size": 14, "color": "white"})
+                        color = status_code_colors.get(status_code,
+                                                       "white")  # Default to white if status_code is not in the mapping
+                        ui.Label(f"{status_code}: {count} items", style={"font_size": 14, "color": color})
 
-                    ui.Spacer(height=10)  # Add some space between the summary and collapsable frames
+                    ui.Spacer(height=6)  # Add some space between the summary and collapsable frames
 
                     # Display collapsable frames for each rack with critical pallets
                     for rack_no, pallets in critical_pallets_by_rack.items():
                         # Only create a collapsable frame if there are critical items
                         if pallets:
                             # Create a collapsable frame for each rack number
-                            with ui.CollapsableFrame(f"Rack {rack_no}"):
-                                with ui.VStack(spacing=5):
+                            with ui.CollapsableFrame(f"Rack {rack_no}",name="group", build_header_fn=self._build_collapsable_header, collapsed=True): # name="group", build_header_fn=self._build_collapsable_header
+                                with ui.VStack(spacing=6):
                                     # List critical pallets found in this rack
                                     for pallet in pallets:
                                         pallet_id = pallet["pallet_id"]
@@ -208,7 +258,6 @@ class Custom_Window(ui.Window):
                                         tooltip=f"Location ID: {hpc_location_id}",
                                         btn_callback=lambda p=hpc_pallet_id: self._navigate_to_pallet(p)
                                     )
-
 
     def _navigate_to_pallet(self,pallet_id):
         self._data_service.show_pallet_info(pallet_id)
@@ -357,15 +406,11 @@ class Custom_Window(ui.Window):
                          style={"color": ui.color.lightblue,"font_size": 18},
                          )
 
-
     def _btn_exipring_1week(self, date):
         date="2024-10-08"
         material_path = "/Environment/Looks/Light_1900K_Yellow"
         self._data_service.check_expiry_date(date=date, material_path=material_path)
 
-
-    def _btn_damaged_goods(self):
-        pass
 
     def _btn_chat(self):
         pass
@@ -374,9 +419,6 @@ class Custom_Window(ui.Window):
     def _btn_space_utilization(self):
         pass
 
-    def _btn_search_date_range(self, date, other_date):
-        material_path = "/Environment/Looks/Light_1900K_Red"
-        self._data_service.check_expiry_date(date=date, other_date=other_date,material_path=material_path)
 
     def _btn_reset_view(self):
         pass
@@ -400,8 +442,9 @@ class Custom_Window(ui.Window):
                 self._build_scene()
                 # self._build_violation_check()
                 # self._build_stock_status()
-                self._build_expiry()
+                # self._build_expiry()
                 self._build_tracking()
+                self._build_grid()
                 # self._build_camera_option()
 
 def _show_notification(title: str, message: str, status: str):

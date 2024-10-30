@@ -32,6 +32,6 @@ class CustomButtonWidget:
                 text=self.__btn_label,
                 tooltip=self.__tooltip,
                 height=BLOCK_HEIGHT,
-                width=ui.Fraction(1),
+                width=ui.Fraction(2),
                 clicked_fn=self.__callback
             )

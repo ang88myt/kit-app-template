@@ -1,6 +1,8 @@
 # data_service.py
 __all__ = ["DataService"]
 
+from html.parser import locatestarttagend_tolerant
+
 import requests
 import re
 import json
@@ -141,7 +143,7 @@ class DataService:
     def fetch_status_code_data(self):
         critical_pallets_by_rack = {}  # Dictionary to store critical pallets by rack
 
-        for rack_no in range(9, 41):  # Loop through rack numbers 9 to 40
+        for rack_no in range(20, 41):  # Loop through rack numbers 9 to 40
             rack_data = self.fetch_rack_data(rack_no)
 
             if rack_data and "data" in rack_data:
@@ -176,16 +178,20 @@ class DataService:
 
                             # Check stock status code and assign material path accordingly
                             if stock_status_code == "DMG":
-                                material_path = "/Environment/Looks/Light_1900K_Red"
+                                material_path = "/Environment/Looks/Glass_Color_Mat/Blue_Glass" #DMG
+                            elif stock_status_code == "NE":
+                                material_path = "/Environment/Looks/Glass_Color_Mat/Cyan_Glass" #NE
+                            elif stock_status_code == "QAF":
+                                material_path = "/Environment/Looks/Glass_Color_Mat/Purple_Glass" #QAF
                             else:
-                                material_path = "/Environment/Looks/Light_1900K_Yellow"
+                                material_path = "/Environment/Looks/Glass_Color_Mat/Red_Glass" #EX
 
                             # Fetch coordinates for the pallet
                             endpoint = f"pallet/{pallet_id}/"
                             coordinates = self.fetch_coordinates(endpoint)
 
                             # Spawn the cube with the appropriate material based on stock status code
-                            self.spawn_cube( prim_name="Critical_Items", pallet_id=pallet_id, coordinates=coordinates,
+                            self.spawn_cube( prim_name=f"Critical_Items",rack_no=rack_no, location_id=location_id, pallet_id=pallet_id, coordinates=coordinates,
                                             material_path=material_path)
 
                             # Set flag to True if a critical item is found
@@ -280,7 +286,8 @@ class DataService:
 
         return pallet_id, location_id, rack_no, floor_no, balance_shelf_life_days, {'x': x, 'y': y, 'z': z}
 
-    def spawn_cube(self, prim_name, pallet_id, coordinates, date=None, other_date=None, material_path=None):
+    def spawn_cube(self, prim_name, pallet_id, coordinates, date=None, other_date=None,
+                   material_path=None, location_id=None, rack_no=None):
         stage = omni.usd.get_context().get_stage()
 
         pallet_id= pallet_id.replace(".","_")
@@ -288,7 +295,7 @@ class DataService:
             pallet_id = pallet_id.lstrip("0")
 
         # Construct the log message by combining the arguments into a single string
-        log_message = f"Prim Name: {prim_name}, Pallet ID: {pallet_id}, Coordinates: {coordinates}"
+        log_message = f"Prim Name: {prim_name},location ID:{location_id}, Pallet ID: {pallet_id}, Coordinates: {coordinates}"
 
         # Log the warning message with the concatenated string
         carb.log_warn(log_message)
@@ -315,7 +322,7 @@ class DataService:
             carb.log_warn(f"Created parent Xform: {parent_xform_path_str}")
 
         # Construct the prim path for the cube under the parent Xform, named after the pallet_id
-        pallet_prim_path_str = f"{parent_xform_path_str}/{pallet_id}"
+        pallet_prim_path_str = f"{parent_xform_path_str}/Rack_{rack_no}/_{location_id}/{pallet_id}"
         pallet_prim_path = Sdf.Path(pallet_prim_path_str)
 
         # Check if the pallet prim already exists
@@ -338,7 +345,7 @@ class DataService:
                 _apply_material_to_prim(stage, prim_path=cube_prim_path_str, material_path=material_path)
 
             # Log the creation of the cube
-            carb.log_warn(f"Spawned cube for Pallet {pallet_id} under {prim_name} at coordinates {coordinates}")
+            carb.log_warn(f"Spawned cube for Pallet Rack{rack_no} under {pallet_id} under {prim_name} at coordinates {coordinates}")
         else:
             carb.log_warn(f"Pallet {pallet_id} already exists under {prim_name}.")
 
