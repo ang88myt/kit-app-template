@@ -237,12 +237,41 @@ class Custom_Window(ui.Window):
                 "distance": violation['distance']
             })
 
+            # Spawn cubes for each pallet in violation with the appropriate material
+            food_pallet_id = violation['food_pallet_id']
+            hpc_pallet_id = violation['hpc_pallet_id']
+            food_location_id = violation['food_location_id']
+            hpc_location_id = violation['hpc_location_id']
+
+            # Spawn cube for food pallet with yellow material
+            food_coordinates = self._data_service.fetch_coordinates(f"pallet/{food_pallet_id}/")
+            self._data_service.spawn_cube(
+                prim_name="ProximityViolations",
+                pallet_id=food_pallet_id,
+                coordinates=food_coordinates,
+                material_path="/Environment/Looks/Light_1900K_Yellow",
+                location_id=food_location_id,
+                rack_no=violation.get("rack_no")
+            )
+
+            # Spawn cube for hpc pallet with red material
+            hpc_coordinates = self._data_service.fetch_coordinates(f"pallet/{hpc_pallet_id}/")
+            self._data_service.spawn_cube(
+                prim_name="ProximityViolations",
+                pallet_id=hpc_pallet_id,
+                coordinates=hpc_coordinates,
+                material_path="/Environment/Looks/Light_1900K_Red",
+                location_id=hpc_location_id,
+                rack_no=violation.get("rack_no")
+            )
+
         # Get the total number of violations
         total_violations = pro_checker.get_total_violations()
         pro_checker.save_violations_to_csv()
+
+        # Create the UI for displaying violations
         with ui.CollapsableFrame("PALLET VIOLATIONS", name="group", build_header_fn=self._build_collapsable_header,
-                                 collapsed=True
-                                 ):
+                                 collapsed=True):
             with ui.ScrollingFrame(height=800):  # Ensure the content is scrollable
                 with ui.VStack(spacing=10):
                     # Display total violations at the top
@@ -451,11 +480,11 @@ class Custom_Window(ui.Window):
                 # self._build_title()
                 self._build_storage_utilization()
                 self._build_scene()
-                # self._build_violation_check()
+                self._build_violation_check()
                 # self._build_stock_status()
-                self._build_expiry()
-                # self._build_tracking()
-                self._build_grid()
+                # self._build_expiry()
+                self._build_tracking()
+                # self._build_grid()
                 # self._build_camera_option()
 
 def _show_notification(title: str, message: str, status: str):

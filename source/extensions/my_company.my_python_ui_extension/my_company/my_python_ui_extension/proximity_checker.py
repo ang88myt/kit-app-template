@@ -77,28 +77,42 @@ class ProximityChecker:
             self.food_pallets += self.filter_pallets_by_group(rack_data, "FOODS")
             self.hpc_pallets += self.filter_pallets_by_group(rack_data, "HPC")
 
-        for food_pallet in self.food_pallets:
-            for hpc_pallet in self.hpc_pallets:
-                try:
-                    distance = round(self.calculate_distance(food_pallet["coordinates"], hpc_pallet["coordinates"]), 2)
-                    logging.info(
-                        f"Checking distance between Food Pallet {food_pallet['pallet_id']} and HPC Pallet {hpc_pallet['pallet_id']}: {distance:.2f} units")
-                    if distance < self.distance_threshold:
+        for rack_no in range(self.racks_range[0], self.racks_range[1] + 1):
+            rack_data = self.fetch_rack_data(rack_no)
+            if not rack_data:
+                logging.warning(f"No data found for rack {rack_no}. Skipping...")
+                continue
 
-                        violations_dict[food_pallet["pallet_id"]].append({
-                            "food_pallet_id": food_pallet["pallet_id"],
-                            "hpc_pallet_id": hpc_pallet["pallet_id"],
-                            "distance": distance,
-                            "food_location_id": food_pallet["location_id"],
-                            "hpc_location_id": hpc_pallet["location_id"]
-                        })
-                except TypeError as e:
-                    logging.error(f"Error calculating distance: {e}. Skipping these pallets.")
-                    logging.error(
-                        f"Skipped Food Pallet - ID: {food_pallet.get('pallet_id', 'N/A')}, Location: {food_pallet.get('location_id', 'N/A')}, Coordinates: {food_pallet.get('coordinates', 'N/A')}")
-                    logging.error(
-                        f"Skipped HPC Pallet - ID: {hpc_pallet.get('pallet_id', 'N/A')}, Location: {hpc_pallet.get('location_id', 'N/A')}, Coordinates: {hpc_pallet.get('coordinates', 'N/A')}")
+            # Append "FOODS" and "HPC" pallets to respective lists
+            food_pallets = self.filter_pallets_by_group(rack_data, "FOODS")
+            hpc_pallets = self.filter_pallets_by_group(rack_data, "HPC")
 
+            # Check proximity between each food pallet and each HPC pallet
+            for food_pallet in food_pallets:
+                for hpc_pallet in hpc_pallets:
+                    try:
+                        distance = round(self.calculate_distance(food_pallet["coordinates"], hpc_pallet["coordinates"]),
+                                         2)
+                        logging.info(
+                            f"Checking distance between Food Pallet {food_pallet['pallet_id']} and HPC Pallet {hpc_pallet['pallet_id']}: {distance:.2f} units")
+                        if distance < self.distance_threshold:  # Check if the distance is less than the threshold
+                            violations_dict[food_pallet["pallet_id"]].append({
+                                "rack_no": rack_no,
+                                "food_pallet_id": food_pallet["pallet_id"],
+                                "hpc_pallet_id": hpc_pallet["pallet_id"],
+                                "distance": distance,
+                                "food_location_id": food_pallet["location_id"],
+                                "hpc_location_id": hpc_pallet["location_id"]
+                            })
+                    except TypeError as e:
+                        logging.error(f"Error calculating distance: {e}. Skipping these pallets.")
+                        # Log skipped pallet details
+                        logging.error(
+                            f"Skipped Food Pallet - ID: {food_pallet.get('pallet_id', 'N/A')}, Location: {food_pallet.get('location_id', 'N/A')}, Coordinates: {food_pallet.get('coordinates', 'N/A')}")
+                        logging.error(
+                            f"Skipped HPC Pallet - ID: {hpc_pallet.get('pallet_id', 'N/A')}, Location: {hpc_pallet.get('location_id', 'N/A')}, Coordinates: {hpc_pallet.get('coordinates', 'N/A')}")
+
+            # Flatten the dictionary into a list for returning
         self.violations = [item for sublist in violations_dict.values() for item in sublist]
         return self.violations
 
