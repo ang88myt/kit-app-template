@@ -368,6 +368,8 @@ class Custom_Window(ui.Window):
 
     def _build_storage_utilization(self):
         """Build the widgets of the 'Scene' group"""
+        used_percentage, free_percentage = self._data_service.calculate_storage_utilization()
+
         with ui.CollapsableFrame("STORAGE UTILIZATION", name="group", build_header_fn=self._build_collapsable_header):
             with ui.VStack(height=0, spacing=SPACING):
                 ui.Spacer(height=6)
@@ -376,20 +378,20 @@ class Custom_Window(ui.Window):
                 #     btn_callback=self._btn_space_utilization
                 # )
                 ui.Spacer(height=6)
-                ui.Label(f"Used: {self.used_percentage}%")
+                ui.Label(f"Used:")
                 with ui.HStack():
                     progress_bar = ui.ProgressBar()
                     # progress_bar.model.
-                    progress_bar.model.set_value(self.used_percentage / 100)
+                    progress_bar.model.set_value(used_percentage/100)
 
                      #style={"background_color": ui.color.red}
                     ui.Spacer(width=10)
 
                 # Free percentage bar (green)
-                ui.Label(f"Free: {self.free_percentage}%")
+                ui.Label(f"Free:")
                 with ui.HStack():
                     progress_bar = ui.ProgressBar()
-                    progress_bar.model.set_value(self.free_percentage / 100)
+                    progress_bar.model.set_value(free_percentage/100)
                     # progress_bar.set_mouse_pressed_fn(self._pgb_on_mouse_pressed)
 
                     ui.Spacer(width=10)
@@ -481,7 +483,7 @@ class Custom_Window(ui.Window):
                 self._build_storage_utilization()
                 self._build_scene()
                 self._build_violation_check()
-                # self._build_stock_status()
+                self._build_stock_status()
                 # self._build_expiry()
                 self._build_tracking()
                 # self._build_grid()

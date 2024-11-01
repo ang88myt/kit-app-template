@@ -41,6 +41,8 @@ cl.slider_fill = cl(1.0, 1.0, 1.0, 0.3)
 cl.revert_arrow_enabled = cl(.25, .5, .75, 1.0)
 cl.revert_arrow_disabled = cl(.35, .35, .35, 1.0)
 cl.transparent = cl(0, 0, 0, 0)
+cl.progress_fill_used = cl(1.0, 0.0, 0.0, 1.0)  # Red for used
+cl.progress_fill_free = cl(0.0, 1.0, 0.0, 1.0)  # Green for free
 
 fl.main_label_attr_hspacing = 10
 fl.attr_label_v_spacing = 3
@@ -194,5 +196,16 @@ julia_modeler_style = {
         "font_size": fl.field_text_font_size,
         "secondary_color": cl.transparent,  # button background color
     },
-    "Rectangle::combobox_icon_cover": {"background_color": cl.field_bg}
+    "Rectangle::combobox_icon_cover": {"background_color": cl.field_bg},
+
+    # Style for the used storage progress bar
+    "ProgressBar::used_storage": {
+        "fill_color": cl.progress_fill_used,
+    },
+
+    # Style for the free storage progress bar
+    "ProgressBar::free_storage": {
+        "fill_color": cl.progress_fill_free,
+    }
+
 }

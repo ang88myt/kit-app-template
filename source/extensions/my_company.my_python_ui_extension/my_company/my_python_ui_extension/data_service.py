@@ -93,13 +93,6 @@ class DataService:
         response = self.handle_api_request(api_url)
         return response.json().get("data", {})
 
-    # def fetch_coordinates(self, endpoint: str) -> tuple:
-    #     api_url = self.construct_api_url(endpoint)
-    #     response = self.handle_api_request(api_url)
-    #     data = response.json().get("data", {})
-    #     coordinates = data.get("rack_location", {}).get("coordinates", {})
-    #     # print(coordinates)
-    #     return coordinates.get('x'), coordinates.get('y'), coordinates.get('z')
     def fetch_coordinates(self, endpoint: str) -> tuple:
         api_url = self.construct_api_url(endpoint)
         response = self.handle_api_request(api_url)
@@ -361,88 +354,7 @@ class DataService:
         else:
             carb.log_warn(f"Pallet {pallet_id} already exists under {prim_name}.")
 
-    def check_expired(self):
-        pass
-    #     stage = omni.usd.get_context().get_stage()
-    #
-    #     # Set to keep track of processed location IDs
-    #     processed_locations = set()
-    #     endpoint = "expiry/5BTG/"
-    #     api_url = self.construct_api_url(endpoint)
-    #     data = self.handle_api_request(api_url)
-    #
-    #     # Check if the request was successful
-    #     if data.status_code == 200:
-    #         data = data.json()
-    #         expired_items = data.get('expired', [])
-    #
-    #         for item in expired_items:
-    #             pallet_id = item.get('pallet_id')
-    #             if pallet_id and isinstance(pallet_id, str):
-    #                 pallet_id = re.sub(r'^\d+', '', pallet_id)
-    #
-    #             location_id = item.get('location_id')
-    #             rack_no = item.get('rack_no')
-    #             floor_no = item.get('floor_no')
-    #             ref_prim_path = f"/expired_pallet/{pallet_id}"
-    #             filepath = "D:/Toll Innovation/TC Level 3 Demo/_Update/cube.usd"
-    #             balance_shelf_life_days = item['inventory'].get('Balance Shelf Life to Expiry (days)')
-    #
-    #             # Extracting the coordinates from the data, using default values if None
-    #             coordinates = item.get('coordinates', {})
-    #             x = coordinates.get('x', 0.0) if coordinates is not None else 0.0
-    #             y = coordinates.get('y', 0.0) if coordinates is not None else 0.0
-    #             z = coordinates.get('z', 0.0) if coordinates is not None else 0.0
-    #
-    #             # Check if location_id has already been processed
-    #             if location_id not in processed_locations:
-    #                 # Add the location_id to the set
-    #                 processed_locations.add(location_id)
-    #                 self.result_dict[location_id] = {
-    #                     'pallet_id': pallet_id,
-    #                     'rack_no': rack_no,
-    #                     'floor_no': floor_no,
-    #                     'balance_shelf_life_days': balance_shelf_life_days,
-    #                     'coordinates': {'x': x, 'y': y, 'z': z}
-    #                 }
-    #
-    #                 # Log the information, including coordinates
-    #                 carb.log_warn(f"Pallet ID: {pallet_id}, Location ID: {location_id}, Rack No: {rack_no}, "
-    #                               f"Balance Shelf Life (days): {balance_shelf_life_days}, Floor No: {floor_no}, Coordinates: ({x}, {y}, {z})")
-    #
-    #
-    #                 # Spawn an Xform and then the cube at the given coordinates
-    #                 if not stage.GetPrimAtPath(ref_prim_path).IsValid():
-    #                     # Create an Xform for the pallet at the location
-    #                     xform = UsdGeom.Xform.Define(stage, ref_prim_path)
-    #                     xform.AddTranslateOp().Set(Gf.Vec3f(x, y, z))
-    #
-    #                     # _load_usd_file(file_path=filepath, ref_prim_path=ref_prim_path)
-    #
-    #                     # Spawn a cube as a child of the Xform
-    #                     cube_prim_path = f"{ref_prim_path}/Cube"
-    #                     cube_prim = UsdGeom.Cube.Define(stage, cube_prim_path)
-    #                     cube_prim.GetSizeAttr().Set(120.0)  # Set the cube size
-    #                     cube_prim.AddTranslateOp().Set(
-    #                         Gf.Vec3f(0, 0, 60))  # Adjust Z to position the cube above the ground
-    #
-    #                     material_path = "/Environment/Looks/Light_1900K_Red"
-    #
-    #                     _apply_material_to_prim(stage, prim_path=cube_prim_path, material_path=material_path)
-    #
-    #                     Usd.ModelAPI(xform).SetKind(Kind.Tokens.assembly)
-    #                     carb.log_warn(f"Spawned cube for Pallet {pallet_id} at coordinates ({x}, {y}, {z})")
-    #                 else:
-    #                     carb.log_warn(f"Xform already exists for {ref_prim_path}")
-    #             else:
-    #                 carb.log_warn(f"Duplicate location_id {location_id} detected, skipping...")
-    #     else:
-    #         carb.log_error(f"Failed to retrieve data: {data.status_code} - {data.text}")
-    #
-    #     # Notification showing the expired item list
-    #     pallet_ids = [item['pallet_id'] for item in self.result_dict.values()]
-    #     pallet_id_string = ", ".join(pallet_ids)
-    #     _show_notification(title="Expired item list", message=pallet_id_string)
+
 
     def show_pallet_info(self, pallet_id):
 
@@ -470,6 +382,39 @@ class DataService:
                 _move_camera(x, y, z)
             else:
                 carb.log_warn("Failed to fetch stock info")
+
+    def calculate_storage_utilization(self):
+        """
+        Calculate storage utilization across racks, counting slots with a pallet ID as used and without as free.
+
+        Returns:
+            used_percentage (float): Percentage of storage used.
+            free_percentage (float): Percentage of storage free.
+        """
+        total_slots = 0
+        used_slots = 0
+
+        # Loop through racks 19 to 40 to count used and free storage slots
+        for rack_no in range(19, 41):
+            rack_data = self.fetch_rack_data(rack_no)
+            if not rack_data:
+                continue  # Skip if no data is found for the rack
+
+            # Extract rack locations
+            rack_locations = rack_data.get("data", {}).get("rack_locations", [])
+            for location in rack_locations:
+                total_slots += 1  # Every location is considered a storage slot
+
+                # Check if there’s a pallet ID in the location’s pallets
+                pallets = location.get("pallets", [])
+                if any(pallet.get("pallet_id") for pallet in pallets):
+                    used_slots += 1  # Increment used slots if a pallet ID is found
+
+        # Calculate used and free storage percentages
+        used_percentage = (used_slots / total_slots) * 100 if total_slots else 0
+        free_percentage = 100 - used_percentage
+
+        return round(used_percentage), round(free_percentage)
 
     def close(self):
         self.session.close()
