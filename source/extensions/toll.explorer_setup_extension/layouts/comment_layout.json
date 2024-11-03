@@ -119,7 +119,7 @@
     "position_y": 26.0,
     "selected_in_dock": false,
     "title": "Layer",
-    "visible": false,
+    "visible": true,
     "width": 513.0
   },
   {
@@ -199,7 +199,7 @@
     "position_y": 3.4028234663852886e+38,
     "selected_in_dock": false,
     "title": "Select Filename (Local Files Only)",
-    "visible": false,
+    "visible": true,
     "width": 1000.0
   },
   {

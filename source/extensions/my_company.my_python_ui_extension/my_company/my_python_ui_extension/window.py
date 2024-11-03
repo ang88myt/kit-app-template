@@ -171,58 +171,57 @@ class Custom_Window(ui.Window):
         # Fetch the critical data from the data service
         critical_status_count, critical_pallets_by_rack = self._data_service.fetch_status_code_data()
         total_critical_count = sum(critical_status_count.values())
+
         # Create a scrolling frame for the main content
         with ui.CollapsableFrame("CRITICAL STOCK STATUS",
                                  name="group",
                                  build_header_fn=self._build_collapsable_header,
                                  collapsed=True):
-            with ui.ScrollingFrame(height=800):  # Ensure the content is scrollable
-                with ui.VStack(spacing=3):
-                    # # Display grand total of critical statuses at the top
-                    # ui.Label(f"Total Storage Free: {self.free_percentage}",
-                    #          style={"font_size": 18, "color": "Red"})
-                    # ui.Label(f"Total Storage Used: {self.used_percentage}",
-                    #          style={"font_size": 18, "color": "Blue"})
-                    #
-                    # ui.Spacer(height=10)
+            with ui.VStack(spacing=2):  # Reduced vertical spacing
+                # Display grand total of critical statuses at the top
+                ui.Label(f"Grand Total Critical Items Found: {total_critical_count}",
+                         style={"font_size": 18, "color": "orange"})
 
-                    ui.Label(f"Grand Total Critical Items Found: {total_critical_count}",
-                             style={"font_size": 18, "color": "orange"})
-                    status_code_colors = {
-                        "DMG": "blue",
-                        "NE": "cyan",
-                        "QAF": "purple",
-                        "EX": "red"
-                    }
-                    # Display individual critical status counts
-                    for status_code, count in critical_status_count.items():
-                        color = status_code_colors.get(status_code,
-                                                       "white")  # Default to white if status_code is not in the mapping
-                        ui.Label(f"{status_code}: {count} items", style={"font_size": 14, "color": color})
+                # Define colors for status codes
+                status_code_colors = {
+                    "DMG": "blue",
+                    "NE": "yellow",
+                    "QAF": "purple",
+                    "EX": "red"
+                }
 
-                    ui.Spacer(height=6)  # Add some space between the summary and collapsable frames
+                # Display individual critical status counts with reduced spacing
+                for status_code, count in critical_status_count.items():
+                    color = status_code_colors.get(status_code, "white")
+                    ui.Label(f"{status_code}| {count} items",
+                             style={"font_size": 14, "color": color,"alignment": ui.Alignment.LEFT_CENTER})
 
-                    # Display collapsable frames for each rack with critical pallets
-                    for rack_no, pallets in critical_pallets_by_rack.items():
-                        # Only create a collapsable frame if there are critical items
-                        if pallets:
-                            # Create a collapsable frame for each rack number
-                            with ui.CollapsableFrame(f"Rack {rack_no}",name="group",
-                                                     build_header_fn=self._build_collapsable_header,
-                                                     collapsed=True): # name="group", build_header_fn=self._build_collapsable_header
-                                with ui.VStack(spacing=6):
-                                    # List critical pallets found in this rack
-                                    for pallet in pallets:
-                                        pallet_id = pallet["pallet_id"]
-                                        location_id = pallet["location_id"]
-                                        stock_status_code = pallet["stock_status_code"]
+                ui.Spacer(height=2)  # Reduced spacer height
 
-                                        # Create a button for each critical pallet under the rack
-                                        # Explicitly pass pallet_id to avoid lambda capturing issues
-                                        CustomButtonWidget(f"Pallet ID: {pallet_id} | Status: {stock_status_code}",
-                                                           tooltip=f"Location ID: {location_id}",
-                                                           btn_callback=lambda p=pallet_id: self._navigate_to_pallet(p)
-                                                           )
+                # Group pallets by stock_status_code for display in collapsable frames
+                pallets_by_status = defaultdict(list)
+                for rack_no, pallets in critical_pallets_by_rack.items():
+                    for pallet in pallets:
+                        stock_status_code = pallet["stock_status_code"]
+                        pallets_by_status[stock_status_code].append(pallet)
+
+                # Create UI for each stock status code with minimized spacing
+                for stock_status_code, pallets in pallets_by_status.items():
+                    # Create a collapsable frame for each stock status code
+                    with ui.CollapsableFrame(f"Status Code: {stock_status_code}", name="group",
+                                             build_header_fn=self._build_collapsable_header,
+                                             collapsed=True):
+                        with ui.ScrollingFrame(height=200):
+                            with ui.VStack(spacing=6):  # Reduced vertical spacing for inner elements
+                                # List critical pallets grouped by stock status code
+                                for pallet in pallets:
+                                    pallet_id = pallet["pallet_id"]
+                                    location_id = pallet["location_id"]
+
+                                    # Create a button for each critical pallet within the status code frame
+                                    CustomButtonWidget(f"Pallet ID: {pallet_id}",
+                                                       tooltip=f"Location ID: {location_id}",
+                                                       btn_callback=lambda p=pallet_id: self._navigate_to_pallet(p))
 
     def _build_violation_check(self):
         pro_checker = ProximityChecker(racks_range=(19, 41), distance_threshold=200.0)
@@ -251,7 +250,7 @@ class Custom_Window(ui.Window):
                 coordinates=food_coordinates,
                 material_path="/Environment/Looks/Light_1900K_Yellow",
                 location_id=food_location_id,
-                rack_no=violation.get("rack_no")
+                group=f"Rack_{violation.get('rack_no')}"
             )
 
             # Spawn cube for hpc pallet with red material
@@ -262,7 +261,7 @@ class Custom_Window(ui.Window):
                 coordinates=hpc_coordinates,
                 material_path="/Environment/Looks/Light_1900K_Red",
                 location_id=hpc_location_id,
-                rack_no=violation.get("rack_no")
+                group=f"Rack_{violation.get('rack_no')}"
             )
 
         # Get the total number of violations
@@ -378,22 +377,13 @@ class Custom_Window(ui.Window):
                 #     btn_callback=self._btn_space_utilization
                 # )
                 ui.Spacer(height=6)
-                ui.Label(f"Used:")
+                ui.Label(f"Occupied: {used_percentage}%     Free: {free_percentage}%")
                 with ui.HStack():
                     progress_bar = ui.ProgressBar()
                     # progress_bar.model.
                     progress_bar.model.set_value(used_percentage/100)
 
                      #style={"background_color": ui.color.red}
-                    ui.Spacer(width=10)
-
-                # Free percentage bar (green)
-                ui.Label(f"Free:")
-                with ui.HStack():
-                    progress_bar = ui.ProgressBar()
-                    progress_bar.model.set_value(free_percentage/100)
-                    # progress_bar.set_mouse_pressed_fn(self._pgb_on_mouse_pressed)
-
                     ui.Spacer(width=10)
 
     def build_utility(self):
@@ -482,8 +472,8 @@ class Custom_Window(ui.Window):
                 # self._build_title()
                 self._build_storage_utilization()
                 self._build_scene()
-                self._build_violation_check()
-                self._build_stock_status()
+                # self._build_violation_check()
+                # self._build_stock_status()
                 # self._build_expiry()
                 self._build_tracking()
                 # self._build_grid()

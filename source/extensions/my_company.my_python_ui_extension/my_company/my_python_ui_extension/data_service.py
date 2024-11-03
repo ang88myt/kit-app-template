@@ -187,7 +187,8 @@ class DataService:
                             coordinates = self.fetch_coordinates(endpoint)
 
                             # Spawn the cube with the appropriate material based on stock status code
-                            self.spawn_cube( prim_name=f"Critical_Items",rack_no=rack_no, location_id=location_id, pallet_id=pallet_id, coordinates=coordinates,
+                            self.spawn_cube( prim_name=f"Critical_Items",group=f"Status_Code_{stock_status_code}",
+                                             location_id=location_id, pallet_id=pallet_id, coordinates=coordinates,
                                             material_path=material_path)
 
                             # Set flag to True if a critical item is found
@@ -292,7 +293,7 @@ class DataService:
         return pallet_id, location_id, rack_no, floor_no, balance_shelf_life_days, {'x': x, 'y': y, 'z': z}
 
     def spawn_cube(self, prim_name, pallet_id, coordinates, date=None, other_date=None,
-                   material_path=None, location_id=None, rack_no=None):
+                   material_path=None, location_id=None, group=None):
         stage = omni.usd.get_context().get_stage()
 
         pallet_id= pallet_id.replace(".","_")
@@ -300,10 +301,10 @@ class DataService:
             pallet_id = pallet_id.lstrip("0")
 
         # Construct the log message by combining the arguments into a single string
-        log_message = f"Prim Name: {prim_name},location ID:{location_id}, Pallet ID: {pallet_id}, Coordinates: {coordinates}"
+        # log_message = f"Prim Name: {prim_name},location ID:{location_id}, Pallet ID: {pallet_id}, Coordinates: {coordinates}"
 
         # Log the warning message with the concatenated string
-        carb.log_warn(log_message)
+        # carb.log_warn(log_message)
 
         # Check if the stage is properly initialized
         if stage is None:
@@ -327,7 +328,7 @@ class DataService:
             carb.log_warn(f"Created parent Xform: {parent_xform_path_str}")
 
         # Construct the prim path for the cube under the parent Xform, named after the pallet_id
-        pallet_prim_path_str = f"{parent_xform_path_str}/Rack_{rack_no}/_{location_id}/{pallet_id}"
+        pallet_prim_path_str = f"{parent_xform_path_str}/{group}/_{location_id}/{pallet_id}"
         pallet_prim_path = Sdf.Path(pallet_prim_path_str)
 
         # Check if the pallet prim already exists
@@ -350,7 +351,7 @@ class DataService:
                 _apply_material_to_prim(stage, prim_path=cube_prim_path_str, material_path=material_path)
 
             # Log the creation of the cube
-            carb.log_warn(f"Spawned cube for Pallet Rack{rack_no} under {pallet_id} under {prim_name} at coordinates {coordinates}")
+            carb.log_warn(f"Spawned cube for Pallet Rack{group} under {pallet_id} under {prim_name} at coordinates {coordinates}")
         else:
             carb.log_warn(f"Pallet {pallet_id} already exists under {prim_name}.")
 

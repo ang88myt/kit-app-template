@@ -56,7 +56,7 @@ fl.field_text_font_size = 14
 fl.main_label_font_size = 14
 fl.multi_attr_label_font_size = 14
 fl.radio_group_font_size = 14
-fl.collapsable_header_font_size = 13
+fl.collapsable_header_font_size = 16
 fl.range_text_size = 10
 
 url.closed_arrow_icon = f"{EXTENSION_FOLDER_PATH}/icons/closed.svg"
@@ -167,7 +167,7 @@ julia_modeler_style = {
     "ScrollingFrame::window_bg": {
         "background_color": cl.window_bg_color,
         "padding": fl.outer_frame_padding,
-        "border_radius": 20  # Not obvious in a window, but more visible with only a frame
+        # "border_radius": 10  # Not obvious in a window, but more visible with only a frame
     },
     "Slider::attr_slider": {
         "draw_mode": ui.SliderDrawMode.FILLED,

@@ -199,8 +199,8 @@ class SetupExtension(omni.ext.IExt):
         if self._settings.get_as_bool(SETTINGS_STARTUP_EXPAND_VIEWPORT):
             self._set_viewport_fill_on()
 
-        self._stage_templates = [SunnySkyStage()]
-        disable_selection(get_active_viewport())
+        # self._stage_templates = [SunnySkyStage()]
+        # disable_selection(get_active_viewport())
 
         self._ui_state_manager = UIStateManager()
         self._setup_ui_state_changes()
@@ -279,9 +279,9 @@ class SetupExtension(omni.ext.IExt):
             _typ: carb.settings.ChangeEventType
         ):
         """Callback for when the application mode changes."""
-        if self._settings.get_as_string(APPLICATION_MODE_PATH).lower() == "review":
-            omni.usd.get_context().get_selection().clear_selected_prim_paths()
-            disable_selection(get_active_viewport())
+        # if self._settings.get_as_string(APPLICATION_MODE_PATH).lower() == "review":
+            # omni.usd.get_context().get_selection().clear_selected_prim_paths()
+            # disable_selection(get_active_viewport())
 
         current_mode: str = cast(str, item.get_dict())
         asyncio.ensure_future(self.defer_load_layout(current_mode))
