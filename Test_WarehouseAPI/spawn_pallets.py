@@ -120,6 +120,7 @@ import requests
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class RackDataHandler:
     API_BASE_URL = "https://digital-twin.expangea.com/rack/5BTG/3/{rack_number}/"
     HEADERS = {
@@ -148,7 +149,7 @@ class RackDataHandler:
             return
 
         location_id = location.get('location_id', 'unknown')
-        xform_prim_path = f"/All_Racks/Rack_{rack_number}/locID_{location_id}"
+        xform_prim_path = Sdf.Path(f"/All_Racks/Rack_{rack_number}/_{location_id}")
 
         try:
             coordinates = location.get("coordinates", {})
@@ -158,10 +159,11 @@ class RackDataHandler:
             if all(k in coordinates for k in ["x", "y", "z"]):
                 xform = UsdGeom.Xform.Define(self.stage, xform_prim_path)
                 translate_op = self._get_or_add_xform_op(xform, UsdGeom.XformOp.TypeTranslate, coordinates)
-                rotate_op = self._get_or_add_xform_op(xform, UsdGeom.XformOp.TypeRotateXYZ, {"x": 0.0, "y": 0.0, "z": 90.0})
+                rotate_op = self._get_or_add_xform_op(xform, UsdGeom.XformOp.TypeRotateXYZ,
+                                                      {"x": 0.0, "y": 0.0, "z": 90.0})
 
                 # Spawn the pallet at this location
-                pallet_prim_path = f"{xform_prim_path}/{pallet_id}"
+                pallet_prim_path = Sdf.Path(f"{xform_prim_path}/_{pallet_id}")
                 self._create_or_reference_pallet_prim(pallet_prim_path)
 
             else:
@@ -173,26 +175,47 @@ class RackDataHandler:
     def _get_or_add_xform_op(self, xform, op_type, coordinates):
         """Check for an existing transform operation; add one if it does not exist."""
         op = next((o for o in xform.GetOrderedXformOps() if o.GetOpType() == op_type), None)
+        coord_vec = Gf.Vec3d(coordinates["x"], coordinates["y"], coordinates["z"])
+
         if op:
-            op.Set(Gf.Vec3d(coordinates["x"], coordinates["y"], coordinates["z"]))
+            op.Set(coord_vec)
             logger.warning(f"Updated existing {op_type} op at {xform.GetPath()}")
         else:
             new_op = xform.AddTranslateOp() if op_type == UsdGeom.XformOp.TypeTranslate else xform.AddRotateXYZOp()
-            new_op.Set(Gf.Vec3d(coordinates["x"], coordinates["y"], coordinates["z"]))
+            new_op.Set(coord_vec)
             logger.warning(f"Created new {op_type} op at {xform.GetPath()}")
 
         return op
 
     def _create_or_reference_pallet_prim(self, pallet_prim_path):
         """Create a pallet prim if it does not exist, or add a reference to it if it does."""
+
+        # Ensure the path is valid by creating each part of the path if necessary
+        path_elements = pallet_prim_path.pathString.split("/")
+        current_path = ""
+
+        # Iterate through each part of the path and ensure it exists
+        for element in path_elements:
+            if not element:  # Skip empty elements (e.g., leading slash)
+                continue
+
+            current_path += f"/{element}"
+            current_sdf_path = Sdf.Path(current_path)
+
+            if not self.stage.GetPrimAtPath(current_sdf_path).IsValid():
+                # Define each intermediate prim as a Xform
+                UsdGeom.Xform.Define(self.stage, current_sdf_path)
+
+        # Now define the final pallet prim if it doesn’t already exist
         if not self.stage.GetPrimAtPath(pallet_prim_path).IsValid():
+            # logging.warning(f'Test{pallet_prim_path}')
             pallet_prim = self.stage.DefinePrim(pallet_prim_path, "Xform")
             pallet_prim.GetReferences().AddReference(self.PALLET_USD_PATH)
             Usd.ModelAPI(pallet_prim).SetKind(Kind.Tokens.assembly)
             logger.warning(f"Spawned Pallet at {pallet_prim_path}")
         else:
             logger.info(f"Pallet already exists at {pallet_prim_path}")
-
+    #
     def process_racks(self, start_rack=19, end_rack=40):
         """Process racks and spawn pallets based on API data."""
         for rack_number in range(start_rack, end_rack + 1):
@@ -212,9 +235,13 @@ class RackDataHandler:
                     for pallet in pallets:
                         self.spawn_pallet_at_location(rack_number, location, pallet.get("pallet_id", "unknown"))
                 else:
-                    logger.error(f"No pallets found for location {location.get('location_id', 'unknown')} in rack {rack_number}.")
+                    logger.error(
+                        f"No pallets found for location {location.get('location_id', 'unknown')} in rack {rack_number}.")
 
 
 # Usage
 rack_handler = RackDataHandler()
 rack_handler.process_racks()
+
+
+

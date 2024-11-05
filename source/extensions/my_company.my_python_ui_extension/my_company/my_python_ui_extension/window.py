@@ -246,7 +246,7 @@ class Custom_Window(ui.Window):
             food_coordinates = self._data_service.fetch_coordinates(f"pallet/{food_pallet_id}/")
             self._data_service.spawn_cube(
                 prim_name="ProximityViolations",
-                pallet_id=food_pallet_id,
+                pallet_id=f'food_{food_pallet_id}',
                 coordinates=food_coordinates,
                 material_path="/Environment/Looks/Light_1900K_Yellow",
                 location_id=food_location_id,
@@ -257,7 +257,7 @@ class Custom_Window(ui.Window):
             hpc_coordinates = self._data_service.fetch_coordinates(f"pallet/{hpc_pallet_id}/")
             self._data_service.spawn_cube(
                 prim_name="ProximityViolations",
-                pallet_id=hpc_pallet_id,
+                pallet_id=f'hpc_{hpc_pallet_id}',
                 coordinates=hpc_coordinates,
                 material_path="/Environment/Looks/Light_1900K_Red",
                 location_id=hpc_location_id,
@@ -472,8 +472,8 @@ class Custom_Window(ui.Window):
                 # self._build_title()
                 self._build_storage_utilization()
                 self._build_scene()
-                # self._build_violation_check()
-                # self._build_stock_status()
+                self._build_violation_check()
+                self._build_stock_status()
                 # self._build_expiry()
                 self._build_tracking()
                 # self._build_grid()
