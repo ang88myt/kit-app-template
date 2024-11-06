@@ -6,12 +6,7 @@
 
 
 ## :warning: EA Release Information
-<<<<<<< HEAD
 **This branch is based on Omniverse Kit 106.2 EA. It includes EA versions of the Kit SDK, associated development tools, and templates. For the latest stable release, see the `106` branch.**
-=======
-**This branch is based on Omniverse Kit 106.3 EA. It includes EA versions of the Kit SDK, associated development tools, and templates. For the latest stable release, see the `106.0` branch.**
-
->>>>>>> b684a883da01386bac4e4fa017ef6daa24474aa0
 
 ## Overview
 
@@ -78,9 +73,7 @@ Ensure your system is set up with the following to work with Omniverse Applicati
 
 - [**Git LFS**](https://git-lfs.com/): For managing large files within the repository
 
-- **(Windows - C++ Only) Microsoft Visual Studio (2019 or 2022)**: You can install the latest version from [Visual Studio Downloads](https://visualstudio.microsoft.com/downloads/). Ensure that the **Desktop development with C++** workload is selected.  [Additional information on Windows development configuration](readme-assets/additional-docs/windows_developer_configuration.md)
-
-- **(Windows - C++ Only) Windows SDK**: Install this alongside MSVC. You can find it as part of the Visual Studio Installer. [Additional information on Windows development configuration](readme-assets/additional-docs/windows_developer_configuration.md)
+- **(Windows) Microsoft Visual C++ Redistributable**: Many Windows systems will already have this, but if not, it can be obtained from [latest-supported-vc-redist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-microsoft-visual-c-redistributable-version)
 
 - **(Linux) build-essentials**: A package that includes `make` and other essential tools for building applications.  For Ubuntu, install with `sudo apt-get install build-essential`
 
@@ -170,7 +163,7 @@ Build your new application with the following command:
 .\repo.bat build
  ```
 
-A successful build will result in the following message: (not supported for all build configurations)
+A successful build will result in the following message:
 
 ```text
 BUILD (RELEASE) SUCCEEDED (Took XX.XX seconds)
@@ -223,6 +216,8 @@ For more information on the extensions available in the developer bundle, see th
 
 Begin constructing Omniverse Applications using these templates
 
+- **[Kit Service](./templates/apps/kit_service)**: The minimal definition of an Omniverse Kit SDK based service. This template is useful for creating headless services leveraging Omniverse Kit functionality.
+
 - **[Kit Base Editor](./templates/apps/kit_base_editor/)**: A minimal template application for loading, manipulating and rendering OpenUSD content from a graphical interface.
 
 - **[USD Composer](./templates/apps/usd_composer)**: A template application for authoring complex OpenUSD scenes, such as configurators.
@@ -231,8 +226,6 @@ Begin constructing Omniverse Applications using these templates
 
 - **[USD Viewer](./templates/apps/usd_viewer)**: A viewport-only template application that can be easily streamed and interacted with remotely, well-suited for streaming content to web pages.
 
-- **[Kit Service](./templates/apps/kit_service)**: The minimal definition of an Omniverse Kit SDK based service. This template is useful for creating headless services leveraging Omniverse Kit functionality.
-
 ### Extensions
 
 Enhance Omniverse capabilities with extension templates:
@@ -240,8 +233,6 @@ Enhance Omniverse capabilities with extension templates:
 - **[Basic Python](./templates/extensions/basic_python)**: The minimal definition of an Omniverse Python Extension.
 
 - **[Basic C++](./templates/extensions/basic_cpp)**: The minimal definition of an Omniverse C++ Extension.
-
-   **Note for Windows C++ Developers** : This template requires `"platform:windows-x86_64".enabled` within the `repo.toml` file be set to `true`. For additional C++ configuration information [see here](readme-assets/additional-docs/windows_developer_configuration.md).
 
 - **[Python UI](./templates/extensions/python_ui)**: An extension that provides an easily extendable Python-based user interface.
 
