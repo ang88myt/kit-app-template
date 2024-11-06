@@ -1,13 +1,10 @@
-# noinspection PyInterpreter
-__all__ = ["Custom_Window"]
-
 import logging
 from collections import defaultdict
 
 import omni.ui as ui
 import omni.kit.notification_manager as nm
-from .style import julia_modeler_style, ATTR_LABEL_WIDTH
 from omni.ui import color as cl
+from .style import julia_modeler_style, ATTR_LABEL_WIDTH
 from .custom_button import CustomButtonWidget
 from .custom_info_button import CustomInfoWidget
 from .custom_bool_widget import CustomBoolWidget
@@ -17,56 +14,37 @@ from .custom_slider_widget import CustomSliderWidget
 from .data_service import DataService
 from .cube_mover_data import CubeMoverDataLayer
 from .proximity_checker import ProximityChecker
-from .violation_ui import ViolationUI
-# from .chat_assist import MyAssistantExtension
-import omni.kit.commands
-import carb
+
 SPACING = 5
-
-
+WINDOW_TITLE = "Unilever Extension"
+COLORS = {
+    "DMG": "blue",
+    "NE": "yellow",
+    "QAF": "purple",
+    "EX": "red"
+}
 
 class Custom_Window(ui.Window):
     """The class that represents the window"""
 
     def __init__(self, title: str, delegate=None, **kwargs):
+        super().__init__(title, **kwargs)
         self.__label_width = ATTR_LABEL_WIDTH
         self._data_service = DataService()
-        # self._chat_assist = MyAssistantExtension()
-        # self._pallet_info = None
-        # self._pallet_info = None
-        self._info_label = None
         self.used_percentage = 40
         self.free_percentage = 60
 
-        super().__init__(title, **kwargs)
-
-        # Apply the style to all the widgets of this window
         self.frame.style = julia_modeler_style
-
-        # Set the function that is called to build widgets when the window is visible
         self.frame.set_build_fn(self._build_fn)
-        # self._btn_stock_status()
-
-    def destroy(self):
-        # Destroys all the children
-        super().destroy()
 
     @property
     def label_width(self):
-        """The width of the attribute label"""
         return self.__label_width
 
     @label_width.setter
     def label_width(self, value):
-        """The width of the attribute label"""
         self.__label_width = value
         self.frame.rebuild()
-
-    def _build_title(self):
-        with ui.VStack():
-            ui.Spacer(height=10)
-            ui.Label("Unilever Extension", name="window_title")
-            ui.Spacer(height=10)
 
     def _build_collapsable_header(self, collapsed, title):
         """Build a custom title of CollapsableFrame"""
@@ -74,160 +52,54 @@ class Custom_Window(ui.Window):
             ui.Spacer(height=8)
             with ui.HStack():
                 ui.Label(title, name="collapsable_name")
-
                 image_name = "collapsable_opened" if collapsed else "collapsable_closed"
                 ui.Image(name=image_name, width=10, height=10)
-
             ui.Spacer(height=8)
             ui.Line(style_type_name_override="HeaderLine")
 
     def _build_scene(self):
         """Build the widgets of the 'Scene' group"""
-        with ui.CollapsableFrame("WAREHOUSE", name="group",
-                                 build_header_fn=self._build_collapsable_header):
+        with ui.CollapsableFrame("WAREHOUSE", name="group", build_header_fn=self._build_collapsable_header):
             with ui.VStack(height=0, spacing=SPACING):
                 ui.Spacer(height=6)
-                # Custom widget for getting pallet info with button callback
-                CustomInfoWidget(
-                    label="Pallet Info",
-                    placeholder="PID",
-                    btn_callback=self._btn_pallet_info  # Pass the button callback function
-                )
+                CustomInfoWidget(label="Pallet Info", placeholder="PID", btn_callback=self._btn_pallet_info)
                 ui.Spacer(height=6)
-
-                # CustomButtonWidget(
-                #     btn_label="Show Damaged Goods",
-                #     tooltip="",
-                #     btn_callback=self._btn_damaged_goods
-                # )
-                # ui.Spacer(height=6)
-
-                # CustomButtonWidget(
-                #     btn_label="Chat Assistant",
-                #     tooltip="",
-                #     btn_callback=self._btn_chat
-                # )
-                # ui.Spacer(height=6)
-                CustomButtonWidget(
-                    btn_label="Stock Status",
-                    tooltip="Critical Stock Status",
-                    btn_callback=self._build_stock_status
-                )
-                # ui.Spacer(height=6)
-
-    def _build_grid(self):
-        with ui.CollapsableFrame("GRID", name="group2",
-                                 build_header_fn=self._build_collapsable_header,
-                                 collapsed=True):
-            with ui.ScrollingFrame(
-                height=425,
-                horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF,
-                vertical_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_ON,
-            ):
-                # Create a grid layout with specified column and row dimensions
-                with ui.CollapsableFrame("Rack", name="group",
-                                         build_header_fn=self._build_collapsable_header):
-                    with ui.VGrid(column_width=100, row_height=100):
-                        # Loop to add elements to each grid cell
-                        for i in range(100):
-                            with ui.ZStack():
-                                # Background rectangle
-                                ui.Rectangle(
-                                    style={
-                                        "border_color": cl.black,
-                                        "background_color": cl.white,
-                                        "border_width": 1,
-                                        "margin": 0,
-                                    }
-                                )
-
-                                # Place a label and button in each cell
-                                with ui.VStack():
-                                    # Create a button styled to look like a label
-                                    def on_label_click(i=i):  # Capture the current index in the function
-                                        print(f"Label {i} clicked!")
-
-                                    ui.Button(
-                                        f"Label {i}",
-                                        alignment=ui.Alignment.CENTER,
-                                        style={"margin": 5, "background_color": cl.white, "border_width": 0,
-                                               "font_size": 14},
-                                        clicked_fn=lambda i=i: on_label_click(i),
-                                    )
-
-                                    CustomButtonWidget(
-                                        btn_label=f"Button {i}",
-                                        tooltip=f"test{i}",
-                                        btn_callback=self._btn_chat
-                                    )
-
+                CustomButtonWidget(btn_label="Stock Status", tooltip="Critical Stock Status", btn_callback=self._build_stock_status)
 
     def _build_stock_status(self):
-        """
-        Creates the Omniverse UI with CollapsableFrames for each rack,
-        shows total critical status codes found at the top, and
-        buttons for critical pallets.
-        """
-        # Fetch the critical data from the data service
+        """Creates the Omniverse UI with CollapsableFrames for each rack, shows total critical status codes found at the top, and buttons for critical pallets."""
         critical_status_count, critical_pallets_by_rack = self._data_service.fetch_status_code_data()
         total_critical_count = sum(critical_status_count.values())
 
-        # Create a scrolling frame for the main content
-        with ui.CollapsableFrame("CRITICAL STOCK STATUS",
-                                 name="group",
-                                 build_header_fn=self._build_collapsable_header,
-                                 collapsed=True):
-            with ui.VStack(spacing=2):  # Reduced vertical spacing
-                # Display grand total of critical statuses at the top
-                ui.Label(f"Grand Total Critical Items Found: {total_critical_count}",
-                         style={"font_size": 18, "color": "orange"})
+        with ui.CollapsableFrame("CRITICAL STOCK STATUS", name="group", build_header_fn=self._build_collapsable_header, collapsed=True):
+            with ui.VStack(spacing=2):
+                ui.Label(f"Grand Total Critical Items Found: {total_critical_count}", style={"font_size": 18, "color": "orange"})
 
-                # Define colors for status codes
-                status_code_colors = {
-                    "DMG": "blue",
-                    "NE": "yellow",
-                    "QAF": "purple",
-                    "EX": "red"
-                }
-
-                # Display individual critical status counts with reduced spacing
                 for status_code, count in critical_status_count.items():
-                    color = status_code_colors.get(status_code, "white")
-                    ui.Label(f"{status_code}| {count} items",
-                             style={"font_size": 14, "color": color,"alignment": ui.Alignment.LEFT_CENTER})
+                    color = COLORS.get(status_code, "white")
+                    ui.Label(f"{status_code}| {count} items", style={"font_size": 14, "color": color, "alignment": ui.Alignment.LEFT_CENTER})
 
-                ui.Spacer(height=2)  # Reduced spacer height
+                ui.Spacer(height=2)
 
-                # Group pallets by stock_status_code for display in collapsable frames
                 pallets_by_status = defaultdict(list)
                 for rack_no, pallets in critical_pallets_by_rack.items():
                     for pallet in pallets:
                         stock_status_code = pallet["stock_status_code"]
                         pallets_by_status[stock_status_code].append(pallet)
 
-                # Create UI for each stock status code with minimized spacing
                 for stock_status_code, pallets in pallets_by_status.items():
-                    # Create a collapsable frame for each stock status code
-                    with ui.CollapsableFrame(f"Status Code: {stock_status_code}", name="group",
-                                             build_header_fn=self._build_collapsable_header,
-                                             collapsed=True):
+                    with ui.CollapsableFrame(f"Status Code: {stock_status_code}", name="group", build_header_fn=self._build_collapsable_header, collapsed=True):
                         with ui.ScrollingFrame(height=200):
-                            with ui.VStack(spacing=6):  # Reduced vertical spacing for inner elements
-                                # List critical pallets grouped by stock status code
+                            with ui.VStack(spacing=6):
                                 for pallet in pallets:
                                     pallet_id = pallet["pallet_id"]
                                     location_id = pallet["location_id"]
-
-                                    # Create a button for each critical pallet within the status code frame
-                                    CustomButtonWidget(f"Pallet ID: {pallet_id}",
-                                                       tooltip=f"Location ID: {location_id}",
-                                                       btn_callback=lambda p=pallet_id: self._navigate_to_pallet(p))
+                                    CustomButtonWidget(f"Pallet ID: {pallet_id}", tooltip=f"Location ID: {location_id}", btn_callback=lambda p=pallet_id: self._navigate_to_pallet(p))
 
     def _build_violation_check(self):
         pro_checker = ProximityChecker(racks_range=(19, 41), distance_threshold=200.0)
         violations = pro_checker.proximity_check_all_racks()
 
-        # Collect unique food and HPC pallets along with their location IDs and distances
         food_pallets_with_hpc = defaultdict(list)
         for violation in violations:
             food_pallets_with_hpc[violation['food_pallet_id']].append({
@@ -236,265 +108,103 @@ class Custom_Window(ui.Window):
                 "distance": violation['distance']
             })
 
-            # Spawn cubes for each pallet in violation with the appropriate material
-            food_pallet_id = violation['food_pallet_id']
-            hpc_pallet_id = violation['hpc_pallet_id']
-            food_location_id = violation['food_location_id']
-            hpc_location_id = violation['hpc_location_id']
+            self._spawn_violation_cubes(violation)
 
-            # Spawn cube for food pallet with yellow material
-            food_coordinates = self._data_service.fetch_coordinates(f"pallet/{food_pallet_id}/")
-            self._data_service.spawn_cube(
-                prim_name="ProximityViolations",
-                pallet_id=f'food_{food_pallet_id}',
-                coordinates=food_coordinates,
-                material_path="/Environment/Looks/Light_1900K_Yellow",
-                location_id=food_location_id,
-                group=f"Rack_{violation.get('rack_no')}"
-            )
-
-            # Spawn cube for hpc pallet with red material
-            hpc_coordinates = self._data_service.fetch_coordinates(f"pallet/{hpc_pallet_id}/")
-            self._data_service.spawn_cube(
-                prim_name="ProximityViolations",
-                pallet_id=f'hpc_{hpc_pallet_id}',
-                coordinates=hpc_coordinates,
-                material_path="/Environment/Looks/Light_1900K_Red",
-                location_id=hpc_location_id,
-                group=f"Rack_{violation.get('rack_no')}"
-            )
-
-        # Get the total number of violations
         total_violations = pro_checker.get_total_violations()
         pro_checker.save_violations_to_csv()
 
-        # Create the UI for displaying violations
-        with ui.CollapsableFrame("PALLET VIOLATIONS", name="group", build_header_fn=self._build_collapsable_header,
-                                 collapsed=True):
-            with ui.ScrollingFrame(height=800):  # Ensure the content is scrollable
+        with ui.CollapsableFrame("PALLET VIOLATIONS", name="group", build_header_fn=self._build_collapsable_header, collapsed=True):
+            with ui.ScrollingFrame(height=800):
                 with ui.VStack(spacing=10):
-                    # Display total violations at the top
-                    ui.Label(f"Total Violations Found: {total_violations}",
-                             style={"font_size": 18, "color": "orange"})
-
-                    # Add a spacer for UI layout
+                    ui.Label(f"Total Violations Found: {total_violations}", style={"font_size": 18, "color": "orange"})
                     ui.Spacer(height=10)
 
-                    # Display Food pallets with collapsable HPC pallet frames under them
                     for food_pallet_id, hpc_pallets in food_pallets_with_hpc.items():
-                        # Create a collapsable frame for each Food pallet
                         with ui.CollapsableFrame(f"Food Pallet ID: {food_pallet_id}", collapsed=True):
                             with ui.VStack(spacing=5):
-                                # List all HPC pallets related to this Food pallet
                                 for hpc_pallet in hpc_pallets:
                                     hpc_pallet_id = hpc_pallet['hpc_pallet_id']
                                     hpc_location_id = hpc_pallet['hpc_location_id']
                                     distance = hpc_pallet['distance']
-
-                                    # Create a button for each HPC pallet under the food pallet, with distance shown
                                     CustomButtonWidget(
                                         f"HPC Pallet ID: {hpc_pallet_id} | Distance: {distance} units",
                                         tooltip=f"Location ID: {hpc_location_id}",
                                         btn_callback=lambda p=hpc_pallet_id: self._navigate_to_pallet(p)
                                     )
 
-    def _navigate_to_pallet(self,pallet_id):
+    def _spawn_violation_cubes(self, violation):
+        food_coordinates = self._data_service.fetch_coordinates(f"pallet/{violation['food_pallet_id']}/")
+        self._data_service.spawn_cube(
+            prim_name="ProximityViolations",
+            pallet_id=f'food_{violation["food_pallet_id"]}',
+            coordinates=food_coordinates,
+            material_path="/Environment/Looks/Light_1900K_Yellow",
+            location_id=violation['food_location_id'],
+            group=f"Rack_{violation.get('rack_no')}"
+        )
+
+        hpc_coordinates = self._data_service.fetch_coordinates(f"pallet/{violation['hpc_pallet_id']}/")
+        self._data_service.spawn_cube(
+            prim_name="ProximityViolations",
+            pallet_id=f'hpc_{violation["hpc_pallet_id"]}',
+            coordinates=hpc_coordinates,
+            material_path="/Environment/Looks/Light_1900K_Red",
+            location_id=violation['hpc_location_id'],
+            group=f"Rack_{violation.get('rack_no')}"
+        )
+
+    def _navigate_to_pallet(self, pallet_id):
         self._data_service.show_pallet_info(pallet_id)
 
-    def _build_expiry(self):
-            with ui.CollapsableFrame("Expiry", name="group", build_header_fn=self._build_collapsable_header):
-                with ui.VStack(height=0, spacing=SPACING):
-                    ui.Spacer(height=6)
-                    CustomInfoWidget(
-                        label="Expired Date Before",
-                        placeholder="yyyy-mm-dd",
-                        btn_callback=self._btn_exipry_date  # Pass the button callback function
-                    )
-                    # ui.Spacer(height=6)
-                    #
-                    # CustomDateSearchWidget(label="Expired Date Range",
-                    #                        placeholder1="dd-mm-yyyy",
-                    #                        placeholder2="dd-mm-yyyy",
-                    #                        btn_callback=self._btn_search_date_range
-                    #                        )
-                    # ui.Spacer(height=6)
-                    CustomInfoWidget(
-                        label="Expiring Within",
-                        placeholder="yyyy-mm-dd",
-                        btn_callback=self._btn_exipring_1week  # Pass the button callback function
-                    )
-                    # combobox_widget=CustomComboboxWidget(
-                    #     label="Expiring Within",
-                    #     options=["One Week", "Two Week", "Three Week","One Month"]
-                    # )
-                    # combobox_widget.add_value_changed_callback(self._cbx_expiring_items)
-
-                    # ui.Spacer(height=6)
-                    # ui.Label("Expired Pallets")
-                    # ui.Label(str(self._info_label), word_wrap=1)
-
-    def _build_tracking(self):
-        """Build the widgets of tracking devices"""
-        with ui.CollapsableFrame("DEVICE TRACKING", name="group", build_header_fn=self._build_collapsable_header):
-            with ui.VStack(height=0, spacing=SPACING):
-                ui.Spacer(height=6)
-                # Custom widget for tracking devices
-                CustomBoolWidget(
-                    label="Track UWB",
-                    default_value=False ,
-                    on_change_callback=self._cbx_on_value_change
-                )
-                ui.Spacer(height=6)
-
-    def _build_camera_option(self):
-        """Build the widgets of the 'Camera' group"""
-        with ui.CollapsableFrame("CAMERA OPTION", name="group", build_header_fn=self._build_collapsable_header):
-            with ui.VStack(height=0, spacing=SPACING):
-                ui.Spacer(height=6)
-                CustomMultifieldWidget(
-                    label="Orientation",
-                    default_vals=[0.0, 0.0, 0.0]
-                )
-                CustomSliderWidget(min=10, max=50, label="FOV", default_val=20)
-                CustomColorWidget(1.0, 0.875, 0.5, label="Color")
-                ui.Spacer(height=6)
-                # CustomBoolWidget(label="Shadow", default_value=True)
-                # CustomSliderWidget(min=0, max=2, label="Shadow Softness", default_val=.1)
-                CustomButtonWidget(
-                    "Reset View",
-                    btn_callback=self._btn_reset_view
-                )
-
     def _build_storage_utilization(self):
-        """Build the widgets of the 'Scene' group"""
         used_percentage, free_percentage = self._data_service.calculate_storage_utilization()
 
         with ui.CollapsableFrame("STORAGE UTILIZATION", name="group", build_header_fn=self._build_collapsable_header):
             with ui.VStack(height=0, spacing=SPACING):
                 ui.Spacer(height=6)
-                # CustomButtonWidget(
-                #     btn_label="Rack Storage Utilization",
-                #     btn_callback=self._btn_space_utilization
-                # )
-                ui.Spacer(height=6)
                 ui.Label(f"Occupied: {used_percentage}%     Free: {free_percentage}%")
                 with ui.HStack():
                     progress_bar = ui.ProgressBar()
-                    # progress_bar.model.
-                    progress_bar.model.set_value(used_percentage/100)
-
-                     #style={"background_color": ui.color.red}
+                    progress_bar.model.set_value(used_percentage / 100)
                     ui.Spacer(width=10)
 
-    def build_utility(self):
-        pass
-
     def _cbx_on_value_change(self, is_checked):
-        # API URL and headers
         api_url = "https://digital-twin.expangea.com/device/Cube/"
-        headers = {
-            'X-API-KEY': '2c38e689-8bac-4ec6-9e0e-70e98222dc2d'
-        }
+        headers = {'X-API-KEY': '2c38e689-8bac-4ec6-9e0e-70e98222dc2d'}
+        cube_prim_path = "/World/Xform/Cube"
 
-        # Define the prim path of the cube you want to move
-        cube_prim_path = "/World/Xform/Cube"  # Adjust this to your actual cube's prim path in the USD scene
-
-        # Create an instance of the CubeMoverWithAPI
         cube_mover = CubeMoverDataLayer(cube_prim_path=cube_prim_path, api_url=api_url, headers=headers)
 
         if is_checked:
-            #Start moving
             logging.warning("Cube Start")
             cube_mover.start_moving()
         else:
-            #Start moving
             logging.warning("Cube Stop")
             cube_mover.stop_moving()
 
-    def _pgb_on_mouse_pressed(self, x, y, button, modifiers):
-        # self.window.set_position(100, 0)
-        # Create a new window
-
-        self.window = ui.Window(
-            " ",
-            width=150,
-            height=120,
-            flags=ui.WINDOW_FLAGS_NO_COLLAPSE| ui.WINDOW_FLAGS_NO_CLOSE | ui.WINDOW_FLAGS_NO_RESIZE  #|  ui.WINDOW_FLAGS_NO_MOV
-
-        )
-
-        self.window.frame.set_style({"background_color": (0, 0, 0, 0)})
-        with self.window.frame:
-            with ui.VStack(height=0, spacing=SPACING):
-                ui.Label(f"Storage Usage", alignment=ui.Alignment.CENTER, style={"font_size": 18})
-                ui.Spacer(height=1)
-
-                ui.Label(f"Used: {self.used_percentage}%",
-                         alignment=ui.Alignment.CENTER,
-                         style={"color": ui.color.pink, "font_size": 18},
-                         )
-                ui.Label(f"Free: {self.free_percentage}%",
-                         alignment=ui.Alignment.CENTER,
-                         style={"color": ui.color.lightblue,"font_size": 18},
-                         )
-
-    def _btn_exipring_1week(self, date):
-        date="2024-10-08"
-        material_path = "/Environment/Looks/Light_1900K_Yellow"
-        self._data_service.check_expiry_date(date=date, material_path=material_path)
-
-
-    def _btn_chat(self):
-        pass
-        # self._chat_assist.launch_assistant()
-
-    def _btn_space_utilization(self):
-        pass
-
-
-    def _btn_reset_view(self):
-        pass
-
-    def _btn_pallet_info(self, pallet_id):
-        self._data_service.show_pallet_info(pallet_id)
-
-
-    def _btn_exipry_date(self, date):
-        material_path = "/Environment/Looks/Light_1900K_Red"
-        self._data_service.check_expiry_date(date=date, material_path=material_path)
-
     def _build_fn(self):
-        """
-        The method that is called to build all the UI once the window is visible.
-        """
         with ui.ScrollingFrame(name="window_bg", horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF):
             with ui.VStack(height=0):
-                # self._build_title()
                 self._build_storage_utilization()
                 self._build_scene()
                 self._build_violation_check()
                 self._build_stock_status()
-                # self._build_expiry()
                 self._build_tracking()
-                # self._build_grid()
-                # self._build_camera_option()
+
+    def _btn_pallet_info(self, pallet_id):
+        self._data_service.show_pallet_info(pallet_id)
 
 def _show_notification(title: str, message: str, status: str):
-    if status == "info":
-        status = omni.kit.notification_manager.NotificationStatus.INFO
-    elif status == "warning":
-        status = omni.kit.notification_manager.NotificationStatus.WARNING
-    elif status == "error":
-        status = omni.kit.notification_manager.NotificationStatus.ERROR
-    else:
-        status = omni.kit.notification_manager.NotificationStatus.INFO  # Default to INFO if status is unknown
+    status_map = {
+        "info": nm.NotificationStatus.INFO,
+        "warning": nm.NotificationStatus.WARNING,
+        "error": nm.NotificationStatus.ERROR
+    }
+    status_enum = status_map.get(status, nm.NotificationStatus.INFO)
 
-    # Create the notification without the OK button (can be added later if needed)
-    omni.kit.notification_manager.post_notification(  # Added the title to the notification
+    nm.post_notification(
         text=message,
-        hide_after_timeout=False,  # Ensures the notification stays on until manually closed
-        duration=0,  # Keeps the notification indefinitely until dismissed
-        status=status
+        hide_after_timeout=False,
+        duration=0,
+        status=status_enum
     )
-
-
