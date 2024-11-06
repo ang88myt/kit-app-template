@@ -187,9 +187,9 @@ class Custom_Window(ui.Window):
             with ui.VStack(height=0):
                 self._build_storage_utilization()
                 self._build_scene()
-                self._build_violation_check()
                 self._build_stock_status()
-                self._build_tracking()
+                self._build_violation_check()
+                # self._build_tracking()
 
     def _btn_pallet_info(self, pallet_id):
         self._data_service.show_pallet_info(pallet_id)
