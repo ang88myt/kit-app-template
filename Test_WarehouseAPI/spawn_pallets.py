@@ -12,7 +12,7 @@ class RackDataHandler:
         "X-API-KEY": "2c38e689-8bac-4ec6-9e0e-70e98222dc2d"
     }
     PALLET_USD_PATH = "D:/Toll Innovation/TC Level 3 Demo/_Update/Pallet_Asm_A04_120x122x75cm_PR_V_NVD_01.usd"
-
+    # PALLET_USD_PATH = "D:/Toll Innovation/TC Level 3 Demo/_Update/testFloat.usd"
     def __init__(self):
         self.stage = omni.usd.get_context().get_stage()
 
@@ -34,24 +34,38 @@ class RackDataHandler:
             return
 
         location_id = location.get('location_id', 'unknown')
-        xform_prim_path = Sdf.Path(f"/All_Racks/Rack_{rack_number}/_{location_id}")
+        rack_path = Sdf.Path(f"/All_Racks/Rack_{rack_number}")
+        xform_prim_path = rack_path.AppendChild(f"_{location_id}")
 
         try:
+            # Ensure the All_Racks and Rack_{rack_number} exist
+            all_racks_xform = UsdGeom.Xform.Get(self.stage, Sdf.Path("/All_Racks"))
+            if not all_racks_xform:
+                all_racks_xform = UsdGeom.Xform.Define(self.stage, Sdf.Path("/All_Racks"))
+
+            rack_xform = UsdGeom.Xform.Get(self.stage, rack_path)
+            if not rack_xform:
+                rack_xform = UsdGeom.Xform.Define(self.stage, rack_path)
+
             coordinates = location.get("coordinates", {})
             logger.warning(f"{location_id}, {pallet_id}, "
                            f"{coordinates.get('x', 'N/A')}, {coordinates.get('y', 'N/A')}, {coordinates.get('z', 'N/A')}")
 
             if all(k in coordinates for k in ["x", "y", "z"]):
-                xform = UsdGeom.Xform.Define(self.stage, xform_prim_path)
+                # Attempt to get the xform at the specified path, define if it doesn't exist
+                xform = UsdGeom.Xform.Get(self.stage, xform_prim_path)
+                if not xform:
+                    xform = UsdGeom.Xform.Define(self.stage, xform_prim_path)
+
                 self._set_xform_op(xform, UsdGeom.XformOp.TypeTranslate, coordinates)
                 self._set_xform_op(xform, UsdGeom.XformOp.TypeRotateXYZ, {"x": 0.0, "y": 0.0, "z": 90.0})
 
-                pallet_prim_path = Sdf.Path(f"{xform_prim_path}/_{pallet_id}")
+                # Create the pallet under the xform
+                pallet_prim_path = xform_prim_path.AppendChild(pallet_id)
                 self._create_or_reference_pallet_prim(pallet_prim_path)
 
             else:
                 logger.error(f"No valid coordinates found for location {location_id}")
-
         except AttributeError as e:
             logger.error(f"AttributeError occurred: {e} - Likely due to missing or invalid data in location.")
 

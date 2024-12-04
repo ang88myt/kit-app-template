@@ -109,12 +109,15 @@ class DataService:
             print(f"Invalid JSON response from {api_url}.")
             return None
 
-        # Extract the coordinates
-        coordinates = data.get("rack_location", {}).get("coordinates", {})
+        # Determine which coordinates to use based on the endpoint
+        if "rack_location" in endpoint:
+            coordinates = data.get("rack_location", {}).get("coordinates", {})
+            carb.log_warn(endpoint)
+        else:
+            coordinates = data.get("coordinates", {})
 
         # If coordinates are None or incomplete, return None or handle accordingly
-        if not coordinates or coordinates.get('x') is None or coordinates.get('y') is None or coordinates.get(
-            'z') is None:
+        if not coordinates or coordinates.get('x') is None or coordinates.get('y') is None or coordinates.get('z') is None:
             print(f"No valid coordinates found at {endpoint}. Skipping.")
             return None
 
@@ -358,7 +361,6 @@ class DataService:
 
 
     def show_pallet_info(self, pallet_id):
-
         endpoint = f"pallet/{pallet_id}/"
         print(f"Fetching stock info from endpoint: {endpoint}")
 
@@ -373,12 +375,27 @@ class DataService:
             # print(info_text)
             # self.info_label.text = info_text
 
-            location_id = stock_info.get("rack_location").get("location_id")
-            location_endpoint = f"rack-location/{location_id}/"
+            location_id = stock_info.get("rack_location", {}).get("location_id")
+            location_endpoint = f"rack-location/5BTG/{location_id}/"
             print(f"Fetching coordinates from endpoint: {location_endpoint}")
 
+            coordinates = self.fetch_coordinates(location_endpoint)
+            if coordinates:
+                x, y, z = coordinates
+                print(x, y, z)
+                _move_camera(x, y, z)
+            else:
+                carb.log_warn("Failed to fetch valid coordinates.")
+        else:
+            carb.log_warn("Failed to fetch stock info.")
+
+    def show_location_info(self, location_id):
+        endpoint = f"rack-location/5BTG/{location_id}/"
+        # _find_prim_then_select(f"_{location_id}")
+        location_info = self.fetch_stock_info(endpoint)
+        if location_info:
+            # location_endpoint=f"rack-location/{location_id}/"
             x, y, z = self.fetch_coordinates(endpoint)
-            print(x, y, z)
             if x is not None and y is not None and z is not None:
                 _move_camera(x, y, z)
             else:
@@ -417,10 +434,51 @@ class DataService:
 
         return round(used_percentage), round(free_percentage)
 
+    def calculate_staging_space_utilization(self):
+        stage_path = "/World/Non_Rack_Areas"
+        """Calculate used and free space percentages in combined staging areas."""
+        stage = omni.usd.get_context().get_stage()
+        if not stage:
+            print("No valid stage loaded.")
+            return
+
+        # Staging areas to calculate
+        staging_areas = ["Area1", "Area2", "Area3"]
+        total_items = 0
+        hidden_items = 0
+
+        for area in staging_areas:
+            area_path = f"{stage_path}/{area}"
+            area_prim = stage.GetPrimAtPath(area_path)
+            if not area_prim.IsValid():
+                print(f"Staging area '{area}' not found.")
+                continue
+
+            # Traverse children under the area
+            for child in area_prim.GetChildren():
+                total_items += 1
+                visibility_attr = UsdGeom.Imageable(child).GetVisibilityAttr()
+                if visibility_attr.Get() == UsdGeom.Tokens.invisible:
+                    hidden_items += 1
+
+        # Calculate percentages for the combined staging area
+        used_percentage = ((total_items - hidden_items) / total_items) * 100 if total_items > 0 else 0
+        free_percentage = 100 - used_percentage
+
+        # Return the combined space utilization
+        space_utilization = {
+            "Combined Staging Area": {
+                "Total Items": total_items,
+                "Used Space %": round(used_percentage, 2),
+                "Free Space %": round(free_percentage, 2)
+            }
+        }
+
+        return space_utilization
+
     def close(self):
         self.session.close()
         carb.log_info("API connection closed")
-
 
 def _apply_material_to_prim(stage, prim_path, material_path):
     """Applies the specified material to the given prim."""
@@ -564,7 +622,6 @@ def _load_usd_file(file_path, ref_prim_path):
     except Exception as e:
         carb.log_error(f"An error occurred while referencing the USD file: {str(e)}")
 
-
 def _apply_material_to_prim(stage, prim_path, material_path):
     """Applies the specified material to the given prim."""
     material_prim = stage.GetPrimAtPath(material_path)
@@ -583,33 +640,35 @@ def _apply_material_to_prim(stage, prim_path, material_path):
     material_binding_api.Bind(UsdShade.Material(stage.GetPrimAtPath(material_path)))
     carb.log_info(f"Material {material_path} applied to {prim_path}")
 
-def _fetch_and_move_camera(self):
-    """Fetch stock info from endpoint and move the camera"""
-    pallet_id = self._pallet_info_widget.get_input_value()
-    endpoint = f"pallet/{pallet_id}/"
-    print(f"Fetching stock info from endpoint: {endpoint}")
 
-    _find_prim_then_select(pallet_id)
 
-    stock_info = self._data_service.fetch_stock_info(endpoint)
-    if stock_info:
-        limited_items = list(stock_info.items())[:11]
-        info_text = "\n".join([f"{key}: {value}" for key, value in limited_items])
-        print(info_text)
-
-        if "rack_location" in stock_info and stock_info["rack_location"]:
-            location_id = stock_info["rack_location"].get("location_id")
-            location_endpoint = f"rack-location/{location_id}/"
-            print(f"Fetching coordinates from endpoint: {location_endpoint}")
-
-            x, y, z = self._data_service.fetch_coordinates(location_endpoint)
-            print(x, y, z)
-            if x is not None and y is not None and z is not None:
-                _move_camera(y, z)
-            else:
-                print("Failed to fetch coordinates")
-        else:
-            print("Failed to fetch stock info")
+# def _fetch_and_move_camera(self):
+#     """Fetch stock info from endpoint and move the camera"""
+#     pallet_id = self._pallet_info_widget.get_input_value()
+#     endpoint = f"pallet/{pallet_id}/"
+#     print(f"Fetching stock info from endpoint: {endpoint}")
+#
+#     _find_prim_then_select(pallet_id)
+#
+#     stock_info = self._data_service.fetch_stock_info(endpoint)
+#     if stock_info:
+#         limited_items = list(stock_info.items())[:11]
+#         info_text = "\n".join([f"{key}: {value}" for key, value in limited_items])
+#         print(info_text)
+#
+#         if "rack_location" in stock_info and stock_info["rack_location"]:
+#             location_id = stock_info["rack_location"].get("location_id")
+#             location_endpoint = f"rack-location/{location_id}/"
+#             print(f"Fetching coordinates from endpoint: {location_endpoint}")
+#
+#             x, y, z = self._data_service.fetch_coordinates(location_endpoint)
+#             print(x, y, z)
+#             if x is not None and y is not None and z is not None:
+#                 _move_camera(y, z)
+#             else:
+#                 print("Failed to fetch coordinates")
+#         else:
+#             print("Failed to fetch stock info")
 
 
 def _show_notification(title: str, message: str):

@@ -1,6 +1,8 @@
 import logging
 from collections import defaultdict
-
+from pxr import UsdGeom
+import omni.usd
+import omni.kit
 import omni.ui as ui
 import omni.kit.notification_manager as nm
 from omni.ui import color as cl
@@ -11,10 +13,11 @@ from .custom_bool_widget import CustomBoolWidget
 from .custom_color_widget import CustomColorWidget
 from .custom_multifield_widget import CustomMultifieldWidget
 from .custom_slider_widget import CustomSliderWidget
+from .custom_combobox_widget import CustomComboboxWidget
 from .data_service import DataService
 from .cube_mover_data import CubeMoverDataLayer
 from .proximity_checker import ProximityChecker
-
+from .custom_path_button import CustomPathButtonWidget
 SPACING = 5
 WINDOW_TITLE = "Unilever Extension"
 COLORS = {
@@ -33,7 +36,7 @@ class Custom_Window(ui.Window):
         self._data_service = DataService()
         self.used_percentage = 40
         self.free_percentage = 60
-
+        self.top_level_parents = ['Show All', '/root', '/All_Racks', '/Critical_Items', '/World']
         self.frame.style = julia_modeler_style
         self.frame.set_build_fn(self._build_fn)
 
@@ -62,9 +65,52 @@ class Custom_Window(ui.Window):
         with ui.CollapsableFrame("WAREHOUSE", name="group", build_header_fn=self._build_collapsable_header):
             with ui.VStack(height=0, spacing=SPACING):
                 ui.Spacer(height=6)
-                CustomInfoWidget(label="Pallet Info", placeholder="PID", btn_callback=self._btn_pallet_info)
+                CustomInfoWidget(label="Pallet ID", placeholder="PID", btn_callback=self._btn_pallet_info)
                 ui.Spacer(height=6)
-                CustomButtonWidget(btn_label="Stock Status", tooltip="Critical Stock Status", btn_callback=self._build_stock_status)
+                CustomInfoWidget(label="Product ID", placeholder="PID", btn_callback=self._btn_product_info)
+                ui.Spacer(height=6)
+                CustomInfoWidget(label="Location ID", placeholder="LID", btn_callback=self._btn_location_info)
+                ui.Spacer(height=6)
+                # CustomButtonWidget(btn_label="Stock Status", tooltip="Critical Stock Status", btn_callback=self._build_stock_status)
+                # ui.Spacer(height=6)
+                CustomComboboxWidget(label="Isolate Selection",options=self.top_level_parents, _call_back=self._isolate_selected_parent)
+                # CustomPathButtonWidget(lable="File Upload", )
+
+    def _isolate_selected_parent(self, selected_parent):
+        logging.warning("Isolation mode activated.")
+
+        # Get the USD stage
+        stage = omni.usd.get_context().get_stage()
+
+        # If "Show All" is selected, make sure all top-level parents are visible
+        if selected_parent == "Show All" or not selected_parent:
+            print("Showing all parents.")
+            for parent in self.top_level_parents:
+                if parent == "Show All":
+                    continue  # Skip the "Show All" entry
+                prim = stage.GetPrimAtPath(parent)
+                if prim.IsValid():
+                    geom_prim = UsdGeom.Imageable(prim)
+                    if geom_prim:
+                        geom_prim.GetVisibilityAttr().Set(UsdGeom.Tokens.inherited)
+            return
+
+        # Show the selected parent and hide all others
+        for parent in self.top_level_parents:
+            if parent == "Show All":
+                continue  # Skip the "Show All" entry
+            prim = stage.GetPrimAtPath(parent)
+            if prim.IsValid():
+                geom_prim = UsdGeom.Imageable(prim)
+                if geom_prim:
+                    visibility = UsdGeom.Tokens.inherited if parent == selected_parent else UsdGeom.Tokens.invisible
+                    geom_prim.GetVisibilityAttr().Set(visibility)
+
+    def _btn_location_info(self,location_id):
+        self._data_service.show_location_info(location_id)
+
+    def _btn_product_info(self):
+        pass
 
     def _build_stock_status(self):
         """Creates the Omniverse UI with CollapsableFrames for each rack, shows total critical status codes found at the top, and buttons for critical pallets."""
@@ -157,16 +203,37 @@ class Custom_Window(ui.Window):
         self._data_service.show_pallet_info(pallet_id)
 
     def _build_storage_utilization(self):
+        # Get overall storage utilization
         used_percentage, free_percentage = self._data_service.calculate_storage_utilization()
 
-        with ui.CollapsableFrame("STORAGE UTILIZATION", name="group", build_header_fn=self._build_collapsable_header):
+        # Get staging area utilization
+        staging_area = self._data_service.calculate_staging_space_utilization()
+
+        with ui.CollapsableFrame("UNILEVER STORAGE UTILIZATION", name="group", build_header_fn=self._build_collapsable_header, collapsed=False):
             with ui.VStack(height=0, spacing=SPACING):
                 ui.Spacer(height=6)
+                ui.Label("Rack Space Usage")
+                ui.Spacer(height=6)
                 ui.Label(f"Occupied: {used_percentage}%     Free: {free_percentage}%")
+                ui.Spacer(height=6)
                 with ui.HStack():
                     progress_bar = ui.ProgressBar()
                     progress_bar.model.set_value(used_percentage / 100)
                     ui.Spacer(width=10)
+
+                # Loop through each staging area and display its utilization
+                for area, stats in staging_area.items():
+                    ui.Spacer(height=6)
+                    ui.Label(f"{area} Space Usage")
+                    ui.Spacer(height=6)
+                    area_used_percentage = stats['Used Space %']
+                    area_free_percentage = stats['Free Space %']
+                    ui.Label(f"Occupied: {area_used_percentage}%     Free: {area_free_percentage}%")
+                    ui.Spacer(height=6)
+                    with ui.HStack():
+                        progress_bar = ui.ProgressBar()
+                        progress_bar.model.set_value(area_used_percentage / 100)
+                        ui.Spacer(width=10)
 
     def _cbx_on_value_change(self, is_checked):
         api_url = "https://digital-twin.expangea.com/device/Cube/"

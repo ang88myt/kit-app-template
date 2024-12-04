@@ -9,12 +9,9 @@
 __all__ = ["CustomComboboxWidget"]
 
 from typing import List, Optional
-
 import omni.ui as ui
-
 from .custom_base_widget import CustomBaseWidget
 from .style import BLOCK_HEIGHT
-
 
 class CustomComboboxWidget(CustomBaseWidget):
     """A customized combobox widget"""
@@ -32,10 +29,17 @@ class CustomComboboxWidget(CustomBaseWidget):
         CustomBaseWidget.__init__(self, model=model, **kwargs)
 
     def destroy(self):
-        CustomBaseWidget.destroy()
+        # Disconnect callbacks from the combobox model
+        if self.__combobox_widget and self.__combobox_widget.model:
+            self.__combobox_widget.model.remove_item_changed_fn(self._on_value_changed)
+
+        # Clear references to options and widgets
         self.__options = None
         self.__combobox_widget = None
-        self._callbacks = []
+        self._callbacks.clear()
+
+        # Call parent destroy method
+        CustomBaseWidget.destroy(self)
 
     @property
     def model(self) -> Optional[ui.AbstractItemModel]:
@@ -46,7 +50,8 @@ class CustomComboboxWidget(CustomBaseWidget):
     @model.setter
     def model(self, value: ui.AbstractItemModel):
         """The widget's model"""
-        self.__combobox_widget.model = value
+        if self.__combobox_widget:
+            self.__combobox_widget.model = value
 
     def _on_value_changed(self, *args):
         """Set revert_img to correct state."""
@@ -67,7 +72,7 @@ class CustomComboboxWidget(CustomBaseWidget):
             self.revert_img.enabled = False
 
     def _build_body(self):
-        """Main meat of the widget.  Draw the Rectangle, Combobox, and
+        """Main meat of the widget. Draw the Rectangle, Combobox, and
         set up callbacks to keep them updated.
         """
         with ui.HStack():
@@ -88,7 +93,7 @@ class CustomComboboxWidget(CustomBaseWidget):
                     height=10
                 )
 
-                # Swap for  different dropdown arrow image over current one
+                # Swap for a different dropdown arrow image over current one
                 with ui.HStack():
                     ui.Spacer()  # Keep it on the right side
                     with ui.VStack(width=0):  # Need width=0 to keep right-aligned
@@ -105,3 +110,4 @@ class CustomComboboxWidget(CustomBaseWidget):
     def add_value_changed_callback(self, callback):
         """Allow external code to register callbacks for value changes."""
         self._callbacks.append(callback)
+
