@@ -48,6 +48,12 @@ class DataService:
         self.critical_status_codes = ["NE", "DMG", "EX", "QAF"]
         # Stores critical pallets per rack number
         self.critical_pallets_by_rack = {}
+        self.COLORS = {
+            "DMG": "blue",
+            "NE": "yellow",
+            "QAF": "purple",
+            "EX": "red"
+        }
     @staticmethod
     def manage_extension():
         try:
@@ -475,6 +481,8 @@ class DataService:
         }
 
         return space_utilization
+    def update_warehouse(self):
+        pass
 
     def close(self):
         self.session.close()
@@ -497,6 +505,7 @@ def _apply_material_to_prim(stage, prim_path, material_path):
     material_binding_api = UsdShade.MaterialBindingAPI(prim)
     material_binding_api.Bind(UsdShade.Material(stage.GetPrimAtPath(material_path)))
     carb.log_info(f"Material {material_path} applied to {prim_path}")
+
 
 def _move_camera(x: float, y: float, z: float):
     xform_path = "/Environment/Camera"
@@ -641,36 +650,6 @@ def _apply_material_to_prim(stage, prim_path, material_path):
     carb.log_info(f"Material {material_path} applied to {prim_path}")
 
 
-
-# def _fetch_and_move_camera(self):
-#     """Fetch stock info from endpoint and move the camera"""
-#     pallet_id = self._pallet_info_widget.get_input_value()
-#     endpoint = f"pallet/{pallet_id}/"
-#     print(f"Fetching stock info from endpoint: {endpoint}")
-#
-#     _find_prim_then_select(pallet_id)
-#
-#     stock_info = self._data_service.fetch_stock_info(endpoint)
-#     if stock_info:
-#         limited_items = list(stock_info.items())[:11]
-#         info_text = "\n".join([f"{key}: {value}" for key, value in limited_items])
-#         print(info_text)
-#
-#         if "rack_location" in stock_info and stock_info["rack_location"]:
-#             location_id = stock_info["rack_location"].get("location_id")
-#             location_endpoint = f"rack-location/{location_id}/"
-#             print(f"Fetching coordinates from endpoint: {location_endpoint}")
-#
-#             x, y, z = self._data_service.fetch_coordinates(location_endpoint)
-#             print(x, y, z)
-#             if x is not None and y is not None and z is not None:
-#                 _move_camera(y, z)
-#             else:
-#                 print("Failed to fetch coordinates")
-#         else:
-#             print("Failed to fetch stock info")
-
-
 def _show_notification(title: str, message: str):
     status = omni.kit.notification_manager.NotificationStatus.INFO
     ok_button = omni.kit.notification_manager.NotificationButtonInfo("OK", on_complete=None)
@@ -737,23 +716,40 @@ def save_to_csv(data: List[Dict], file_name: str, group_by_key: str = None):
     except Exception as e:
         logging.error(f"Failed to save data to CSV: {e}")
 
-# # Sample Usage for Violations
-# violations = [
-#     {"food_pallet_id": "UINT000001", "food_location_id": "3211001", "hpc_pallet_id": "UINT000002", "distance": 150.5, "hpc_location_id": "3211002"},
-#     {"food_pallet_id": "UINT000001", "food_location_id": "3211001", "hpc_pallet_id": "UINT000003", "distance": 180.3, "hpc_location_id": "3211003"},
-#     {"food_pallet_id": "UINT000004", "food_location_id": "3211004", "hpc_pallet_id": "UINT000005", "distance": 200.0, "hpc_location_id": "3211005"}
-# ]
-#
-# # Save violations to CSV with grouping
-# save_to_csv(violations, "proximity_violations.csv", group_by_key="food_pallet_id")
-#
-# # Sample Usage for critical_pallets_by_rack without grouping
-# critical_pallets = [
-#     {"rack_no": 20, "pallet_id": "UINT0000081504", "location_id": "3221011", "stock_status_code": "DMG", "x": -2371.77, "y": 7860.5, "z": 0.0},
-#     {"rack_no": 21, "pallet_id": "UINT0000081505", "location_id": "3221012", "stock_status_code": "EX", "x": -2372.77, "y": 7862.0, "z": 0.0}
-# ]
-#
-# # Save critical pallets to CSV without grouping
-# save_to_csv(critical_pallets, "critical_pallets_by_rack.csv")
+
+def _isolate_selected_parent(xform_parent_name):
+    """Handle isolation of the selected parent by name."""
+    logging.info(f"Isolation mode activated for: {xform_parent_name}")
+
+    # Get the USD stage
+    stage = omni.usd.get_context().get_stage()
+
+    if not xform_parent_name or xform_parent_name == "Show All":
+        logging.info("No valid selection or 'Show All' selected. Resetting visibility for all parents.")
+        # Reset visibility to inherited for all parents
+        for prim in stage.Traverse():
+            if prim.IsA(UsdGeom.Imageable):
+                geom_prim = UsdGeom.Imageable(prim)
+                geom_prim.GetVisibilityAttr().Set(UsdGeom.Tokens.inherited)
+        return
+
+    # Find the prim to isolate using the _traverse function
+    root_prim = stage.GetPseudoRoot()
+    target_prim = _traverse(root_prim, xform_parent_name)
+
+    if not target_prim:
+        logging.warn(f"Prim '{xform_parent_name}' not found!")
+        return
+
+    # Isolate the selected parent and hide all others
+    for prim in stage.Traverse():
+        if prim.IsA(UsdGeom.Imageable):
+            geom_prim = UsdGeom.Imageable(prim)
+            # Set visibility based on the selected parent
+            visibility = UsdGeom.Tokens.inherited if prim == target_prim else UsdGeom.Tokens.invisible
+            geom_prim.GetVisibilityAttr().Set(visibility)
+
+    logging.info(f"Isolation applied for: {xform_parent_name}")
+
 
 

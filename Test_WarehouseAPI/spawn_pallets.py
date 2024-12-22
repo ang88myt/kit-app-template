@@ -69,6 +69,18 @@ class RackDataHandler:
         except AttributeError as e:
             logger.error(f"AttributeError occurred: {e} - Likely due to missing or invalid data in location.")
 
+    def spawn_all_pallets(self):
+        for rack_number in range(19, 41):
+            rack_data = self.fetch_rack_data(rack_number)
+            if not rack_data:
+                continue
+
+            locations = rack_data.get("data", {}).get("rack_locations", [])
+            for location in locations:
+                pallets = location.get("pallets", [])
+                for pallet in pallets:
+                    self.spawn_pallet_at_location(rack_number, location, pallet.get("pallet_id", "unknown"))
+
     def _set_xform_op(self, xform, op_type, coordinates):
         """Check for an existing transform operation; add one if it does not exist."""
         op = next((o for o in xform.GetOrderedXformOps() if o.GetOpType() == op_type), None)

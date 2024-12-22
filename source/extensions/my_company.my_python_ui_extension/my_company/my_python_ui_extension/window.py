@@ -9,23 +9,15 @@ from omni.ui import color as cl
 from .style import julia_modeler_style, ATTR_LABEL_WIDTH
 from .custom_button import CustomButtonWidget
 from .custom_info_button import CustomInfoWidget
-from .custom_bool_widget import CustomBoolWidget
-from .custom_color_widget import CustomColorWidget
-from .custom_multifield_widget import CustomMultifieldWidget
-from .custom_slider_widget import CustomSliderWidget
-from .custom_combobox_widget import CustomComboboxWidget
+from .custom_radio_collection import CustomRadioCollection
 from .data_service import DataService
 from .cube_mover_data import CubeMoverDataLayer
 from .proximity_checker import ProximityChecker
 from .custom_path_button import CustomPathButtonWidget
+
 SPACING = 5
 WINDOW_TITLE = "Unilever Extension"
-COLORS = {
-    "DMG": "blue",
-    "NE": "yellow",
-    "QAF": "purple",
-    "EX": "red"
-}
+
 
 class Custom_Window(ui.Window):
     """The class that represents the window"""
@@ -60,6 +52,17 @@ class Custom_Window(ui.Window):
             ui.Spacer(height=8)
             ui.Line(style_type_name_override="HeaderLine")
 
+    def _build_update_scene(self):
+        with ui.CollapsableFrame("UPDATE WAREHOUSE", name="group", build_header_fn=self._build_collapsable_header):
+            with ui.VStack(height=0, spacing=SPACING):
+                ui.Spacer(height=6)
+                CustomButtonWidget(btn_label="UPDATE",
+                                   tooltip="Update Warehouse Data",
+                                   btn_callback=self._update_warehouse)
+
+    def _update_warehouse(self):
+        pass
+
     def _build_scene(self):
         """Build the widgets of the 'Scene' group"""
         with ui.CollapsableFrame("WAREHOUSE", name="group", build_header_fn=self._build_collapsable_header):
@@ -71,42 +74,8 @@ class Custom_Window(ui.Window):
                 ui.Spacer(height=6)
                 CustomInfoWidget(label="Location ID", placeholder="LID", btn_callback=self._btn_location_info)
                 ui.Spacer(height=6)
-                # CustomButtonWidget(btn_label="Stock Status", tooltip="Critical Stock Status", btn_callback=self._build_stock_status)
-                # ui.Spacer(height=6)
-                CustomComboboxWidget(label="Isolate Selection",options=self.top_level_parents, _call_back=self._isolate_selected_parent)
-                # CustomPathButtonWidget(lable="File Upload", )
 
-    def _isolate_selected_parent(self, selected_parent):
-        logging.warning("Isolation mode activated.")
-
-        # Get the USD stage
-        stage = omni.usd.get_context().get_stage()
-
-        # If "Show All" is selected, make sure all top-level parents are visible
-        if selected_parent == "Show All" or not selected_parent:
-            print("Showing all parents.")
-            for parent in self.top_level_parents:
-                if parent == "Show All":
-                    continue  # Skip the "Show All" entry
-                prim = stage.GetPrimAtPath(parent)
-                if prim.IsValid():
-                    geom_prim = UsdGeom.Imageable(prim)
-                    if geom_prim:
-                        geom_prim.GetVisibilityAttr().Set(UsdGeom.Tokens.inherited)
-            return
-
-        # Show the selected parent and hide all others
-        for parent in self.top_level_parents:
-            if parent == "Show All":
-                continue  # Skip the "Show All" entry
-            prim = stage.GetPrimAtPath(parent)
-            if prim.IsValid():
-                geom_prim = UsdGeom.Imageable(prim)
-                if geom_prim:
-                    visibility = UsdGeom.Tokens.inherited if parent == selected_parent else UsdGeom.Tokens.invisible
-                    geom_prim.GetVisibilityAttr().Set(visibility)
-
-    def _btn_location_info(self,location_id):
+    def _btn_location_info(self, location_id):
         self._data_service.show_location_info(location_id)
 
     def _btn_product_info(self):
@@ -116,14 +85,19 @@ class Custom_Window(ui.Window):
         """Creates the Omniverse UI with CollapsableFrames for each rack, shows total critical status codes found at the top, and buttons for critical pallets."""
         critical_status_count, critical_pallets_by_rack = self._data_service.fetch_status_code_data()
         total_critical_count = sum(critical_status_count.values())
-
-        with ui.CollapsableFrame("CRITICAL STOCK STATUS", name="group", build_header_fn=self._build_collapsable_header, collapsed=True):
+        total_critical_count = 0
+        with ui.CollapsableFrame("CRITICAL STOCK STATUS", name="group", build_header_fn=self._build_collapsable_header,
+                                 collapsed=True):
             with ui.VStack(spacing=2):
-                ui.Label(f"Grand Total Critical Items Found: {total_critical_count}", style={"font_size": 18, "color": "orange"})
+                ui.Label(f"Grand Total Critical Items Found: {total_critical_count}",
+                         style={"font_size": 18, "color": "orange"})
+                # radio_collection = CustomRadioCollection(labels=self.top_level_parents, group_name="Group1")
 
+                ui.Spacer(height=6)
                 for status_code, count in critical_status_count.items():
-                    color = COLORS.get(status_code, "white")
-                    ui.Label(f"{status_code}| {count} items", style={"font_size": 14, "color": color, "alignment": ui.Alignment.LEFT_CENTER})
+                    color = self._data_service.COLORS.get(status_code, "white")
+                    ui.Label(f"{status_code}| {count} items",
+                             style={"font_size": 14, "color": color, "alignment": ui.Alignment.LEFT_CENTER})
 
                 ui.Spacer(height=2)
 
@@ -134,13 +108,15 @@ class Custom_Window(ui.Window):
                         pallets_by_status[stock_status_code].append(pallet)
 
                 for stock_status_code, pallets in pallets_by_status.items():
-                    with ui.CollapsableFrame(f"Status Code: {stock_status_code}", name="group", build_header_fn=self._build_collapsable_header, collapsed=True):
+                    with ui.CollapsableFrame(f"Status Code: {stock_status_code}", name="group",
+                                             build_header_fn=self._build_collapsable_header, collapsed=True):
                         with ui.ScrollingFrame(height=200):
                             with ui.VStack(spacing=6):
                                 for pallet in pallets:
                                     pallet_id = pallet["pallet_id"]
                                     location_id = pallet["location_id"]
-                                    CustomButtonWidget(f"Pallet ID: {pallet_id}", tooltip=f"Location ID: {location_id}", btn_callback=lambda p=pallet_id: self._navigate_to_pallet(p))
+                                    CustomButtonWidget(f"Pallet ID: {pallet_id}", tooltip=f"Location ID: {location_id}",
+                                                       btn_callback=lambda p=pallet_id: self._navigate_to_pallet(p))
 
     def _build_violation_check(self):
         pro_checker = ProximityChecker(racks_range=(19, 41), distance_threshold=200.0)
@@ -159,15 +135,15 @@ class Custom_Window(ui.Window):
         total_violations = pro_checker.get_total_violations()
         pro_checker.save_violations_to_csv()
 
-        with ui.CollapsableFrame("PALLET VIOLATIONS", name="group", build_header_fn=self._build_collapsable_header, collapsed=True):
+        with ui.CollapsableFrame("PALLET VIOLATIONS", name="group", build_header_fn=self._build_collapsable_header,
+                                 collapsed=True):
             with ui.ScrollingFrame(height=800):
-                with ui.VStack(spacing=10):
+                with ui.VStack(spacing=6):
                     ui.Label(f"Total Violations Found: {total_violations}", style={"font_size": 18, "color": "orange"})
-                    ui.Spacer(height=10)
-
+                    ui.Spacer(height=6)
                     for food_pallet_id, hpc_pallets in food_pallets_with_hpc.items():
                         with ui.CollapsableFrame(f"Food Pallet ID: {food_pallet_id}", collapsed=True):
-                            with ui.VStack(spacing=5):
+                            with ui.VStack(spacing=6):
                                 for hpc_pallet in hpc_pallets:
                                     hpc_pallet_id = hpc_pallet['hpc_pallet_id']
                                     hpc_location_id = hpc_pallet['hpc_location_id']
@@ -209,7 +185,8 @@ class Custom_Window(ui.Window):
         # Get staging area utilization
         staging_area = self._data_service.calculate_staging_space_utilization()
 
-        with ui.CollapsableFrame("UNILEVER STORAGE UTILIZATION", name="group", build_header_fn=self._build_collapsable_header, collapsed=False):
+        with ui.CollapsableFrame("UNILEVER STORAGE UTILIZATION", name="group",
+                                 build_header_fn=self._build_collapsable_header, collapsed=False):
             with ui.VStack(height=0, spacing=SPACING):
                 ui.Spacer(height=6)
                 ui.Label("Rack Space Usage")
@@ -252,16 +229,19 @@ class Custom_Window(ui.Window):
     def _build_fn(self):
         with ui.ScrollingFrame(name="window_bg", horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF):
             with ui.VStack(height=0):
-                self._build_storage_utilization()
+                self._build_update_scene()
+                # self._build_storage_utilization()
                 self._build_scene()
-                self._build_stock_status()
-                self._build_violation_check()
+
+                # self._build_stock_status()
+                # self._build_violation_check()
                 # self._build_tracking()
 
     def _btn_pallet_info(self, pallet_id):
         self._data_service.show_pallet_info(pallet_id)
 
-def _show_notification(title: str, message: str, status: str):
+
+def show_notification(title: str, message: str, status: str):
     status_map = {
         "info": nm.NotificationStatus.INFO,
         "warning": nm.NotificationStatus.WARNING,
