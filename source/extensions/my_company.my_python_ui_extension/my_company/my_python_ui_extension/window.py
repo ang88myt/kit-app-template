@@ -10,7 +10,7 @@ from .style import julia_modeler_style, ATTR_LABEL_WIDTH
 from .custom_button import CustomButtonWidget
 from .custom_info_button import CustomInfoWidget
 from .custom_radio_collection import CustomRadioCollection
-from .data_service import DataService
+from .data_service import DataService,_show_notification
 from .cube_mover_data import CubeMoverDataLayer
 from .proximity_checker import ProximityChecker
 from .custom_path_button import CustomPathButtonWidget
@@ -52,16 +52,38 @@ class Custom_Window(ui.Window):
             ui.Spacer(height=8)
             ui.Line(style_type_name_override="HeaderLine")
 
+
     def _build_update_scene(self):
         with ui.CollapsableFrame("UPDATE WAREHOUSE", name="group", build_header_fn=self._build_collapsable_header):
             with ui.VStack(height=0, spacing=SPACING):
                 ui.Spacer(height=6)
                 CustomButtonWidget(btn_label="UPDATE",
                                    tooltip="Update Warehouse Data",
-                                   btn_callback=self._update_warehouse)
+                                   btn_callback=self._update_scene)
 
-    def _update_warehouse(self):
-        pass
+    def _update_scene(self):
+        success = self._data_service.spawn_all_pallets()
+        if success:
+            _show_notification("Update Complete", "All pallets have been spawned successfully.", "INFO")
+        else:
+            _show_notification("Update Failed", "Failed to fetch rack data or spawn pallets.", "WARNING")
+
+    def _add_search_bar(self):
+        with ui.HStack():
+            self.search_input = ui.StringField(height=20, placeholder_text="Enter pallet or location ID")
+            ui.Button("Search",clicked_fn=self._on_search_clicked)
+
+    def _on_search_clicked(self):
+        search_text = self.search_input.model.get_value_as_string()
+        if search_text:
+            print(f"Searching for: {search_text}")
+            pallet_data = self._data_service.fetch_pallet_data(search_text)
+            if pallet_data:
+                _show_notification("Search Result", f"Found data for: {search_text}", "info")
+            else:
+                _show_notification("Search Failed", f"No data found for: {search_text}", "warning")
+        else:
+            _show_notification("Search Error", "Search input is empty.", "warning")
 
     def _build_scene(self):
         """Build the widgets of the 'Scene' group"""

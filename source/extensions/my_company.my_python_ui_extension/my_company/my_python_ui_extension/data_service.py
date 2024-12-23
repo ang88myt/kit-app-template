@@ -22,7 +22,6 @@ import logging
 from typing import List, Dict
 # from datetime import datetime, timedelta
 # import time
-# stage = omni.usd.get_context().get_stage()
 
 # from paho.mqtt import client as mqtt_client
 # from .custom_events import CustomEvents
@@ -30,15 +29,16 @@ from typing import List, Dict
 # logger = logging.getLogger(__name__)
 class DataService:
     def __init__(self):
-        self.base_url = "https://digital-twin.expangea.com/"
+        stage = omni.usd.get_context().get_stage()
+        self.api_base_url = "https://digital-twin.expangea.com/"
         self.headers = {
             'X-API-KEY': '2c38e689-8bac-4ec6-9e0e-70e98222dc2d'
         }
-        # self.stage = stage
+        self.stage = stage
         self.status_counters=0
         self.session = requests.Session()
         self.result_dict = {}
-
+        self.pallet_usd_path = "D:/Toll Innovation/TC Level 3 Demo/_Update/Pallet_Asm_A04_120x122x75cm_PR_V_NVD_01.usd"
         self.critical_status_count = {
             "NE": 0,  # Near Expiry
             "DMG": 0,  # Damaged
@@ -82,7 +82,7 @@ class DataService:
             carb.log_error(f"An error occurred while managing the extension: {str(e)}")
 
     def construct_api_url(self, endpoint: str) -> str:
-        return f"{self.base_url}{endpoint}"
+        return f"{self.api_base_url}{endpoint}"
 
     def handle_api_request(self, api_url: str) -> requests.Response | dict:
         try:
@@ -130,20 +130,82 @@ class DataService:
         # Return the coordinates (x, y, z) if they are valid
         return coordinates.get('x'), coordinates.get('y'), coordinates.get('z')
 
-    def fetch_rack_data(self, rack_no):
-        """
-        Fetches data for a specific rack number.
-        """
-        url = f"{self.base_url}rack/5BTG/3/{rack_no}/"
+    def fetch_pallet_data(self, pallet_id):
+        import requests
         try:
-            response = requests.post(url, headers=self.headers)
-            if response.status_code == 200:
-                return response.json()
-            else:
-                return None
-        except Exception as e:
-            print(f"Error fetching data for Rack {rack_no}: {e}")
+            api_url = f"{self.api_base_url}/pallet/{pallet_id}/"
+            print(f"Fetching pallet data from: {api_url}")  # Debug statement
+            response = requests.post(api_url, headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            print(f"Error fetching pallet data for pallet {pallet_id}: {e}")
             return None
+
+    def fetch_location_data(self, warehouse_code, location_id):
+        import requests
+        try:
+            api_url = f"{self.api_base_url}/rack-location/{warehouse_code}/{location_id}/"
+            print(f"Fetching location data from: {api_url}")  # Debug statement
+            response = requests.post(api_url, headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            print(f"Error fetching location data for location {location_id}: {e}")
+            return None
+
+    def fetch_rack_data(self, warehouse_code, floor_no, rack_number):
+        import requests
+        try:
+            api_url = f"{self.api_base_url}/rack/{warehouse_code}/{floor_no}/{rack_number}/"
+            print(f"Fetching rack data from: {api_url}")  # Debug statement
+            response = requests.post(api_url, headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            print(f"Error fetching rack data for rack {rack_number}: {e}")
+            return None
+
+    def spawn_pallet_at_location(self, rack_number, location, pallet_id):
+        if location is None:
+            print("Invalid location data.")
+            return
+
+        location_id = location.get("location_id", "unknown")
+        rack_path = f"/All_Racks/Rack_{rack_number}"
+        xform_path = f"{rack_path}/_{location_id}"
+
+        coordinates = location.get("coordinates", {})
+        if not all(k in coordinates for k in ("x", "y", "z")):
+            print(f"Invalid coordinates for location {location_id}.")
+            return
+
+        xform = UsdGeom.Xform.Define(self.stage, xform_path)
+        xform.AddTranslateOp().Set(Gf.Vec3d(coordinates["x"], coordinates["y"], coordinates["z"]))
+        pallet_path = f"{xform_path}/{pallet_id}"
+
+        if not self.stage.GetPrimAtPath(pallet_path):
+            pallet_prim = self.stage.DefinePrim(pallet_path, "Xform")
+            pallet_prim.GetReferences().AddReference(self.pallet_usd_path)
+
+    def spawn_all_pallets(self):
+        success = True
+        warehouse_code = "5BTG"
+        floor_no = "3"
+        for rack_number in range(19, 41):
+            print(f"Processing rack {rack_number}")  # Debug statement
+            rack_data = self.fetch_rack_data(warehouse_code, floor_no, rack_number)
+            if not rack_data:
+                print(f"Failed to fetch data for rack {rack_number}")  # Debug statement
+                success = False
+                continue
+
+            locations = rack_data.get("data", {}).get("rack_locations", [])
+            for location in locations:
+                pallets = location.get("pallets", [])
+                for pallet in pallets:
+                    self.spawn_pallet_at_location(rack_number, location, pallet.get("pallet_id", "unknown"))
+        return success
 
     def fetch_status_code_data(self):
         critical_pallets_by_rack = {}  # Dictionary to store critical pallets by rack
@@ -218,11 +280,11 @@ class DataService:
 
         return self.critical_status_count, critical_pallets_by_rack
 
-    def display_critical_pallet(self, pallet_id, location_id, stock_status_code):
-        """
-        Displays critical pallet details including pallet ID, location, and stock status.
-        """
-        print(f"Critical Pallet Found: Pallet ID: {pallet_id}, Location ID: {location_id}, Status: {stock_status_code}")
+    # def display_critical_pallet(self, pallet_id, location_id, stock_status_code):
+    #     """
+    #     Displays critical pallet details including pallet ID, location, and stock status.
+    #     """
+    #     print(f"Critical Pallet Found: Pallet ID: {pallet_id}, Location ID: {location_id}, Status: {stock_status_code}")
 
     def display_total_critical_count(self):
         """
@@ -419,8 +481,8 @@ class DataService:
         used_slots = 0
 
         # Loop through racks 19 to 40 to count used and free storage slots
-        for rack_no in range(19, 41):
-            rack_data = self.fetch_rack_data(rack_no)
+        for rack_num in range(19, 41):
+            rack_data = self.fetch_rack_data(rack_num)
             if not rack_data:
                 continue  # Skip if no data is found for the rack
 
@@ -650,14 +712,25 @@ def _apply_material_to_prim(stage, prim_path, material_path):
     carb.log_info(f"Material {material_path} applied to {prim_path}")
 
 
-def _show_notification(title: str, message: str):
-    status = omni.kit.notification_manager.NotificationStatus.INFO
+def _show_notification(title: str, message: str, status: str):
+    # Map the status to the appropriate NotificationStatus
+    status_mapping = {
+        "INFO": omni.kit.notification_manager.NotificationStatus.INFO,
+        "WARNING": omni.kit.notification_manager.NotificationStatus.WARNING,
+        # "ERROR": omni.kit.notification_manager.NotificationStatus.ERROR,
+    }
+
+    # Default to INFO if the status isn't recognized
+    notification_status = status_mapping.get(status.upper(), omni.kit.notification_manager.NotificationStatus.INFO)
+
     ok_button = omni.kit.notification_manager.NotificationButtonInfo("OK", on_complete=None)
-    omni.kit.notification_manager.post_notification(text=message,
-                                                    hide_after_timeout=False,
-                                                    duration=0,
-                                                    status=status,
-                                                    button_infos=[ok_button])
+    omni.kit.notification_manager.post_notification(
+        text=f"{title}: {message}",
+        hide_after_timeout=True,
+        duration=5,
+        status=notification_status,
+        button_infos=[ok_button]
+    )
 
 
 def log_status(pallet_id, stock_status_code, level):
