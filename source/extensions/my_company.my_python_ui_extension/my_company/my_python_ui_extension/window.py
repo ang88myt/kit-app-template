@@ -252,10 +252,10 @@ class Custom_Window(ui.Window):
     def _build_fn(self):
         with ui.ScrollingFrame(name="window_bg", horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF):
             with ui.VStack(height=0):
-                self._build_storage_utilization()
+                # self._build_storage_utilization()
                 self._build_scene()
-                self._build_stock_status()
-                self._build_violation_check()
+                # self._build_stock_status()
+                # self._build_violation_check()
                 # self._build_tracking()
 
     def _btn_pallet_info(self, pallet_id):
