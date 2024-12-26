@@ -54,6 +54,8 @@ class DataService:
             "QAF": "purple",
             "EX": "red"
         }
+        self.warehouse_code = '5BTG'
+        self.floor_no = '3'
     @staticmethod
     def manage_extension():
         try:
@@ -190,11 +192,9 @@ class DataService:
 
     def spawn_all_pallets(self):
         success = True
-        warehouse_code = "5BTG"
-        floor_no = "3"
         for rack_number in range(19, 41):
             print(f"Processing rack {rack_number}")  # Debug statement
-            rack_data = self.fetch_rack_data(warehouse_code, floor_no, rack_number)
+            rack_data = self.fetch_rack_data(self.warehouse_code, self.floor_no, rack_number)
             if not rack_data:
                 print(f"Failed to fetch data for rack {rack_number}")  # Debug statement
                 success = False
@@ -211,7 +211,7 @@ class DataService:
         critical_pallets_by_rack = {}  # Dictionary to store critical pallets by rack
 
         for rack_no in range(20, 41):  # Loop through rack numbers 9 to 40
-            rack_data = self.fetch_rack_data(rack_no)
+            rack_data = self.fetch_rack_data(self.warehouse_code, self.floor_no, rack_no)
 
             if rack_data and "data" in rack_data:
                 print(f"Processing Rack {rack_no}...")
@@ -482,7 +482,7 @@ class DataService:
 
         # Loop through racks 19 to 40 to count used and free storage slots
         for rack_num in range(19, 41):
-            rack_data = self.fetch_rack_data(rack_num)
+            rack_data = self.fetch_rack_data(self.warehouse_code,self.floor_no, rack_num)
             if not rack_data:
                 continue  # Skip if no data is found for the rack
 

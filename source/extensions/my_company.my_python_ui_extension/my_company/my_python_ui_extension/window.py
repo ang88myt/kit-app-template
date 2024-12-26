@@ -14,6 +14,8 @@ from .data_service import DataService,_show_notification
 from .cube_mover_data import CubeMoverDataLayer
 from .proximity_checker import ProximityChecker
 from .custom_path_button import CustomPathButtonWidget
+from .custom_radio_collection import CustomRadioCollection
+from .custom_bool_widget import CustomBoolWidget
 
 SPACING = 5
 WINDOW_TITLE = "Unilever Extension"
@@ -44,12 +46,12 @@ class Custom_Window(ui.Window):
     def _build_collapsable_header(self, collapsed, title):
         """Build a custom title of CollapsableFrame"""
         with ui.VStack():
-            ui.Spacer(height=8)
+            ui.Spacer(height=6)
             with ui.HStack():
                 ui.Label(title, name="collapsable_name")
                 image_name = "collapsable_opened" if collapsed else "collapsable_closed"
                 ui.Image(name=image_name, width=10, height=10)
-            ui.Spacer(height=8)
+            ui.Spacer(height=6)
             ui.Line(style_type_name_override="HeaderLine")
 
 
@@ -97,6 +99,7 @@ class Custom_Window(ui.Window):
                 CustomInfoWidget(label="Location ID", placeholder="LID", btn_callback=self._btn_location_info)
                 ui.Spacer(height=6)
 
+
     def _btn_location_info(self, location_id):
         self._data_service.show_location_info(location_id)
 
@@ -107,21 +110,20 @@ class Custom_Window(ui.Window):
         """Creates the Omniverse UI with CollapsableFrames for each rack, shows total critical status codes found at the top, and buttons for critical pallets."""
         critical_status_count, critical_pallets_by_rack = self._data_service.fetch_status_code_data()
         total_critical_count = sum(critical_status_count.values())
-        total_critical_count = 0
         with ui.CollapsableFrame("CRITICAL STOCK STATUS", name="group", build_header_fn=self._build_collapsable_header,
                                  collapsed=True):
             with ui.VStack(spacing=2):
                 ui.Label(f"Grand Total Critical Items Found: {total_critical_count}",
                          style={"font_size": 18, "color": "orange"})
-                # radio_collection = CustomRadioCollection(labels=self.top_level_parents, group_name="Group1")
 
                 ui.Spacer(height=6)
                 for status_code, count in critical_status_count.items():
                     color = self._data_service.COLORS.get(status_code, "white")
-                    ui.Label(f"{status_code}| {count} items",
-                             style={"font_size": 14, "color": color, "alignment": ui.Alignment.LEFT_CENTER})
-
-                ui.Spacer(height=2)
+                    ui.Spacer(height=6)
+                    CustomBoolWidget(label=f"{status_code}| {count} items")
+                    ui.Spacer(height=6)
+                    # ui.Label(f"{status_code}| {count} items",
+                    #          style={"font_size": 14, "color": color, "alignment": ui.Alignment.LEFT_CENTER})
 
                 pallets_by_status = defaultdict(list)
                 for rack_no, pallets in critical_pallets_by_rack.items():
@@ -137,6 +139,7 @@ class Custom_Window(ui.Window):
                                 for pallet in pallets:
                                     pallet_id = pallet["pallet_id"]
                                     location_id = pallet["location_id"]
+                                    ui.Spacer(height=6)
                                     CustomButtonWidget(f"Pallet ID: {pallet_id}", tooltip=f"Location ID: {location_id}",
                                                        btn_callback=lambda p=pallet_id: self._navigate_to_pallet(p))
 
@@ -254,8 +257,7 @@ class Custom_Window(ui.Window):
                 self._build_update_scene()
                 # self._build_storage_utilization()
                 self._build_scene()
-
-                # self._build_stock_status()
+                self._build_stock_status()
                 # self._build_violation_check()
                 # self._build_tracking()
 
