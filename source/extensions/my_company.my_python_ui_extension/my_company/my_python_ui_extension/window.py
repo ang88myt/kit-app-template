@@ -10,7 +10,7 @@ from .style import julia_modeler_style, ATTR_LABEL_WIDTH
 from .custom_button import CustomButtonWidget
 from .custom_info_button import CustomInfoWidget
 from .custom_radio_collection import CustomRadioCollection
-from .data_service import DataService,_show_notification
+from .data_service import DataService,_show_notification, _isolate_selected_parent,_traverse
 from .cube_mover_data import CubeMoverDataLayer
 from .proximity_checker import ProximityChecker
 from .custom_path_button import CustomPathButtonWidget
@@ -118,11 +118,14 @@ class Custom_Window(ui.Window):
 
                 ui.Spacer(height=6)
                 for status_code, count in critical_status_count.items():
-                    color = self._data_service.COLORS.get(status_code, "white")
+                    # color = self._data_service.COLORS.get(status_code, "white")
                     ui.Spacer(height=6)
-                    CustomBoolWidget(label=f"{status_code}| {count} items")
-                    ui.Spacer(height=6)
-                    # ui.Label(f"{status_code}| {count} items",
+                    # Add toggle widgets for isolation by status
+                    CustomBoolWidget(label=f"{status_code}| {count} items",
+                                     on_change_callback=lambda is_checked, sc=status_code: self._isolate(is_checked,
+                                                                                                         sc))
+
+                # ui.Label(f"{status_code}| {count} items",
                     #          style={"font_size": 14, "color": color, "alignment": ui.Alignment.LEFT_CENTER})
 
                 pallets_by_status = defaultdict(list)
@@ -142,6 +145,37 @@ class Custom_Window(ui.Window):
                                     ui.Spacer(height=6)
                                     CustomButtonWidget(f"Pallet ID: {pallet_id}", tooltip=f"Location ID: {location_id}",
                                                        btn_callback=lambda p=pallet_id: self._navigate_to_pallet(p))
+
+    def _isolate(self, is_check: bool, status_code: str):
+        """Toggle isolation mode for Xform parent objects of a specific status code."""
+        logging.info(f"Isolation mode {'activated' if is_check else 'deactivated'} for status: {status_code}.")
+
+        stage = omni.usd.get_context().get_stage()
+
+        if not stage:
+            logging.error("USD stage could not be retrieved.")
+            return
+
+        if is_check:
+            # If a new status is checked, isolate it and hide all others
+            self._isolated_status = status_code
+            for prim in stage.Traverse():
+                if prim.IsA(UsdGeom.Xform):
+                    geom_prim = UsdGeom.Imageable(prim)
+                    if status_code in prim.GetName():
+                        geom_prim.GetVisibilityAttr().Set(UsdGeom.Tokens.inherited)
+                    else:
+                        geom_prim.GetVisibilityAttr().Set(UsdGeom.Tokens.invisible)
+        else:
+            # If unchecked, remove isolation and show all
+            if self._isolated_status == status_code:
+                self._isolated_status = None
+                for prim in stage.Traverse():
+                    if prim.IsA(UsdGeom.Xform):
+                        geom_prim = UsdGeom.Imageable(prim)
+                        geom_prim.GetVisibilityAttr().Set(UsdGeom.Tokens.inherited)
+
+        logging.info(f"Isolation {'applied' if is_check else 'removed'} for status: {status_code}.")
 
     def _build_violation_check(self):
         pro_checker = ProximityChecker(racks_range=(19, 41), distance_threshold=200.0)

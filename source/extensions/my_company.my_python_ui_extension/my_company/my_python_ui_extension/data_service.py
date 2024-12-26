@@ -296,7 +296,7 @@ class DataService:
             carb.log_warn(f"{status_code}: {count}")
 
     def check_expiry_date(self, date=None, other_date=None,rack_no=None,material_path=None):
-        stage = omni.usd.get_context().get_stage()
+
 
         # Check which endpoint to use based on the presence of the dates
         if other_date:
@@ -378,7 +378,7 @@ class DataService:
         # carb.log_warn(log_message)
 
         # Check if the stage is properly initialized
-        if stage is None:
+        if self.stage is None:
             carb.log_error("Stage is not initialized.")
             return
 
@@ -505,8 +505,8 @@ class DataService:
     def calculate_staging_space_utilization(self):
         stage_path = "/World/Non_Rack_Areas"
         """Calculate used and free space percentages in combined staging areas."""
-        stage = omni.usd.get_context().get_stage()
-        if not stage:
+        # stage = omni.usd.get_context().get_stage()
+        if not self.stage:
             print("No valid stage loaded.")
             return
 
@@ -517,7 +517,7 @@ class DataService:
 
         for area in staging_areas:
             area_path = f"{stage_path}/{area}"
-            area_prim = stage.GetPrimAtPath(area_path)
+            area_prim = self.stage.GetPrimAtPath(area_path)
             if not area_prim.IsValid():
                 print(f"Staging area '{area}' not found.")
                 continue
@@ -797,6 +797,10 @@ def _isolate_selected_parent(xform_parent_name):
     # Get the USD stage
     stage = omni.usd.get_context().get_stage()
 
+    if not stage:
+        logging.error("USD stage could not be retrieved.")
+        return
+
     if not xform_parent_name or xform_parent_name == "Show All":
         logging.info("No valid selection or 'Show All' selected. Resetting visibility for all parents.")
         # Reset visibility to inherited for all parents
@@ -811,7 +815,7 @@ def _isolate_selected_parent(xform_parent_name):
     target_prim = _traverse(root_prim, xform_parent_name)
 
     if not target_prim:
-        logging.warn(f"Prim '{xform_parent_name}' not found!")
+        logging.warning(f"Prim '{xform_parent_name}' not found!")
         return
 
     # Isolate the selected parent and hide all others
