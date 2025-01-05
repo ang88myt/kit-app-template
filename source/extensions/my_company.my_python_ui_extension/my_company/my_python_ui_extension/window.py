@@ -58,10 +58,13 @@ class Custom_Window(ui.Window):
     def _build_update_scene(self):
         with ui.CollapsableFrame("UPDATE WAREHOUSE", name="group", build_header_fn=self._build_collapsable_header):
             with ui.VStack(height=0, spacing=SPACING):
+                CustomPathButtonWidget(label="Upload File",path="C:/Users/admin/Downloads/",btn_label="Upload",btn_callback=self._upload_file)
                 ui.Spacer(height=6)
-                CustomButtonWidget(btn_label="UPDATE",
+                CustomButtonWidget(btn_label="Update Scene",
                                    tooltip="Update Warehouse Data",
                                    btn_callback=self._update_scene)
+    def _upload_file(self):
+        pass
 
     def _update_scene(self):
         success = self._data_service.spawn_all_pallets()
@@ -156,21 +159,30 @@ class Custom_Window(ui.Window):
             logging.error("USD stage could not be retrieved.")
             return
 
+        # Use a more targeted approach to find relevant Xform parents
+        def find_xform_by_status(stage, status_code):
+            """Find Xform prims by status code."""
+            for prim in stage.TraverseAll():
+                if prim.IsA(UsdGeom.Xform) and status_code in prim.GetName():
+                    yield prim
+
         if is_check:
-            # If a new status is checked, isolate it and hide all others
+            # Isolate the specified status code
             self._isolated_status = status_code
-            for prim in stage.Traverse():
-                if prim.IsA(UsdGeom.Xform):
+            for prim in find_xform_by_status(stage, status_code):
+                geom_prim = UsdGeom.Imageable(prim)
+                geom_prim.GetVisibilityAttr().Set(UsdGeom.Tokens.inherited)
+
+            # Hide all other Xforms
+            for prim in stage.TraverseAll():
+                if prim.IsA(UsdGeom.Xform) and status_code not in prim.GetName():
                     geom_prim = UsdGeom.Imageable(prim)
-                    if status_code in prim.GetName():
-                        geom_prim.GetVisibilityAttr().Set(UsdGeom.Tokens.inherited)
-                    else:
-                        geom_prim.GetVisibilityAttr().Set(UsdGeom.Tokens.invisible)
+                    geom_prim.GetVisibilityAttr().Set(UsdGeom.Tokens.invisible)
         else:
-            # If unchecked, remove isolation and show all
+            # Remove isolation and show all Xforms
             if self._isolated_status == status_code:
                 self._isolated_status = None
-                for prim in stage.Traverse():
+                for prim in stage.TraverseAll():
                     if prim.IsA(UsdGeom.Xform):
                         geom_prim = UsdGeom.Imageable(prim)
                         geom_prim.GetVisibilityAttr().Set(UsdGeom.Tokens.inherited)
@@ -289,7 +301,7 @@ class Custom_Window(ui.Window):
         with ui.ScrollingFrame(name="window_bg", horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF):
             with ui.VStack(height=0):
                 self._build_update_scene()
-                # self._build_storage_utilization()
+                self._build_storage_utilization()
                 self._build_scene()
                 self._build_stock_status()
                 # self._build_violation_check()

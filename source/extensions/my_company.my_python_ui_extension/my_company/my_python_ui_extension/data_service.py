@@ -363,70 +363,82 @@ class DataService:
 
         return pallet_id, location_id, rack_no, floor_no, balance_shelf_life_days, {'x': x, 'y': y, 'z': z}
 
-    def spawn_cube(self, prim_name, pallet_id, coordinates, date=None, other_date=None,
-                   material_path=None, location_id=None, group=None):
-        stage = omni.usd.get_context().get_stage()
-
-        pallet_id= pallet_id.replace(".","_")
-        if pallet_id.startswith("0"):
-            pallet_id = pallet_id.lstrip("0")
-
-        # Construct the log message by combining the arguments into a single string
-        # log_message = f"Prim Name: {prim_name},location ID:{location_id}, Pallet ID: {pallet_id}, Coordinates: {coordinates}"
-
-        # Log the warning message with the concatenated string
-        # carb.log_warn(log_message)
-
-        # Check if the stage is properly initialized
-        if self.stage is None:
-            carb.log_error("Stage is not initialized.")
+    # def spawn_cube(self, prim_name: str, pallet_id: str, coordinates: Tuple[float, float, float], material_path: str,
+    #                location_id: str, group: str):
+    #     stage = omni.usd.get_context().get_stage()
+    #     if not stage:
+    #         logging.error("Stage is not initialized.")
+    #         return
+    #
+    #     pallet_id = pallet_id.replace(".", "_").lstrip("0")
+    #     if not coordinates:
+    #         logging.error(f"Coordinates are None for Pallet ID {pallet_id}. Skipping.")
+    #         return
+    #
+    #     parent_xform_path_str = f"/{prim_name}"
+    #     parent_xform_path = Sdf.Path(parent_xform_path_str)
+    #     if not stage.GetPrimAtPath(parent_xform_path).IsValid():
+    #         parent_xform = UsdGeom.Xform.Define(stage, parent_xform_path)
+    #         parent_xform.AddTranslateOp().Set(Gf.Vec3f(0, 0, 0))
+    #         logging.info(f"Created parent Xform: {parent_xform_path_str}")
+    #
+    #     pallet_prim_path_str = f"{parent_xform_path_str}/{group}/_{location_id}/{pallet_id}"
+    #     pallet_prim_path = Sdf.Path(pallet_prim_path_str)
+    #     if not stage.GetPrimAtPath(pallet_prim_path).IsValid():
+    #         pallet_xform = UsdGeom.Xform.Define(stage, pallet_prim_path)
+    #         pallet_xform.AddTranslateOp().Set(Gf.Vec3f(*coordinates))
+    #
+    #         cube_prim_path_str = f"{pallet_prim_path_str}/Cube"
+    #         cube_prim = UsdGeom.Cube.Define(stage, Sdf.Path(cube_prim_path_str))
+    #         cube_prim.GetSizeAttr().Set(120.0)
+    #         cube_prim.AddTranslateOp().Set(Gf.Vec3f(0, 0, 60))
+    #
+    #         Usd.ModelAPI(pallet_xform).SetKind(Kind.Tokens.assembly)
+    #         _apply_material_to_prim(stage, cube_prim_path_str, material_path)
+    #         logging.info(f"Spawned cube for Pallet {pallet_id} under {prim_name} at coordinates {coordinates}")
+    #     else:
+    #         logging.info(f"Pallet {pallet_id} already exists under {prim_name}.")
+    def spawn_cube(self, prim_name: str, pallet_id: str, coordinates: Tuple[float, float, float], material_path: str,
+                   location_id: str, group: str):
+        if not self.stage:
+            logging.error("Stage is not initialized.")
             return
 
-        # Check if coordinates is None before trying to access its elements
-        if coordinates is None:
-            carb.log_error(f"Coordinates are None for Pallet ID {pallet_id}. Skipping.")
+        pallet_id = pallet_id.replace(".", "_").lstrip("0")
+        if not coordinates:
+            logging.error(f"Coordinates are None for Pallet ID {pallet_id}. Skipping.")
             return
 
-            # Construct the prim path for the parent Xform (using the prim_name parameter)
         parent_xform_path_str = f"/{prim_name}"
         parent_xform_path = Sdf.Path(parent_xform_path_str)
+        self._ensure_xform_exists(parent_xform_path)
 
-        # Ensure the parent Xform exists, or create it
-        if not stage.GetPrimAtPath(parent_xform_path).IsValid():
-            # Create the parent Xform
-            parent_xform = UsdGeom.Xform.Define(stage, parent_xform_path)
-            parent_xform.AddTranslateOp().Set(Gf.Vec3f(0, 0, 0))  # Default translation for the parent Xform
-            carb.log_warn(f"Created parent Xform: {parent_xform_path_str}")
-
-        # Construct the prim path for the cube under the parent Xform, named after the pallet_id
         pallet_prim_path_str = f"{parent_xform_path_str}/{group}/_{location_id}/{pallet_id}"
         pallet_prim_path = Sdf.Path(pallet_prim_path_str)
+        self._ensure_xform_exists(pallet_prim_path, coordinates)
 
-        # Check if the pallet prim already exists
-        if not stage.GetPrimAtPath(pallet_prim_path).IsValid():
-            # Create the Xform for the pallet cube under the parent Xform
-            pallet_xform = UsdGeom.Xform.Define(stage, pallet_prim_path)
-            pallet_xform.AddTranslateOp().Set(Gf.Vec3f(coordinates[0], coordinates[1], coordinates[2]))
-
-            # Create the Cube prim under the pallet Xform
-            cube_prim_path_str = f"{pallet_prim_path_str}/Cube"
-            cube_prim = UsdGeom.Cube.Define(stage, Sdf.Path(cube_prim_path_str))
+        cube_prim_path_str = f"{pallet_prim_path_str}/Cube"
+        if not self.stage.GetPrimAtPath(Sdf.Path(cube_prim_path_str)).IsValid():
+            cube_prim = UsdGeom.Cube.Define(self.stage, Sdf.Path(cube_prim_path_str))
             cube_prim.GetSizeAttr().Set(120.0)
             cube_prim.AddTranslateOp().Set(Gf.Vec3f(0, 0, 60))
 
-            # Mark the Xform as an assembly
-            Usd.ModelAPI(pallet_xform).SetKind(Kind.Tokens.assembly)
-
-            # Apply material to the cube if provided
-            if material_path:
-                _apply_material_to_prim(stage, prim_path=cube_prim_path_str, material_path=material_path)
-
-            # Log the creation of the cube
-            carb.log_warn(f"Spawned cube for Pallet Rack{group} under {pallet_id} under {prim_name} at coordinates {coordinates}")
+            self._apply_material_to_prim(cube_prim_path_str, material_path)
+            logging.info(f"Spawned cube for Pallet {pallet_id} under {prim_name} at coordinates {coordinates}")
         else:
-            carb.log_warn(f"Pallet {pallet_id} already exists under {prim_name}.")
+            logging.info(f"Cube for Pallet {pallet_id} already exists under {prim_name}.")
 
+    def _ensure_xform_exists(self, path: Sdf.Path, coordinates: Tuple[float, float, float] = (0, 0, 0)):
+        """Ensure an Xform exists at the given path, creating it if necessary."""
+        if not self.stage.GetPrimAtPath(path).IsValid():
+            xform = UsdGeom.Xform.Define(self.stage, path)
+            xform.AddTranslateOp().Set(Gf.Vec3f(*coordinates))
+            logging.info(f"Created Xform at {path}")
 
+    def _apply_material_to_prim(self, prim_path: str, material_path: str):
+        """Apply the specified material to the given prim."""
+        # Placeholder for material application logic
+        logging.info(f"Applying material from {material_path} to {prim_path}")
 
     def show_pallet_info(self, pallet_id):
         endpoint = f"pallet/{pallet_id}/"
