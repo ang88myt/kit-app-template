@@ -27,41 +27,49 @@ class RackDataHandler:
             logger.error(f"Error fetching data for rack {rack_number} from API: {e}")
             return None
 
-    def spawn_pallet_at_location(self, rack_number, location, pallet_id):
+    def spawn_pallet_at_location(self, rack_number, location, pallet_id, product_code):
         """Spawn a pallet at a specific location with translation and rotation applied."""
         if location is None:
             logger.error("Location is None, cannot spawn pallet.")
             return
 
         location_id = location.get('location_id', 'unknown')
-        rack_path = Sdf.Path(f"/All_Racks/Rack_{rack_number}")
-        xform_prim_path = rack_path.AppendChild(f"_{location_id}")
+        rack_path = Sdf.Path(f"/Racks/Rack_{rack_number}")
+        xform_prim_path = rack_path.AppendChild(f"Location_{location_id}")
+        product_code_path = xform_prim_path.AppendChild(f"SKU_{product_code}")
 
         try:
             # Ensure the All_Racks and Rack_{rack_number} exist
-            all_racks_xform = UsdGeom.Xform.Get(self.stage, Sdf.Path("/All_Racks"))
+            all_racks_xform = UsdGeom.Xform.Get(self.stage, Sdf.Path("/Racks"))
             if not all_racks_xform:
-                all_racks_xform = UsdGeom.Xform.Define(self.stage, Sdf.Path("/All_Racks"))
+                all_racks_xform = UsdGeom.Xform.Define(self.stage, Sdf.Path("/Racks"))
 
             rack_xform = UsdGeom.Xform.Get(self.stage, rack_path)
             if not rack_xform:
                 rack_xform = UsdGeom.Xform.Define(self.stage, rack_path)
 
+            # Ensure the location_id node exists
+            location_xform = UsdGeom.Xform.Get(self.stage, xform_prim_path)
+            if not location_xform:
+                location_xform = UsdGeom.Xform.Define(self.stage, xform_prim_path)
+
+            # Ensure the product code node exists
+            product_xform = UsdGeom.Xform.Get(self.stage, product_code_path)
+            if not product_xform:
+                product_xform = UsdGeom.Xform.Define(self.stage, product_code_path)
+                logger.info(f"Created Product Xform: {product_code_path}")
+
             coordinates = location.get("coordinates", {})
-            logger.warning(f"{location_id}, {pallet_id}, "
+            logger.warning(f"{location_id}, {pallet_id}, {product_code}, "
                            f"{coordinates.get('x', 'N/A')}, {coordinates.get('y', 'N/A')}, {coordinates.get('z', 'N/A')}")
 
             if all(k in coordinates for k in ["x", "y", "z"]):
-                # Attempt to get the xform at the specified path, define if it doesn't exist
-                xform = UsdGeom.Xform.Get(self.stage, xform_prim_path)
-                if not xform:
-                    xform = UsdGeom.Xform.Define(self.stage, xform_prim_path)
+                # Set translation and rotation for the location
+                self._set_xform_op(location_xform, UsdGeom.XformOp.TypeTranslate, coordinates)
+                self._set_xform_op(location_xform, UsdGeom.XformOp.TypeRotateXYZ, {"x": 0.0, "y": 0.0, "z": 90.0})
 
-                self._set_xform_op(xform, UsdGeom.XformOp.TypeTranslate, coordinates)
-                self._set_xform_op(xform, UsdGeom.XformOp.TypeRotateXYZ, {"x": 0.0, "y": 0.0, "z": 90.0})
-
-                # Create the pallet under the xform
-                pallet_prim_path = xform_prim_path.AppendChild(pallet_id)
+                # Create the pallet under the product code node
+                pallet_prim_path = product_code_path.AppendChild(pallet_id)
                 self._create_or_reference_pallet_prim(pallet_prim_path)
 
             else:
@@ -70,7 +78,7 @@ class RackDataHandler:
             logger.error(f"AttributeError occurred: {e} - Likely due to missing or invalid data in location.")
 
     def spawn_all_pallets(self):
-        for rack_number in range(19, 41):
+        for rack_number in range(21, 41):
             rack_data = self.fetch_rack_data(rack_number)
             if not rack_data:
                 continue
@@ -108,7 +116,7 @@ class RackDataHandler:
         else:
             logger.info(f"Pallet already exists at {pallet_prim_path}")
 
-    def process_racks(self, start_rack=19, end_rack=40):
+    def process_racks(self, start_rack=21, end_rack=40):
         """Process racks and spawn pallets based on API data."""
         for rack_number in range(start_rack, end_rack + 1):
             logger.info(f"Processing rack {rack_number}")
@@ -117,6 +125,7 @@ class RackDataHandler:
                 continue
 
             rack_locations = data.get("data", {}).get("rack_locations", [])
+
             if not rack_locations:
                 logger.error(f"No rack locations data found for rack {rack_number}.")
                 continue
@@ -125,7 +134,12 @@ class RackDataHandler:
                 pallets = location.get("pallets", [])
                 if pallets is not None:
                     for pallet in pallets:
-                        self.spawn_pallet_at_location(rack_number, location, pallet.get("pallet_id", "unknown"))
+                        inventory = pallet.get("inventory", {})
+                        # product_code = inventory.get("Product")
+                        # print(f"Product Code: {product_code}")
+                        self.spawn_pallet_at_location(rack_number, location,
+                                                      pallet.get("pallet_id", "unknown"),
+                                                      inventory.get("Product"))
                 else:
                     logger.error(f"No pallets found for location {location.get('location_id', 'unknown')} in rack {rack_number}.")
 

@@ -18,7 +18,7 @@ from pxr import Usd, UsdGeom, Gf, Sdf, Kind, UsdShade
 
 from typing import Optional, Tuple, Dict, Any
 import csv
-import logging
+# import logging
 from typing import List, Dict
 # from datetime import datetime, timedelta
 # import time
@@ -92,7 +92,7 @@ class DataService:
             response.raise_for_status()  # Raise an HTTPError for bad responses
             return response
         except requests.RequestException as e:
-            print(f"Error occurred during API request: {e}")
+            carb.log_error(f"Error occurred during API request: {e}")
             return {}  # Return an empty dict to indicate failure
 
 
@@ -107,70 +107,78 @@ class DataService:
 
         # Handle the case where the response is a dictionary (indicating failure)
         if isinstance(response, dict):
-            print(f"Failed to fetch data from {api_url}.")
+            carb.log_error(f"Failed to fetch data from {api_url}.")
             return None
 
         # Parse the response as JSON
         try:
             data = response.json().get("data", {})
         except ValueError:
-            print(f"Invalid JSON response from {api_url}.")
+            carb.log_error(f"Invalid JSON response from {api_url}.")
+            return None
+
+        # Ensure data is a dictionary
+        if not isinstance(data, dict):
+            carb.log_error(f"Unexpected data format from {api_url}.")
             return None
 
         # Determine which coordinates to use based on the endpoint
-        if "rack_location" in endpoint:
-            coordinates = data.get("rack_location", {}).get("coordinates", {})
-            carb.log_warn(endpoint)
+        coordinates = {}
+        rack_location = data.get("rack_location", {})
+        if isinstance(rack_location, dict):
+            coordinates = rack_location.get("coordinates", {})
+            carb.log_warn(f"Coordinates from rack_location: {coordinates}")
         else:
             coordinates = data.get("coordinates", {})
+            carb.log_info(f"Coordinates: x={coordinates.get('x')}, y={coordinates.get('y')}, z={coordinates.get('z')}")
 
-        # If coordinates are None or incomplete, return None or handle accordingly
-        if not coordinates or coordinates.get('x') is None or coordinates.get('y') is None or coordinates.get('z') is None:
-            print(f"No valid coordinates found at {endpoint}. Skipping.")
+        # Validate coordinates
+        if not isinstance(coordinates, dict) or not all(k in coordinates and coordinates[k] is not None for k in ('x', 'y', 'z')):
+            carb.log_warn(f"No valid coordinates found at {endpoint}. Skipping.")
             return None
 
-        # Return the coordinates (x, y, z) if they are valid
-        return coordinates.get('x'), coordinates.get('y'), coordinates.get('z')
+        # Return the coordinates (x, y, z) as a tuple
+        return coordinates['x'], coordinates['y'], coordinates['z']
 
     def fetch_pallet_data(self, pallet_id):
         import requests
         try:
             api_url = f"{self.api_base_url}/pallet/{pallet_id}/"
-            print(f"Fetching pallet data from: {api_url}")  # Debug statement
+            carb.log_info(f"Fetching pallet data from: {api_url}")  # Debug statement
             response = requests.post(api_url, headers=self.headers)
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            print(f"Error fetching pallet data for pallet {pallet_id}: {e}")
+            carb.log_error(f"Error fetching pallet data for pallet {pallet_id}: {e}")
             return None
 
     def fetch_location_data(self, warehouse_code, location_id):
         import requests
         try:
             api_url = f"{self.api_base_url}/rack-location/{warehouse_code}/{location_id}/"
-            print(f"Fetching location data from: {api_url}")  # Debug statement
+            carb.log_info(f"Fetching location data from: {api_url}")  # Debug statement
             response = requests.post(api_url, headers=self.headers)
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            print(f"Error fetching location data for location {location_id}: {e}")
+            carb.log_error(f"Error fetching location data for location {location_id}: {e}")
             return None
 
     def fetch_rack_data(self, warehouse_code, floor_no, rack_number):
         import requests
         try:
             api_url = f"{self.api_base_url}/rack/{warehouse_code}/{floor_no}/{rack_number}/"
-            print(f"Fetching rack data from: {api_url}")  # Debug statement
+            carb.log_info(f"Fetching rack data from: {api_url}")  # Debug statement
             response = requests.post(api_url, headers=self.headers)
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            print(f"Error fetching rack data for rack {rack_number}: {e}")
+            carb.log_error(f"Error fetching rack data for rack {rack_number}: {e}")
             return None
 
     def spawn_pallet_at_location(self, rack_number, location, pallet_id):
         if location is None:
-            print("Invalid location data.")
+            carb.log_warn("Invalid location data.")
             return
 
         location_id = location.get("location_id", "unknown")
@@ -179,7 +187,7 @@ class DataService:
 
         coordinates = location.get("coordinates", {})
         if not all(k in coordinates for k in ("x", "y", "z")):
-            print(f"Invalid coordinates for location {location_id}.")
+            carb.log_error(f"Invalid coordinates for location {location_id}.")
             return
 
         xform = UsdGeom.Xform.Define(self.stage, xform_path)
@@ -193,10 +201,10 @@ class DataService:
     def spawn_all_pallets(self):
         success = True
         for rack_number in range(19, 41):
-            print(f"Processing rack {rack_number}")  # Debug statement
+            carb.log_info(f"Processing rack {rack_number}")  # Debug statement
             rack_data = self.fetch_rack_data(self.warehouse_code, self.floor_no, rack_number)
             if not rack_data:
-                print(f"Failed to fetch data for rack {rack_number}")  # Debug statement
+                carb.log_error(f"Failed to fetch data for rack {rack_number}")  # Debug statement
                 success = False
                 continue
 
@@ -214,11 +222,11 @@ class DataService:
             rack_data = self.fetch_rack_data(self.warehouse_code, self.floor_no, rack_no)
 
             if rack_data and "data" in rack_data:
-                print(f"Processing Rack {rack_no}...")
+                carb.log_info(f"Processing Rack {rack_no}...")
 
                 rack_locations = rack_data["data"].get("rack_locations", [])
                 if not rack_locations:
-                    print(f"No data found for Rack {rack_no}. Moving to next.")
+                    carb.log_error(f"No data found for Rack {rack_no}. Moving to next.")
                     continue  # No data, move to the next rack
 
                 critical_found = False  # Flag to track if any critical items are found
@@ -258,7 +266,7 @@ class DataService:
                             coordinates = self.fetch_coordinates(endpoint)
 
                             # Spawn the cube with the appropriate material based on stock status code
-                            self.spawn_cube( prim_name=f"Critical_Items",group=f"Status_Code_{stock_status_code}",
+                            self.spawn_cube( prim_name=f"Critical_Items",group=stock_status_code,
                                              location_id=location_id, pallet_id=pallet_id, coordinates=coordinates,
                                             material_path=material_path)
 
@@ -268,7 +276,7 @@ class DataService:
                                 stock_status_code] += 1  # Increment the individual critical status counter
 
                 if not critical_found:
-                    print(f"No critical status found in Rack {rack_no}.")
+                    carb.log_info(f"No critical status found in Rack {rack_no}.")
 
             # Flatten and save critical pallets by rack
         flat_data_for_csv = [
@@ -367,12 +375,12 @@ class DataService:
     #                location_id: str, group: str):
     #     stage = omni.usd.get_context().get_stage()
     #     if not stage:
-    #         logging.error("Stage is not initialized.")
+    #         carb.logging.warning("Stage is not initialized.")
     #         return
     #
     #     pallet_id = pallet_id.replace(".", "_").lstrip("0")
     #     if not coordinates:
-    #         logging.error(f"Coordinates are None for Pallet ID {pallet_id}. Skipping.")
+    #         carb.logging.warning(f"Coordinates are None for Pallet ID {pallet_id}. Skipping.")
     #         return
     #
     #     parent_xform_path_str = f"/{prim_name}"
@@ -380,7 +388,7 @@ class DataService:
     #     if not stage.GetPrimAtPath(parent_xform_path).IsValid():
     #         parent_xform = UsdGeom.Xform.Define(stage, parent_xform_path)
     #         parent_xform.AddTranslateOp().Set(Gf.Vec3f(0, 0, 0))
-    #         logging.info(f"Created parent Xform: {parent_xform_path_str}")
+    #         carb.logging.info(f"Created parent Xform: {parent_xform_path_str}")
     #
     #     pallet_prim_path_str = f"{parent_xform_path_str}/{group}/_{location_id}/{pallet_id}"
     #     pallet_prim_path = Sdf.Path(pallet_prim_path_str)
@@ -395,54 +403,67 @@ class DataService:
     #
     #         Usd.ModelAPI(pallet_xform).SetKind(Kind.Tokens.assembly)
     #         _apply_material_to_prim(stage, cube_prim_path_str, material_path)
-    #         logging.info(f"Spawned cube for Pallet {pallet_id} under {prim_name} at coordinates {coordinates}")
+    #         carb.log_warn(f"Spawned cube for Pallet {pallet_id} under {prim_name} at coordinates {coordinates}")
     #     else:
-    #         logging.info(f"Pallet {pallet_id} already exists under {prim_name}.")
-    def spawn_cube(self, prim_name: str, pallet_id: str, coordinates: Tuple[float, float, float], material_path: str,
-                   location_id: str, group: str):
+    #         carb.log_error(f"Pallet {pallet_id} already exists under {prim_name}.")
+    def spawn_cube(self, prim_name: str, pallet_id: str, coordinates: tuple, material_path: str, location_id: str,
+                   group: str):
+        """Generate a hierarchy of Xforms and attach a cube with material to the final Xform."""
         if not self.stage:
-            logging.error("Stage is not initialized.")
+            carb.log_error("Stage is not initialized.")
             return
 
+        # Sanitize pallet_id
         pallet_id = pallet_id.replace(".", "_").lstrip("0")
         if not coordinates:
-            logging.error(f"Coordinates are None for Pallet ID {pallet_id}. Skipping.")
+            carb.log_error(f"Coordinates are None for Pallet ID {pallet_id}. Skipping.")
             return
 
+        # Define hierarchy paths
         parent_xform_path_str = f"/{prim_name}"
-        parent_xform_path = Sdf.Path(parent_xform_path_str)
-        self._ensure_xform_exists(parent_xform_path)
+        group_xform_path_str = f"{parent_xform_path_str}/{group}"
+        location_xform_path_str = f"{group_xform_path_str}/_{location_id}"
+        pallet_xform_path_str = f"{location_xform_path_str}/{pallet_id}"
 
-        pallet_prim_path_str = f"{parent_xform_path_str}/{group}/_{location_id}/{pallet_id}"
-        pallet_prim_path = Sdf.Path(pallet_prim_path_str)
-        self._ensure_xform_exists(pallet_prim_path, coordinates)
+        # Ensure all Xforms exist
+        self._ensure_xform_exists(Sdf.Path(parent_xform_path_str))
+        self._ensure_xform_exists(Sdf.Path(group_xform_path_str))
+        self._ensure_xform_exists(Sdf.Path(location_xform_path_str), coordinates)
+        self._ensure_xform_exists(Sdf.Path(pallet_xform_path_str))
 
-        cube_prim_path_str = f"{pallet_prim_path_str}/Cube"
+        # Create and attach the cube to the pallet Xform
+        cube_prim_path_str = f"{pallet_xform_path_str}/Cube"
         if not self.stage.GetPrimAtPath(Sdf.Path(cube_prim_path_str)).IsValid():
+            # Define the cube geometry
             cube_prim = UsdGeom.Cube.Define(self.stage, Sdf.Path(cube_prim_path_str))
-            cube_prim.GetSizeAttr().Set(120.0)
-            cube_prim.AddTranslateOp().Set(Gf.Vec3f(0, 0, 60))
+            cube_prim.GetSizeAttr().Set(100)  # Set cube size (adjust as needed)
 
-            self._apply_material_to_prim(cube_prim_path_str, material_path)
-            logging.info(f"Spawned cube for Pallet {pallet_id} under {prim_name} at coordinates {coordinates}")
+            # Position the cube at the specified coordinates
+            translate_op = cube_prim.AddTranslateOp()
+            translate_op.Set(Gf.Vec3f(*coordinates))
+
+            # Apply the material if a valid path is provided
+            if material_path:
+                self._apply_material_to_prim(cube_prim_path_str, material_path)
+
+            carb.log_info(f"Spawned Cube for Pallet {pallet_id} under {prim_name} at coordinates {coordinates}")
         else:
-            logging.info(f"Cube for Pallet {pallet_id} already exists under {prim_name}.")
-
-    def _ensure_xform_exists(self, path: Sdf.Path, coordinates: Tuple[float, float, float] = (0, 0, 0)):
-        """Ensure an Xform exists at the given path, creating it if necessary."""
-        if not self.stage.GetPrimAtPath(path).IsValid():
-            xform = UsdGeom.Xform.Define(self.stage, path)
-            xform.AddTranslateOp().Set(Gf.Vec3f(*coordinates))
-            logging.info(f"Created Xform at {path}")
+            carb.log_info(f"Cube for Pallet {pallet_id} already exists under {prim_name}.")
 
     def _apply_material_to_prim(self, prim_path: str, material_path: str):
-        """Apply the specified material to the given prim."""
-        # Placeholder for material application logic
-        logging.info(f"Applying material from {material_path} to {prim_path}")
+        """Apply a material to the specified prim."""
+        material_prim = self.stage.GetPrimAtPath(material_path)
+        if not material_prim:
+            carb.log_error(f"Material at {material_path} not found.")
+            return
+        prim = self.stage.GetPrimAtPath(Sdf.Path(prim_path))
+        if prim:
+            material_binding = UsdGeom.MaterialBindingAPI(prim)
+            material_binding.Bind(material_prim)
 
     def show_pallet_info(self, pallet_id):
         endpoint = f"pallet/{pallet_id}/"
-        print(f"Fetching stock info from endpoint: {endpoint}")
+        carb.log_info(f"Fetching stock info from endpoint: {endpoint}")
 
         _find_prim_then_select(pallet_id)
 
@@ -457,17 +478,17 @@ class DataService:
 
             location_id = stock_info.get("rack_location", {}).get("location_id")
             location_endpoint = f"rack-location/5BTG/{location_id}/"
-            print(f"Fetching coordinates from endpoint: {location_endpoint}")
+            carb.log_info(f"Fetching coordinates from endpoint: {location_endpoint}")
 
             coordinates = self.fetch_coordinates(location_endpoint)
             if coordinates:
                 x, y, z = coordinates
-                print(x, y, z)
+                carb.log_info(x, y, z)
                 _move_camera(x, y, z)
             else:
-                carb.log_warn("Failed to fetch valid coordinates.")
+                carb.log_error("Failed to fetch valid coordinates.")
         else:
-            carb.log_warn("Failed to fetch stock info.")
+            carb.log_error("Failed to fetch stock info.")
 
     def show_location_info(self, location_id):
         endpoint = f"rack-location/5BTG/{location_id}/"
@@ -519,7 +540,7 @@ class DataService:
         """Calculate used and free space percentages in combined staging areas."""
         # stage = omni.usd.get_context().get_stage()
         if not self.stage:
-            print("No valid stage loaded.")
+            carb.log_error("No valid stage loaded.")
             return
 
         # Staging areas to calculate
@@ -531,7 +552,7 @@ class DataService:
             area_path = f"{stage_path}/{area}"
             area_prim = self.stage.GetPrimAtPath(area_path)
             if not area_prim.IsValid():
-                print(f"Staging area '{area}' not found.")
+                carb.log_error(f"Staging area '{area}' not found.")
                 continue
 
             # Traverse children under the area
@@ -561,6 +582,19 @@ class DataService:
     def close(self):
         self.session.close()
         carb.log_info("API connection closed")
+
+
+    def _ensure_xform_exists(self, xform_path: Sdf.Path, coordinates=None):
+        """Ensure an Xform exists at the specified path, and optionally set its translation."""
+        xform = UsdGeom.Xform.Get(self.stage, xform_path)
+        if not xform:
+            xform = UsdGeom.Xform.Define(self.stage, xform_path)
+        if coordinates:
+            translate_op = next(
+                (op for op in xform.GetOrderedXformOps() if op.GetOpType() == UsdGeom.XformOp.TypeTranslate), None)
+            if not translate_op:
+                translate_op = xform.AddTranslateOp()
+            translate_op.Set(Gf.Vec3d(coordinates[0], coordinates[1], coordinates[2]))
 
 def _apply_material_to_prim(stage, prim_path, material_path):
     """Applies the specified material to the given prim."""
@@ -668,7 +702,7 @@ def _find_prim_then_select(name: str):
 def _load_usd_file(file_path, ref_prim_path):
     context = omni.usd.get_context()
     if not context:
-        print("Failed to get USD context.")
+        carb.log_error("Failed to get USD context.")
         return
 
     stage = context.get_stage()
@@ -765,7 +799,7 @@ def save_to_csv(data: List[Dict], file_name: str, group_by_key: str = None):
         group_by_key (str, optional): Key to group data by, leaving subsequent rows blank for that group.
     """
     if not data:
-        logging.error("No data provided to save to CSV.")
+        carb.log_error("No data provided to save to CSV.")
         return
 
     # Use the keys of the first dictionary as the CSV headers
@@ -796,25 +830,25 @@ def save_to_csv(data: List[Dict], file_name: str, group_by_key: str = None):
                     writer.writerow(row)
                     first = False
 
-        logging.info(f"Data successfully saved to {file_name}")
+        carb.log_info(f"Data successfully saved to {file_name}")
 
     except Exception as e:
-        logging.error(f"Failed to save data to CSV: {e}")
+        carb.log_error(f"Failed to save data to CSV: {e}")
 
 
 def _isolate_selected_parent(xform_parent_name):
     """Handle isolation of the selected parent by name."""
-    logging.info(f"Isolation mode activated for: {xform_parent_name}")
+    carb.log_info(f"Isolation mode activated for: {xform_parent_name}")
 
     # Get the USD stage
     stage = omni.usd.get_context().get_stage()
 
     if not stage:
-        logging.error("USD stage could not be retrieved.")
+        carb.log_error("USD stage could not be retrieved.")
         return
 
     if not xform_parent_name or xform_parent_name == "Show All":
-        logging.info("No valid selection or 'Show All' selected. Resetting visibility for all parents.")
+        carb.log_warn("No valid selection or 'Show All' selected. Resetting visibility for all parents.")
         # Reset visibility to inherited for all parents
         for prim in stage.Traverse():
             if prim.IsA(UsdGeom.Imageable):
@@ -827,7 +861,7 @@ def _isolate_selected_parent(xform_parent_name):
     target_prim = _traverse(root_prim, xform_parent_name)
 
     if not target_prim:
-        logging.warning(f"Prim '{xform_parent_name}' not found!")
+        carb.log_warn(f"Prim '{xform_parent_name}' not found!")
         return
 
     # Isolate the selected parent and hide all others
@@ -838,7 +872,7 @@ def _isolate_selected_parent(xform_parent_name):
             visibility = UsdGeom.Tokens.inherited if prim == target_prim else UsdGeom.Tokens.invisible
             geom_prim.GetVisibilityAttr().Set(visibility)
 
-    logging.info(f"Isolation applied for: {xform_parent_name}")
+    carb.log_info(f"Isolation applied for: {xform_parent_name}")
 
 
 
