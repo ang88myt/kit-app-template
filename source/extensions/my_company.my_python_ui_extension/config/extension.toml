@@ -50,7 +50,6 @@ icon = "data/icon.png"
 "omni.ui.scene" = {}
 "omni.usd" = {}
 "omni.kit.viewport.utility" = {}
-"omni.usd" = {}
 "omni.kit.menu.utils" = {}
 "omni.kit.window.popup_dialog" = {}
 
