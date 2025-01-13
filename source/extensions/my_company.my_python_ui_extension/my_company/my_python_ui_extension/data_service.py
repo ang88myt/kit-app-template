@@ -253,13 +253,13 @@ class DataService:
 
                             # Check stock status code and assign material path accordingly
                             if stock_status_code == "DMG":
-                                material_path = "/Environment/Looks/Glass_Color_Mat/Blue_Glass" #DMG
+                                material_path = "/Environment/Looks/Glass_Color_Mat/Red_Glass" #DMG
                             elif stock_status_code == "NE":
-                                material_path = "/Environment/Looks/Glass_Color_Mat/Cyan_Glass" #NE
+                                material_path = "/Environment/Looks/Glass_Color_Mat/Yellow_Glass" #NE
                             elif stock_status_code == "QAF":
-                                material_path = "/Environment/Looks/Glass_Color_Mat/Purple_Glass" #QAF
+                                material_path = "/Environment/Looks/Glass_Color_Mat/Cyan_Glass" #QAF
                             else:
-                                material_path = "/Environment/Looks/Glass_Color_Mat/Red_Glass" #EX
+                                material_path = "/Environment/Looks/Glass_Color_Mat/Blue_Glass" #EX
 
                             # Fetch coordinates for the pallet
                             endpoint = f"pallet/{pallet_id}/"
@@ -406,16 +406,22 @@ class DataService:
     #         carb.log_warn(f"Spawned cube for Pallet {pallet_id} under {prim_name} at coordinates {coordinates}")
     #     else:
     #         carb.log_error(f"Pallet {pallet_id} already exists under {prim_name}.")
-    def spawn_cube(self, prim_name: str, pallet_id: str, coordinates: tuple, material_path: str, location_id: str,
-                   group: str):
-        """Generate a hierarchy of Xforms and attach a cube with material to the final Xform."""
-        if not self.stage:
-            carb.log_error("Stage is not initialized.")
-            return
+
+    def spawn_cube(self, prim_name, pallet_id, coordinates, date=None, other_date=None,
+                   material_path=None, location_id=None, group=None):
+        """Spawn a cube under a consistent hierarchy of Xform objects."""
+        stage = omni.usd.get_context().get_stage()
 
         # Sanitize pallet_id
         pallet_id = pallet_id.replace(".", "_").lstrip("0")
-        if not coordinates:
+
+        # Check if the stage is properly initialized
+        if stage is None:
+            carb.log_error("Stage is not initialized.")
+            return
+
+        # Check if coordinates are valid
+        if coordinates is None:
             carb.log_error(f"Coordinates are None for Pallet ID {pallet_id}. Skipping.")
             return
 
@@ -424,42 +430,70 @@ class DataService:
         group_xform_path_str = f"{parent_xform_path_str}/{group}"
         location_xform_path_str = f"{group_xform_path_str}/_{location_id}"
         pallet_xform_path_str = f"{location_xform_path_str}/{pallet_id}"
+        cube_prim_path_str = f"{pallet_xform_path_str}/Cube"
 
         # Ensure all Xforms exist
-        self._ensure_xform_exists(Sdf.Path(parent_xform_path_str))
-        self._ensure_xform_exists(Sdf.Path(group_xform_path_str))
-        self._ensure_xform_exists(Sdf.Path(location_xform_path_str), coordinates)
-        self._ensure_xform_exists(Sdf.Path(pallet_xform_path_str))
+        self._ensure_xform_exists(Sdf.Path(parent_xform_path_str), Gf.Vec3f(0, 0, 0))
+        self._ensure_xform_exists(Sdf.Path(group_xform_path_str), Gf.Vec3f(0, 0, 0))
+        self._ensure_xform_exists(Sdf.Path(location_xform_path_str), Gf.Vec3f(0, 0, 0))
+        self._ensure_xform_exists(Sdf.Path(pallet_xform_path_str), Gf.Vec3f(*coordinates))
 
-        # Create and attach the cube to the pallet Xform
-        cube_prim_path_str = f"{pallet_xform_path_str}/Cube"
-        if not self.stage.GetPrimAtPath(Sdf.Path(cube_prim_path_str)).IsValid():
-            # Define the cube geometry
-            cube_prim = UsdGeom.Cube.Define(self.stage, Sdf.Path(cube_prim_path_str))
-            cube_prim.GetSizeAttr().Set(100)  # Set cube size (adjust as needed)
+        # Check if the cube already exists
+        if not stage.GetPrimAtPath(Sdf.Path(cube_prim_path_str)).IsValid():
+            # Create the Cube prim under the pallet Xform
+            cube_prim = UsdGeom.Cube.Define(stage, Sdf.Path(cube_prim_path_str))
+            cube_prim.GetSizeAttr().Set(120.0)  # Set cube size
+            cube_prim.AddTranslateOp().Set(Gf.Vec3f(0, 0, 60))  # Offset the cube
 
-            # Position the cube at the specified coordinates
-            translate_op = cube_prim.AddTranslateOp()
-            translate_op.Set(Gf.Vec3f(*coordinates))
+            # Get the Xform prim for the pallet path
+            pallet_xform_prim = stage.GetPrimAtPath(Sdf.Path(pallet_xform_path_str))
+            if pallet_xform_prim.IsValid():
+                Usd.ModelAPI(pallet_xform_prim).SetKind(Kind.Tokens.assembly)
+            else:
+                carb.log_error(f"Pallet Xform at {pallet_xform_path_str} is invalid. Cannot set kind to assembly.")
 
-            # Apply the material if a valid path is provided
+            # Apply material to the cube if provided
             if material_path:
-                self._apply_material_to_prim(cube_prim_path_str, material_path)
+                self._apply_material_to_prim(prim_path=cube_prim_path_str, material_path=material_path)
 
-            carb.log_info(f"Spawned Cube for Pallet {pallet_id} under {prim_name} at coordinates {coordinates}")
+            # Log the creation of the cube
+            carb.log_warn(f"Spawned cube for Pallet Rack {group} under {pallet_id} under {prim_name} at coordinates {coordinates}")
         else:
-            carb.log_info(f"Cube for Pallet {pallet_id} already exists under {prim_name}.")
+            carb.log_warn(f"Cube for Pallet {pallet_id} already exists under {prim_name}.")
+
+    def _ensure_xform_exists(self, xform_path: Sdf.Path, translation: Gf.Vec3f = Gf.Vec3f(0, 0, 0)):
+        """Ensure an Xform exists at the given path, and create it if it doesn't."""
+        stage = omni.usd.get_context().get_stage()  # Access the stage directly
+        if not stage:
+            carb.log_error("Stage is not initialized.")
+            return
+
+        # Check if the Xform already exists
+        if not stage.GetPrimAtPath(xform_path).IsValid():
+            # Define the Xform and set the translation
+            xform = UsdGeom.Xform.Define(stage, xform_path)
+            xform.AddTranslateOp().Set(translation)
+            carb.log_info(f"Created Xform at {xform_path} with translation {translation}")
 
     def _apply_material_to_prim(self, prim_path: str, material_path: str):
         """Apply a material to the specified prim."""
+        # Get the material prim from the stage
         material_prim = self.stage.GetPrimAtPath(material_path)
-        if not material_prim:
-            carb.log_error(f"Material at {material_path} not found.")
+        if not material_prim.IsValid():
+            carb.log_error(f"Material at {material_path} not found or invalid.")
             return
+
+        # Get the target prim where the material will be applied
         prim = self.stage.GetPrimAtPath(Sdf.Path(prim_path))
-        if prim:
-            material_binding = UsdGeom.MaterialBindingAPI(prim)
-            material_binding.Bind(material_prim)
+        if not prim.IsValid():
+            carb.log_error(f"Prim at {prim_path} not found or invalid.")
+            return
+
+        # Bind the material to the prim using UsdShade.MaterialBindingAPI
+        material_binding = UsdShade.MaterialBindingAPI(prim)
+        material_binding.Bind(UsdShade.Material(material_prim))
+
+        carb.log_info(f"Material {material_path} successfully applied to {prim_path}")
 
     def show_pallet_info(self, pallet_id):
         endpoint = f"pallet/{pallet_id}/"
@@ -739,23 +773,25 @@ def _load_usd_file(file_path, ref_prim_path):
     except Exception as e:
         carb.log_error(f"An error occurred while referencing the USD file: {str(e)}")
 
-def _apply_material_to_prim(stage, prim_path, material_path):
-    """Applies the specified material to the given prim."""
-    material_prim = stage.GetPrimAtPath(material_path)
-    if not material_prim:
-        carb.log_error(f"Material not found at path: {material_path}")
+def _apply_material_to_prim(self, prim_path: str, material_path: str):
+    """Apply a material to the specified prim."""
+    # Get the material prim from the stage
+    material_prim = self.stage.GetPrimAtPath(material_path)
+    if not material_prim.IsValid():
+        carb.log_error(f"Material at {material_path} not found or invalid.")
         return
 
-    # Get the prim at the ref_prim_path and apply the material binding
-    prim = stage.GetPrimAtPath(prim_path)
-    if not prim:
-        carb.log_error(f"Prim not found at path: {prim_path}")
+    # Get the target prim where the material will be applied
+    prim = self.stage.GetPrimAtPath(Sdf.Path(prim_path))
+    if not prim.IsValid():
+        carb.log_error(f"Prim at {prim_path} not found or invalid.")
         return
 
     # Bind the material to the prim using UsdShade.MaterialBindingAPI
-    material_binding_api = UsdShade.MaterialBindingAPI(prim)
-    material_binding_api.Bind(UsdShade.Material(stage.GetPrimAtPath(material_path)))
-    carb.log_info(f"Material {material_path} applied to {prim_path}")
+    material_binding = UsdShade.MaterialBindingAPI(prim)
+    material_binding.Bind(UsdShade.Material(material_prim))
+
+    carb.log_info(f"Material {material_path} successfully applied to {prim_path}")
 
 
 def _show_notification(title: str, message: str, status: str):

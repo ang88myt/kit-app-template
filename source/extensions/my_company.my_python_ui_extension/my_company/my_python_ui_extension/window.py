@@ -18,7 +18,7 @@ from .custom_radio_collection import CustomRadioCollection
 from .custom_bool_widget import CustomBoolWidget
 
 SPACING = 5
-WINDOW_TITLE = "Unilever Extension"
+WINDOW_TITLE = ""
 
 
 class Custom_Window(ui.Window):
@@ -92,14 +92,20 @@ class Custom_Window(ui.Window):
 
     def _build_scene(self):
         """Build the widgets of the 'Scene' group"""
-        with ui.CollapsableFrame("WAREHOUSE", name="group", build_header_fn=self._build_collapsable_header):
+        with ui.CollapsableFrame("LEGEND",name="group", build_header_fn=self._build_collapsable_header):
             with ui.VStack(height=0, spacing=SPACING):
                 ui.Spacer(height=6)
-                CustomInfoWidget(label="Pallet ID", placeholder="PID", btn_callback=self._btn_pallet_info)
+                # CustomInfoWidget(label="Pallet ID", placeholder="PID", btn_callback=self._btn_pallet_info)
+                ui.Label("Damaged",
+                         style={"font_size": 14, "color": "red"})
                 ui.Spacer(height=6)
-                CustomInfoWidget(label="Product ID", placeholder="PID", btn_callback=self._btn_product_info)
+                ui.Label("Quality issue",
+                         style={"font_size": 14, "color": "green"})
+                # CustomInfoWidget(label="Product ID", placeholder="PID", btn_callback=self._btn_product_info)
                 ui.Spacer(height=6)
-                CustomInfoWidget(label="Location ID", placeholder="LID", btn_callback=self._btn_location_info)
+                ui.Label("Near EXpired",
+                         style={"font_size": 14, "color": "yellow"})
+                # CustomInfoWidget(label="Location ID", placeholder="LID", btn_callback=self._btn_location_info)
                 ui.Spacer(height=6)
 
 
@@ -262,8 +268,8 @@ class Custom_Window(ui.Window):
                 ui.Spacer(height=6)
                 ui.Label("Rack Space Usage")
                 ui.Spacer(height=6)
-                ui.Label(f"Occupied: {used_percentage}%     Free: {free_percentage}%")
-                ui.Spacer(height=6)
+                # ui.Label(f"Occupied: {used_percentage}%     Free: {free_percentage}%")
+                # ui.Spacer(height=6)
                 with ui.HStack():
                     progress_bar = ui.ProgressBar()
                     progress_bar.model.set_value(used_percentage / 100)
@@ -276,8 +282,8 @@ class Custom_Window(ui.Window):
                     ui.Spacer(height=6)
                     area_used_percentage = stats['Used Space %']
                     area_free_percentage = stats['Free Space %']
-                    ui.Label(f"Occupied: {area_used_percentage}%     Free: {area_free_percentage}%")
-                    ui.Spacer(height=6)
+                    # ui.Label(f"Occupied: {area_used_percentage}%     Free: {area_free_percentage}%")
+                    # ui.Spacer(height=6)
                     with ui.HStack():
                         progress_bar = ui.ProgressBar()
                         progress_bar.model.set_value(area_used_percentage / 100)
@@ -300,11 +306,11 @@ class Custom_Window(ui.Window):
     def _build_fn(self):
         with ui.ScrollingFrame(name="window_bg", horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF):
             with ui.VStack(height=0):
-                self._build_update_scene()
+                # self._build_update_scene()
                 # self._build_storage_utilization()
                 self._build_scene()
-                self._build_stock_status()
-                self._build_violation_check()
+                # self._build_stock_status()
+                # self._build_violation_check()
                 # self._build_tracking()
 
     def _btn_pallet_info(self, pallet_id):
@@ -325,3 +331,4 @@ def show_notification(title: str, message: str, status: str):
         duration=0,
         status=status_enum
     )
+

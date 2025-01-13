@@ -6,7 +6,7 @@
           {
             "children": [
               {
-                "dock_id": 3,
+                "dock_id": 5,
                 "dock_tab_bar_enabled": true,
                 "dock_tab_bar_visible": false,
                 "height": 951.0,
@@ -15,26 +15,15 @@
                 "selected_in_dock": true,
                 "title": "Viewport",
                 "visible": true,
-                "width": 1403.0
+                "width": 1576.0
               }
             ],
-            "dock_id": 3,
+            "dock_id": 5,
             "position": "LEFT"
           },
           {
-            "children": [
-              {
-                "dock_id": 4,
-                "height": 951.0,
-                "position_x": 1405.0,
-                "position_y": 26.0,
-                "selected_in_dock": false,
-                "title": "Main ToolBar",
-                "visible": true,
-                "width": 44.0
-              }
-            ],
-            "dock_id": 4,
+            "children": [],
+            "dock_id": 6,
             "position": "RIGHT"
           }
         ],
@@ -46,67 +35,37 @@
           {
             "children": [
               {
-                "dock_id": 5,
+                "dock_id": 7,
                 "dock_tab_bar_enabled": true,
                 "dock_tab_bar_visible": true,
                 "height": 473.0,
-                "position_x": 1451.0,
+                "position_x": 1578.0,
                 "position_y": 26.0,
                 "selected_in_dock": true,
                 "title": "Stage",
                 "visible": true,
-                "width": 469.0
-              },
-              {
-                "dock_id": 5,
-                "height": 473.0,
-                "position_x": 1351.0,
-                "position_y": 279.0,
-                "selected_in_dock": false,
-                "title": "Layer",
-                "visible": true,
-                "width": 469.0
-              },
-              {
-                "dock_id": 5,
-                "height": 473.0,
-                "position_x": 1452.0,
-                "position_y": 26.0,
-                "selected_in_dock": false,
-                "title": "Render Settings",
-                "visible": true,
-                "width": 469.0
-              },
-              {
-                "dock_id": 5,
-                "height": 473.0,
-                "position_x": 0.0,
-                "position_y": 26.0,
-                "selected_in_dock": false,
-                "title": "Variant Presenter",
-                "visible": true,
-                "width": 469.0
+                "width": 342.0
               }
             ],
-            "dock_id": 5,
+            "dock_id": 7,
             "position": "TOP"
           },
           {
             "children": [
               {
-                "dock_id": 6,
+                "dock_id": 8,
                 "dock_tab_bar_enabled": true,
                 "dock_tab_bar_visible": true,
                 "height": 476.0,
-                "position_x": 1451.0,
+                "position_x": 1578.0,
                 "position_y": 501.0,
                 "selected_in_dock": true,
                 "title": "Property",
                 "visible": true,
-                "width": 469.0
+                "width": 342.0
               }
             ],
-            "dock_id": 6,
+            "dock_id": 8,
             "position": "BOTTOM"
           }
         ],
@@ -118,13 +77,43 @@
   },
   {
     "dock_id": 0,
-    "height": 265.0,
-    "position_x": 0.0,
-    "position_y": 712.0,
+    "height": 473.0,
+    "position_x": 1578.0,
+    "position_y": 26.0,
     "selected_in_dock": false,
-    "title": "Content",
+    "title": "Render Settings",
     "visible": false,
-    "width": 1453.0
+    "width": 342.0
+  },
+  {
+    "dock_id": 0,
+    "height": 473.0,
+    "position_x": 1578.0,
+    "position_y": 26.0,
+    "selected_in_dock": false,
+    "title": "Variant Presenter",
+    "visible": false,
+    "width": 342.0
+  },
+  {
+    "dock_id": 0,
+    "height": 473.0,
+    "position_x": 1578.0,
+    "position_y": 26.0,
+    "selected_in_dock": false,
+    "title": "Layer",
+    "visible": false,
+    "width": 342.0
+  },
+  {
+    "dock_id": 0,
+    "height": 951.0,
+    "position_x": 1409.0,
+    "position_y": 26.0,
+    "selected_in_dock": false,
+    "title": "Main ToolBar",
+    "visible": false,
+    "width": 44.0
   },
   {
     "dock_id": 0,
@@ -132,7 +121,7 @@
     "position_x": 0.0,
     "position_y": 712.0,
     "selected_in_dock": false,
-    "title": "NVIDIA Assets",
+    "title": "Examples",
     "visible": false,
     "width": 1453.0
   },
@@ -152,7 +141,17 @@
     "position_x": 0.0,
     "position_y": 712.0,
     "selected_in_dock": false,
-    "title": "Examples",
+    "title": "NVIDIA Assets",
+    "visible": false,
+    "width": 1453.0
+  },
+  {
+    "dock_id": 0,
+    "height": 265.0,
+    "position_x": 0.0,
+    "position_y": 712.0,
+    "selected_in_dock": false,
+    "title": "Content",
     "visible": false,
     "width": 1453.0
   },
@@ -178,23 +177,43 @@
   },
   {
     "dock_id": 0,
-    "height": 600.0,
-    "position_x": 1216.0,
-    "position_y": 67.0,
+    "height": 24.0,
+    "position_x": 245.0,
+    "position_y": 175.0,
     "selected_in_dock": false,
-    "title": "Waypoints",
+    "title": "Extensions",
     "visible": false,
-    "width": 180.0
+    "width": 1300.0
   },
   {
     "dock_id": 0,
-    "height": 600.0,
-    "position_x": 870.0,
-    "position_y": 204.0,
+    "height": 708.0,
+    "position_x": 129.0,
+    "position_y": 218.0,
     "selected_in_dock": false,
-    "title": "Markups",
+    "title": "Action Graph",
     "visible": false,
-    "width": 180.0
+    "width": 1453.0
+  },
+  {
+    "dock_id": 0,
+    "height": 88.0,
+    "position_x": 1160.0,
+    "position_y": 873.0,
+    "selected_in_dock": false,
+    "title": "64ae5f9b-cf16-11ef-b60b-a83b760bc93a",
+    "visible": false,
+    "width": 400.0
+  },
+  {
+    "dock_id": 0,
+    "height": 441.0,
+    "position_x": 1270.0,
+    "position_y": 273.0,
+    "selected_in_dock": false,
+    "title": "Toll L3 Unilever",
+    "visible": true,
+    "width": 240.0
   },
   {
     "dock_id": 0,
@@ -392,9 +411,29 @@
     "position_x": 3.4028234663852886e+38,
     "position_y": 3.4028234663852886e+38,
     "selected_in_dock": false,
-    "title": "omni.ui.scene 2246248999632",
+    "title": "omni.ui.scene 1666431255488",
     "visible": false,
     "width": 210.8000030517578
+  },
+  {
+    "dock_id": 0,
+    "height": 600.0,
+    "position_x": 3.4028234663852886e+38,
+    "position_y": 3.4028234663852886e+38,
+    "selected_in_dock": false,
+    "title": "Markups",
+    "visible": false,
+    "width": 180.0
+  },
+  {
+    "dock_id": 0,
+    "height": 600.0,
+    "position_x": 3.4028234663852886e+38,
+    "position_y": 3.4028234663852886e+38,
+    "selected_in_dock": false,
+    "title": "Waypoints",
+    "visible": false,
+    "width": 180.0
   },
   {
     "dock_id": 0,
@@ -405,5 +444,15 @@
     "title": "Remove All Groups",
     "visible": false,
     "width": 250.0
+  },
+  {
+    "dock_id": 0,
+    "height": 400.0,
+    "position_x": 3.4028234663852886e+38,
+    "position_y": 3.4028234663852886e+38,
+    "selected_in_dock": false,
+    "title": "Select Targets",
+    "visible": false,
+    "width": 400.0
   }
 ]
