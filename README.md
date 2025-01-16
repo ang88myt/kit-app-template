@@ -5,9 +5,6 @@
 </p>
 
 
-## :warning: EA Release Information
-**This branch is based on Omniverse Kit 106.2 EA. It includes EA versions of the Kit SDK, associated development tools, and templates. For the latest stable release, see the `106` branch.**
-
 ## Overview
 
 Welcome to `kit-app-template`, a toolkit designed for developers interested in GPU-accelerated application development within the NVIDIA Omniverse ecosystem. This repository offers streamlined tools and templates to simplify creating high-performance, OpenUSD-based desktop or cloud streaming applications using the Omniverse Kit SDK.
@@ -63,7 +60,7 @@ Ensure your system is set up with the following to work with Omniverse Applicati
 
 - **GPU**: NVIDIA RTX capable GPU (Turing or newer recommended)
 
-- **Driver**: Latest NVIDIA driver compatible with your GPU
+- **Driver**: Minimum and recommended - 537.58. Newer versions may work but are not equally validated.
 
 - **Internet Access**: Required for downloading the Omniverse Kit SDK, extensions, and tools.
 
@@ -73,7 +70,9 @@ Ensure your system is set up with the following to work with Omniverse Applicati
 
 - [**Git LFS**](https://git-lfs.com/): For managing large files within the repository
 
-- **(Windows) Microsoft Visual C++ Redistributable**: Many Windows systems will already have this, but if not, it can be obtained from [latest-supported-vc-redist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-microsoft-visual-c-redistributable-version)
+- **(Windows - C++ Only) Microsoft Visual Studio (2019 or 2022)**: You can install the latest version from [Visual Studio Downloads](https://visualstudio.microsoft.com/downloads/). Ensure that the **Desktop development with C++** workload is selected.  [Additional information on Windows development configuration](readme-assets/additional-docs/windows_developer_configuration.md)
+
+- **(Windows - C++ Only) Windows SDK**: Install this alongside MSVC. You can find it as part of the Visual Studio Installer. [Additional information on Windows development configuration](readme-assets/additional-docs/windows_developer_configuration.md)
 
 - **(Linux) build-essentials**: A package that includes `make` and other essential tools for building applications.  For Ubuntu, install with `sudo apt-get install build-essential`
 
@@ -233,6 +232,8 @@ Enhance Omniverse capabilities with extension templates:
 - **[Basic Python](./templates/extensions/basic_python)**: The minimal definition of an Omniverse Python Extension.
 
 - **[Basic C++](./templates/extensions/basic_cpp)**: The minimal definition of an Omniverse C++ Extension.
+
+   **Note for Windows C++ Developers** : This template requires `"platform:windows-x86_64".enabled` and `link_host_toolchain` within the `repo.toml` file be set to `true`. For additional C++ configuration information [see here](readme-assets/additional-docs/windows_developer_configuration.md).
 
 - **[Python UI](./templates/extensions/python_ui)**: An extension that provides an easily extendable Python-based user interface.
 

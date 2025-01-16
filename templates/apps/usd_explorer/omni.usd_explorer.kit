@@ -30,7 +30,7 @@ template_name = "omni.usd_explorer"
 "omni.kit.collaboration.telemetry" = {}
 "omni.kit.collaboration.viewport.camera" = {}
 "omni.kit.context_menu" = {}
-"omni.kit.converter.cad" = {}
+"omni.kit.converter.cad" = {order = 1000} # allow other deps like asset_importer to load first
 "omni.kit.manipulator.camera" = {} # Manipulator for the Viewport
 "omni.kit.manipulator.prim" = {}
 "omni.kit.manipulator.selection" = {}
@@ -118,12 +118,15 @@ forceViewportSettings = true  # Force enable Axis, Grid, Outline and Lights at s
 autoHideTabBar = false
 noWindowMenuButton = false
 
+[settings.app.environment]
+name = "{{ application_display_name }}"
+
 [settings.app.extensions]
 excluded = [
 	"omni.kit.viewport.menubar.render",
 	"omni.kit.viewport.menubar.settings",
 ]
-generatedVersionLockExclude = [
+generateVersionLockExclude = [
 	"{{ setup_extension_name }}",
 ]
 registryEnabled = true
@@ -402,6 +405,10 @@ switch_to_present_on_open = false
 [settings.exts."omni.kit.usd_explorer.window.welcome"]
 alwaysClosable = true
 
+[settings.exts."omni.kit.viewport.menubar.framerate"]
+visible = true
+currentPreset = "60x2"
+
 [settings.exts."omni.kit.waypoint.core"]
 enable_hotkeys = true
 show_icons = false
@@ -475,14 +482,11 @@ showStageCameras = false
 [settings.exts."omni.kit.viewport.menubar.display".showByType]
 exclude_list = ["Audio"]
 
-[settings.exts."omni.kit.viewport.menubar.framerate"]
-visible = false
-
 [settings.exts."omni.kit.viewport.menubar.lighting"]
 autoLightRig.enableWithoutMenu = true  # Enable adding a light rig whether menu item is loaded/visible or not
 defaultRig = "Sunny Sky"  # Set the default light-rig to apply for a stage opened without any lights in it
 rigImport.lightRemovalLimit = 3
-rigs = "${% raw %}{{% endraw %}{{ setup_extension_name }}{% raw %}}{% endraw %}/data/light_rigs"  # Setup path to the light-rig items in the lighting menu
+rigs = "${omni.light_rigs}/light_rig_data/light_rigs"  # Setup path to the light-rig items in the lighting menu
 
 [settings.exts."omni.kit.viewport.navigation.camera_manipulator"]
 orbitAutoFrameSelected = true

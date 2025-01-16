@@ -25,6 +25,10 @@ template_name = "kit_service"
 name = "{{ application_display_name }}"
 
 
+[settings.app.environment]
+name = "{{ application_display_name }}"
+
+
 [settings.app.exts]
 folders.'++' = [  # Search paths for extensions.
     "${app}/../exts",
