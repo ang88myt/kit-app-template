@@ -7,9 +7,10 @@ from .style import BLOCK_HEIGHT
 class CustomButtonWidget:
     """A widget that displays a button and can trigger a callback function."""
 
-    def __init__(self, btn_label: str, tooltip: str, btn_callback: Callable):
+    def __init__(self, btn_label: str, tooltip: str, btn_callback: Callable, image_url: str = None):
         self.__btn_label = btn_label
         self.__btn = None
+        self.__image_url = image_url
         self.__callback = btn_callback
         self.__frame = ui.Frame()
         self.__tooltip = tooltip
@@ -33,5 +34,6 @@ class CustomButtonWidget:
                 tooltip=self.__tooltip,
                 height=BLOCK_HEIGHT,
                 width=ui.Fraction(2),
+                image_url=self.__image_url,
                 clicked_fn=self.__callback
             )

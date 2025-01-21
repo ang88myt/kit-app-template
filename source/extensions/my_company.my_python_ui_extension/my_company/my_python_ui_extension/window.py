@@ -154,12 +154,14 @@ class Custom_Window(ui.Window):
                         for _ in range(3):  # Placeholder for 3 pallets
                             with ui.HStack():
                                 ui.Label("Pallet name", style={"font_size": 14, "color": "white"})
-                                CustomButtonWidget(btn_label="Locate",
-                                                   tooltip="Locate Pallet",
-                                                   icon_path="locate_icon",
-                                                   btn_callback=lambda p=0: self._navigate_to_pallet(p)
-                                                   )
-
+                                # CustomButtonWidget(btn_label="Locate",
+                                #                    tooltip="Locate Pallet",
+                                #                    image_url="locate_icon",
+                                #                    btn_callback=lambda p=0: self._navigate_to_pallet(p)
+                                #                    )
+                                ui.Button("Pallet Name",btn_label="Locate",
+                                          icon="locate_icon",
+                                          btn_callback=lambda p=0: self._navigate_to_pallet(p))
             ui.Line(style_type_name_override="HeaderLine")
             # Critical Items Tracking Section
             ui.Spacer(spacing=8)
@@ -385,7 +387,7 @@ class Custom_Window(ui.Window):
         with ui.ScrollingFrame(name="window_bg", horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF):
             with ui.VStack(height=0):
 
-                self._build_update_scene()
+                # self._build_update_scene()
                 # self._build_storage_utilization()
                 self._build_scene()
                 # self._build_stock_status()
