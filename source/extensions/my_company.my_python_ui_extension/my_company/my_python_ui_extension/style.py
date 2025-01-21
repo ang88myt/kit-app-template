@@ -59,6 +59,11 @@ fl.radio_group_font_size = 14
 fl.collapsable_header_font_size = 16
 fl.range_text_size = 10
 
+url.damaged_icon = f"{EXTENSION_FOLDER_PATH}/icons/damaged_icon.svg"
+url.expired_icon = f"{EXTENSION_FOLDER_PATH}/icons/expired_icon.svg"
+url.near_expiry_icon = f"{EXTENSION_FOLDER_PATH}/icons/near_expiry_icon.svg"
+url.qaf_icon = f"{EXTENSION_FOLDER_PATH}/icons/qaf_icon.svg"
+url.violation_icon = f"{EXTENSION_FOLDER_PATH}/icons/violation_icon.svg"
 url.closed_arrow_icon = f"{EXTENSION_FOLDER_PATH}/icons/closed.svg"
 url.open_arrow_icon = f"{EXTENSION_FOLDER_PATH}/icons/opened.svg"
 url.revert_arrow_icon = f"{EXTENSION_FOLDER_PATH}/icons/revert_arrow.svg"
@@ -67,9 +72,39 @@ url.checkbox_off_icon = f"{EXTENSION_FOLDER_PATH}/icons/checkbox_off.svg"
 url.radio_btn_on_icon = f"{EXTENSION_FOLDER_PATH}/icons/radio_btn_on.svg"
 url.radio_btn_off_icon = f"{EXTENSION_FOLDER_PATH}/icons/radio_btn_off.svg"
 url.diag_bg_lines_texture = f"{EXTENSION_FOLDER_PATH}/icons/diagonal_texture_screenshot.png"
+url.locate_icon = f"{EXTENSION_FOLDER_PATH}/icons/locate_icon.svg"
 
 # The main style dict
 julia_modeler_style = {
+    "Image::locate_icon": {
+        "image_url":url.locate_icon
+    },
+    "Image::damaged_icon": {
+        "image_url": url.damaged_icon,
+        "width": 41,
+        "height": 41
+    },
+    "Image::expired_icon": {
+        "image_url": url.expired_icon,
+        "width": 41,
+        "height": 41
+    },
+    "Image::near_expiry_icon": {
+        "image_url": url.near_expiry_icon,
+        "width": 41,
+        "height": 41
+    },
+    "Image::qaf_icon": {
+        "image_url": url.qaf_icon,
+        "width": 41,
+        "height": 41
+    },
+    "Image::violation_icon": {
+        "image_url": url.violation_icon,
+        "width": 41,
+        "height": 41
+    },
+
     "Button::tool_button": {
         "background_color": cl.field_bg,
         "margin_height": 0,
