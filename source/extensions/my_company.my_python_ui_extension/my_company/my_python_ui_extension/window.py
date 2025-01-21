@@ -16,7 +16,7 @@ from .proximity_checker import ProximityChecker
 from .custom_path_button import CustomPathButtonWidget
 from .custom_radio_collection import CustomRadioCollection
 from .custom_bool_widget import CustomBoolWidget
-
+from .custom_button import  CustomButtonWidget
 SPACING = 5
 WINDOW_TITLE = ""
 
@@ -25,7 +25,7 @@ class Custom_Window(ui.Window):
     """The class that represents the window"""
 
     def __init__(self, title: str, delegate=None, **kwargs):
-        super().__init__(title, **kwargs)
+        super().__init__(title,dock="left", **kwargs)
         self.__label_width = ATTR_LABEL_WIDTH
         self._data_service = DataService()
         self.used_percentage = 40
@@ -56,7 +56,7 @@ class Custom_Window(ui.Window):
 
 
     def _build_update_scene(self):
-        with ui.CollapsableFrame("UPDATE WAREHOUSE", name="group", build_header_fn=self._build_collapsable_header):
+        with ui.CollapsableFrame("UPDATE WAREHOUSE", name="group", build_header_fn=self._build_collapsable_header,collapsed=True):
             with ui.VStack(height=0, spacing=SPACING):
                 CustomPathButtonWidget(label="Upload File",path="C:/Users/admin/Downloads/",btn_label="Upload",btn_callback=self._upload_file)
                 ui.Spacer(height=6)
@@ -89,25 +89,103 @@ class Custom_Window(ui.Window):
                 _show_notification("Search Failed", f"No data found for: {search_text}", "warning")
         else:
             _show_notification("Search Error", "Search input is empty.", "warning")
+#build scene old
+    # def _build_scene(self):
+    #     """Build the widgets of the 'Scene' group"""
+    #     with ui.CollapsableFrame("LEGEND",name="group", build_header_fn=self._build_collapsable_header):
+    #         with ui.VStack(height=0, spacing=SPACING):
+    #             ui.Spacer(height=6)
+    #             CustomInfoWidget(label="Pallet ID", placeholder="PID", btn_callback=self._btn_pallet_info)
+    #             # ui.Label("Damaged",
+    #             #          style={"font_size": 14, "color": "red"})
+    #             ui.Spacer(height=6)
+    #             # ui.Label("Quality issue",
+    #             #          style={"font_size": 14, "color": "green"})
+    #             CustomInfoWidget(label="Product ID", placeholder="PID", btn_callback=self._btn_product_info)
+    #             ui.Spacer(height=6)
+    #             # ui.Label("Near EXpired",
+    #             #          style={"font_size": 14, "color": "yellow"})
+    #             CustomInfoWidget(label="Location ID", placeholder="LID", btn_callback=self._btn_location_info)
+    #             ui.Spacer(height=6)
 
     def _build_scene(self):
-        """Build the widgets of the 'Scene' group"""
-        with ui.CollapsableFrame("LEGEND",name="group", build_header_fn=self._build_collapsable_header):
-            with ui.VStack(height=0, spacing=SPACING):
-                ui.Spacer(height=6)
-                # CustomInfoWidget(label="Pallet ID", placeholder="PID", btn_callback=self._btn_pallet_info)
-                ui.Label("Damaged",
-                         style={"font_size": 14, "color": "red"})
-                ui.Spacer(height=6)
-                ui.Label("Quality issue",
-                         style={"font_size": 14, "color": "green"})
-                # CustomInfoWidget(label="Product ID", placeholder="PID", btn_callback=self._btn_product_info)
-                ui.Spacer(height=6)
-                ui.Label("Near EXpired",
-                         style={"font_size": 14, "color": "yellow"})
-                # CustomInfoWidget(label="Location ID", placeholder="LID", btn_callback=self._btn_location_info)
-                ui.Spacer(height=6)
+        """Build the widgets for the 'Overview' scene."""
+        with ui.VStack(spacing=8):
+            ui.Spacer(height=8)
+            # Overview Header
+            ui.Label("Overview", style={"font_size": 20, "color": "white", "font_weight": "bold"})
+            ui.Line(style_type_name_override="HeaderLine")
+            ui.Spacer(height=8)
+            # Storage Capacity Section
+            ui.Label("Storage Capacity", style={"font_size": 14, "color": "white"})
+            # Rack Space Usage
+            with ui.HStack(spacing=10):
+                ui.Label("Rack Space Usage", style={"font_size": 16, "color": "white"})
+                ui.Label("40% used", style={"font_size": 12, "color": "white", "alignment": ui.Alignment.RIGHT_CENTER})
+            with ui.HStack(spacing=10):
+                progress_bar = ui.ProgressBar()
+                progress_bar.model.set_value(0.4)  # 40% used
 
+            # Staging Area Usage
+            with ui.HStack(spacing=10):
+                ui.Label("Staging Area Usage", style={"font_size": 16, "color": "white"})
+                ui.Label("60% used", style={"font_size": 12, "color": "white","alignment": ui.Alignment.RIGHT_CENTER})
+            with ui.HStack(spacing=10):
+                progress_bar = ui.ProgressBar()
+                progress_bar.model.set_value(0.6)  # 60% used
+            ui.Spacer(height=8)
+            ui.Line(style_type_name_override="HeaderLine")
+            ui.Spacer(height=8)
+            with ui.HStack(spacing=10):
+                ui.Image(
+                    name="violation_icon",width=41, height=41   # Replace with actual icon/image name
+                )
+                # Proximity Violations Section
+                with ui.CollapsableFrame("Proximity Violations", name="group",
+                                         build_header_fn=self._build_collapsable_header):
+                    with ui.VStack(spacing=10):
+                        # Display total violations count
+                        with ui.HStack(spacing=8):
+                            # ui.Spacer(width=30)
+                            ui.Label("3",
+                                     style={"font_size": 18, "color": "white","alignment": ui.Alignment.LEFT_CENTER})
+
+                        # List of pallets with "Locate" buttons
+                        for _ in range(3):  # Placeholder for 3 pallets
+                            with ui.HStack():
+                                ui.Label("Pallet name", style={"font_size": 14, "color": "white"})
+                                CustomButtonWidget(btn_label="Locate",
+                                                   tooltip="Locate Pallet",
+                                                   icon_path="locate_icon",
+                                                   btn_callback=lambda p=0: self._navigate_to_pallet(p)
+                                                   )
+
+            ui.Line(style_type_name_override="HeaderLine")
+            # Critical Items Tracking Section
+            ui.Spacer(spacing=8)
+            ui.Label("Critical Items Tracking", style={"font_size": 16, "color": "white"})
+            ui.Spacer(spacing=8)
+            with ui.VStack(spacing=8):
+                # Critical items with icons
+                for label, color, icon in [
+                    ("Damaged Items", "blue", "damaged_icon"),
+                    ("Expired Items", "red", "expired_icon"),
+                    ("Near Expiry", "green", "near_expiry_icon"),
+                    ("QAF Items", "orange", "qaf_icon")
+                ]:
+                    with ui.HStack(spacing=10):
+                        # Icon Image
+                        ui.Image(name=icon, width=41, height=41)  # Customize size as needed
+                        with ui.CollapsableFrame(label, name="group", collapsed=False):
+                            with ui.HStack(spacing=8):
+                                # Label and Count
+                                with ui.VStack():
+                                    # ui.Label(label, style={"font_size": 14, "color": color})
+                                    ui.Label("0", style={"font_size": 14, "color": "white"})
+                    with ui.VStack(spacing=10):
+                        # ui.Spacer(height=5)
+                        ui.Line(style_type_name_override="HeaderLine")
+                        # ui.Spacer(height=5)
 
     def _btn_location_info(self, location_id):
         self._data_service.show_location_info(location_id)
@@ -306,7 +384,8 @@ class Custom_Window(ui.Window):
     def _build_fn(self):
         with ui.ScrollingFrame(name="window_bg", horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF):
             with ui.VStack(height=0):
-                # self._build_update_scene()
+
+                self._build_update_scene()
                 # self._build_storage_utilization()
                 self._build_scene()
                 # self._build_stock_status()
