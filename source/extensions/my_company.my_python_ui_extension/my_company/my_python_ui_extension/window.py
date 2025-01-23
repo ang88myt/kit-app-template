@@ -6,7 +6,7 @@ import omni.kit
 import omni.ui as ui
 import omni.kit.notification_manager as nm
 from omni.ui import color as cl
-from .style import julia_modeler_style, ATTR_LABEL_WIDTH
+from .style import julia_modeler_style, ATTR_LABEL_WIDTH, WIN_WIDTH, WIN_HEIGHT
 from .custom_button import CustomButtonWidget
 from .custom_info_button import CustomInfoWidget
 from .custom_radio_collection import CustomRadioCollection
@@ -17,6 +17,7 @@ from .custom_path_button import CustomPathButtonWidget
 from .custom_radio_collection import CustomRadioCollection
 from .custom_bool_widget import CustomBoolWidget
 from .custom_button import  CustomButtonWidget
+
 SPACING = 5
 WINDOW_TITLE = ""
 
@@ -28,9 +29,8 @@ class Custom_Window(ui.Window):
         super().__init__(title,dock="left", **kwargs)
         self.__label_width = ATTR_LABEL_WIDTH
         self._data_service = DataService()
-        self.used_percentage = 40
-        self.free_percentage = 60
-        self.top_level_parents = ['Show All', '/root', '/All_Racks', '/Critical_Items', '/World']
+
+        # self.top_level_parents = ['Show All', '/root', '/All_Racks', '/Critical_Items', '/World']
         self.frame.style = julia_modeler_style
         self.frame.set_build_fn(self._build_fn)
 
@@ -73,7 +73,7 @@ class Custom_Window(ui.Window):
         else:
             _show_notification("Update Failed", "Failed to fetch rack data or spawn pallets.", "WARNING")
 
-    def _add_search_bar(self):
+    def _search_bar(self):
         with ui.HStack():
             self.search_input = ui.StringField(height=20, placeholder_text="Enter pallet or location ID")
             ui.Button("Search",clicked_fn=self._on_search_clicked)
@@ -89,105 +89,88 @@ class Custom_Window(ui.Window):
                 _show_notification("Search Failed", f"No data found for: {search_text}", "warning")
         else:
             _show_notification("Search Error", "Search input is empty.", "warning")
-#build scene old
-    # def _build_scene(self):
-    #     """Build the widgets of the 'Scene' group"""
-    #     with ui.CollapsableFrame("LEGEND",name="group", build_header_fn=self._build_collapsable_header):
-    #         with ui.VStack(height=0, spacing=SPACING):
-    #             ui.Spacer(height=6)
-    #             CustomInfoWidget(label="Pallet ID", placeholder="PID", btn_callback=self._btn_pallet_info)
-    #             # ui.Label("Damaged",
-    #             #          style={"font_size": 14, "color": "red"})
-    #             ui.Spacer(height=6)
-    #             # ui.Label("Quality issue",
-    #             #          style={"font_size": 14, "color": "green"})
-    #             CustomInfoWidget(label="Product ID", placeholder="PID", btn_callback=self._btn_product_info)
-    #             ui.Spacer(height=6)
-    #             # ui.Label("Near EXpired",
-    #             #          style={"font_size": 14, "color": "yellow"})
-    #             CustomInfoWidget(label="Location ID", placeholder="LID", btn_callback=self._btn_location_info)
-    #             ui.Spacer(height=6)
 
     def _build_scene(self):
         """Build the widgets for the 'Overview' scene."""
-        with ui.VStack(spacing=8):
-            ui.Spacer(height=8)
+        with ui.VStack(spacing=SPACING):
+            ui.Spacer(height=10)
             # Overview Header
             ui.Label("Overview", style={"font_size": 20, "color": "white", "font_weight": "bold"})
             ui.Line(style_type_name_override="HeaderLine")
-            ui.Spacer(height=8)
+            ui.Spacer(height=10)
             # Storage Capacity Section
             ui.Label("Storage Capacity", style={"font_size": 14, "color": "white"})
+            ui.Spacer(height=10)
             # Rack Space Usage
-            with ui.HStack(spacing=10):
+            with ui.HStack(spacing=SPACING):
                 ui.Label("Rack Space Usage", style={"font_size": 16, "color": "white"})
-                ui.Label("40% used", style={"font_size": 12, "color": "white", "alignment": ui.Alignment.RIGHT_CENTER})
-            with ui.HStack(spacing=10):
-                progress_bar = ui.ProgressBar()
+                ui.Label("40% used", style={"font_size": 16, "color": "white", "alignment": ui.Alignment.RIGHT_CENTER})
+            ui.Spacer(height=10)
+            with ui.HStack(spacing=SPACING):
+                progress_bar = ui.ProgressBar(style={"color": "lightblue"})
                 progress_bar.model.set_value(0.4)  # 40% used
-
+            ui.Spacer(height=10)
             # Staging Area Usage
-            with ui.HStack(spacing=10):
+            with ui.HStack(spacing=SPACING):
                 ui.Label("Staging Area Usage", style={"font_size": 16, "color": "white"})
-                ui.Label("60% used", style={"font_size": 12, "color": "white","alignment": ui.Alignment.RIGHT_CENTER})
-            with ui.HStack(spacing=10):
-                progress_bar = ui.ProgressBar()
-                progress_bar.model.set_value(0.6)  # 60% used
-            ui.Spacer(height=8)
-            ui.Line(style_type_name_override="HeaderLine")
-            ui.Spacer(height=8)
-            with ui.HStack(spacing=10):
-                ui.Image(
-                    name="violation_icon",width=41, height=41   # Replace with actual icon/image name
-                )
-                # Proximity Violations Section
-                with ui.CollapsableFrame("Proximity Violations", name="group",
-                                         build_header_fn=self._build_collapsable_header):
-                    with ui.VStack(spacing=10):
-                        # Display total violations count
-                        with ui.HStack(spacing=8):
-                            # ui.Spacer(width=30)
-                            ui.Label("3",
-                                     style={"font_size": 18, "color": "white","alignment": ui.Alignment.LEFT_CENTER})
+                ui.Label("60% used", style={"font_size": 16, "color": "white","alignment": ui.Alignment.RIGHT_CENTER})
+            with ui.HStack(spacing=SPACING):
+                progress_bar = ui.ProgressBar(style={"color": "lightblue"})
 
-                        # List of pallets with "Locate" buttons
-                        for _ in range(3):  # Placeholder for 3 pallets
-                            with ui.HStack():
-                                ui.Label("Pallet name", style={"font_size": 14, "color": "white"})
-                                # CustomButtonWidget(btn_label="Locate",
-                                #                    tooltip="Locate Pallet",
-                                #                    image_url="locate_icon",
-                                #                    btn_callback=lambda p=0: self._navigate_to_pallet(p)
-                                #                    )
-                                ui.Button("Pallet Name",btn_label="Locate",
-                                          icon="locate_icon",
-                                          btn_callback=lambda p=0: self._navigate_to_pallet(p))
+                progress_bar.model.set_value(0.6)  # 60% used
+            ui.Spacer(height=10)
             ui.Line(style_type_name_override="HeaderLine")
-            # Critical Items Tracking Section
-            ui.Spacer(spacing=8)
-            ui.Label("Critical Items Tracking", style={"font_size": 16, "color": "white"})
-            ui.Spacer(spacing=8)
-            with ui.VStack(spacing=8):
-                # Critical items with icons
-                for label, color, icon in [
-                    ("Damaged Items", "blue", "damaged_icon"),
-                    ("Expired Items", "red", "expired_icon"),
-                    ("Near Expiry", "green", "near_expiry_icon"),
-                    ("QAF Items", "orange", "qaf_icon")
-                ]:
-                    with ui.HStack(spacing=10):
-                        # Icon Image
-                        ui.Image(name=icon, width=41, height=41)  # Customize size as needed
-                        with ui.CollapsableFrame(label, name="group", collapsed=False):
-                            with ui.HStack(spacing=8):
-                                # Label and Count
-                                with ui.VStack():
-                                    # ui.Label(label, style={"font_size": 14, "color": color})
-                                    ui.Label("0", style={"font_size": 14, "color": "white"})
-                    with ui.VStack(spacing=10):
-                        # ui.Spacer(height=5)
-                        ui.Line(style_type_name_override="HeaderLine")
-                        # ui.Spacer(height=5)
+            ui.Spacer(height=10)
+            # # Proximity Violations Section
+            # with ui.CollapsableFrame("Proximity Violations", name="group",
+            #                          build_header_fn=self._build_collapsable_header):
+            #     with ui.VStack(spacing=10):
+            #         # Display total violations count
+            #         with ui.HStack(spacing=8):
+            #             # ui.Spacer(width=30)
+            #             ui.Label("3",
+            #                      style={"font_size": 18, "color": "white","alignment": ui.Alignment.LEFT_CENTER})
+            #
+            #         # List of pallets with "Locate" buttons
+            #         for _ in range(3):  # Placeholder for 3 pallets
+            #                 with ui.HStack():
+            #                         ui.Label("Pallet name", style={"font_size": 14, "color": "white"})
+            #                         # ui.Image(
+            #                         #     name="locate_icon", width=14, height=16  # Replace with actual icon/image name
+            #                         # )
+            #                         CustomButtonWidget(btn_label="Locate",
+            #                                            tooltip="Locate the pallet",
+            #                                            image_url="D:\Git\kit-app-template\source\extensions\my_company.my_python_ui_extension\icons\locate_icon.svg",
+            #                                            image_width=15,
+            #                                            image_height=15,
+            #                                            btn_callback=lambda p=0: self._navigate_to_pallet(p)
+            #                                            )
+            # ui.Line(style_type_ame_override="HeaderLine")
+            # ui.Spacer(spacing=8)
+            # '''Critical Items Tracking Section'''
+            # ui.Label("Critical Items Tracking", style={"font_size": 16, "color": "white"})
+            # ui.Spacer(spacing=8)
+            # with ui.VStack(spacing=8):
+            #     # Critical items with icons
+            #     for label, color, icon in [
+            #         ("Damaged Items", "blue", "damaged_icon"),
+            #         ("Expired Items", "red", "expired_icon"),
+            #         ("Near Expiry", "green", "near_expiry_icon"),
+            #         ("QAF Items", "orange", "qaf_icon")
+            #     ]:
+            #         with ui.HStack(spacing=10):
+            #             # Icon Image
+            #             ui.Image(name=icon, width=41, height=41)  # Customize size as needed
+            #             with ui.CollapsableFrame(label, name="group", collapsed=False):
+            #                 with ui.HStack(spacing=8):
+            #                     # Label and Count
+            #                     with ui.VStack():
+            #                         # ui.Label(label, style={"font_size": 14, "color": color})
+            #                         ui.Label("0", style={"font_size": 14, "color": "white"})
+            #         with ui.VStack(spacing=10):
+            #             # ui.Spacer(height=5)
+            #             ui.Line(style_type_name_override="HeaderLine")
+            #             # ui.Spacer(height=5)
 
     def _btn_location_info(self, location_id):
         self._data_service.show_location_info(location_id)
@@ -275,10 +258,14 @@ class Custom_Window(ui.Window):
 
         logging.info(f"Isolation {'applied' if is_check else 'removed'} for status: {status_code}.")
 
+
     def _build_violation_check(self):
-        pro_checker = ProximityChecker(racks_range=(19, 41), distance_threshold=200.0)
+        """Build the UI for proximity violations with clear explanations."""
+        # Initialize the ProximityChecker
+        pro_checker = ProximityChecker(racks_range=(21, 39), distance_threshold=200.0)
         violations = pro_checker.proximity_check_all_racks()
 
+        # Organize violations by food pallet
         food_pallets_with_hpc = defaultdict(list)
         for violation in violations:
             food_pallets_with_hpc[violation['food_pallet_id']].append({
@@ -286,30 +273,50 @@ class Custom_Window(ui.Window):
                 "hpc_location_id": violation['hpc_location_id'],
                 "distance": violation['distance']
             })
-
+            # Spawn cubes for visualization (optional)
             self._spawn_violation_cubes(violation)
 
-        total_violations = pro_checker.get_total_violations()
+        # Save violations to a CSV file
         pro_checker.save_violations_to_csv()
 
-        with ui.CollapsableFrame("PALLET VIOLATIONS", name="group", build_header_fn=self._build_collapsable_header,
-                                 collapsed=True):
-            with ui.ScrollingFrame(height=800):
-                with ui.VStack(spacing=6):
-                    ui.Label(f"Total Violations Found: {total_violations}", style={"font_size": 18, "color": "orange"})
-                    ui.Spacer(height=6)
-                    for food_pallet_id, hpc_pallets in food_pallets_with_hpc.items():
-                        with ui.CollapsableFrame(f"Food Pallet ID: {food_pallet_id}", collapsed=True):
-                            with ui.VStack(spacing=6):
-                                for hpc_pallet in hpc_pallets:
-                                    hpc_pallet_id = hpc_pallet['hpc_pallet_id']
-                                    hpc_location_id = hpc_pallet['hpc_location_id']
-                                    distance = hpc_pallet['distance']
-                                    CustomButtonWidget(
-                                        f"HPC Pallet ID: {hpc_pallet_id} | Distance: {distance} units",
-                                        tooltip=f"Location ID: {hpc_location_id}",
-                                        btn_callback=lambda p=hpc_pallet_id: self._navigate_to_pallet(p)
-                                    )
+        # Build the UI for violations
+        with ui.VStack(spacing=SPACING):
+            with ui.HStack(spacing=SPACING):
+                ui.Image(name="violation_icon", width=41, height=41)  # Add a meaningful icon for violations
+                with ui.CollapsableFrame("Proximity Violations", name="group",
+                                         build_header_fn=self._build_collapsable_header):
+
+                    with ui.VStack(spacing=SPACING):
+                        # Total Violations
+                        total_violations = len(food_pallets_with_hpc)
+                        ui.Label(
+                            f"{total_violations}",
+                            style={"font_size": 18, "color": "white", "alignment": ui.Alignment.LEFT}
+                        )
+
+                        # Define label style
+                        label_style = {"font_size": 14, "color": "white", "alignment": ui.Alignment.LEFT}
+
+                        # Display individual violations
+                        for food_pallet_id, hpc_pallets in food_pallets_with_hpc.items():
+                            with ui.HStack(spacing=SPACING):
+                                ui.Label(f"Food Pallet ID: {food_pallet_id}", style={"font_size": 14, "color": "white"})
+                                ui.Spacer(width=10)
+                                # ui.Image(name="locate_icon", width=14, height=14)
+
+                                CustomButtonWidget(
+                                    btn_label="Locate",
+                                    tooltip=f"Locate Pallet {food_pallet_id}",
+                                    image_url="D:/Git/kit-app-template/source/extensions/my_company.my_python_ui_extension/icons/locate_icon.svg",
+                                    image_width=15,
+                                    image_height=15,
+                                    btn_callback=lambda p=food_pallet_id: self._navigate_to_pallet(p)
+                                )
+            # Add a dividing line at the bottom
+            ui.Spacer(heigh=10)
+            ui.Line(style_type_name_override="HeaderLine")
+            ui.Spacer(height=10)
+
 
     def _spawn_violation_cubes(self, violation):
         food_coordinates = self._data_service.fetch_coordinates(f"pallet/{violation['food_pallet_id']}/")
@@ -391,7 +398,7 @@ class Custom_Window(ui.Window):
                 # self._build_storage_utilization()
                 self._build_scene()
                 # self._build_stock_status()
-                # self._build_violation_check()
+                self._build_violation_check()
                 # self._build_tracking()
 
     def _btn_pallet_info(self, pallet_id):

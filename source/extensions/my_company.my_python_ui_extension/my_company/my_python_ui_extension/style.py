@@ -77,7 +77,10 @@ url.locate_icon = f"{EXTENSION_FOLDER_PATH}/icons/locate_icon.svg"
 # The main style dict
 julia_modeler_style = {
     "Image::locate_icon": {
-        "image_url":url.locate_icon
+        "image_url":url.locate_icon,
+        "width": 41,
+        "height": 41,
+        # "alignment":ui.Fillpolicy.PRESERVE_ASPECT_FIT,
     },
     "Image::damaged_icon": {
         "image_url": url.damaged_icon,
