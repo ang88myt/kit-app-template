@@ -73,9 +73,21 @@ url.radio_btn_on_icon = f"{EXTENSION_FOLDER_PATH}/icons/radio_btn_on.svg"
 url.radio_btn_off_icon = f"{EXTENSION_FOLDER_PATH}/icons/radio_btn_off.svg"
 url.diag_bg_lines_texture = f"{EXTENSION_FOLDER_PATH}/icons/diagonal_texture_screenshot.png"
 url.locate_icon = f"{EXTENSION_FOLDER_PATH}/icons/locate_icon.svg"
-
+url.search_icon = f"{EXTENSION_FOLDER_PATH}/icons/mynaui_search.svg"
+url.location_icon = f"{EXTENSION_FOLDER_PATH}/icons/mdi_location.svg"
 # The main style dict
 julia_modeler_style = {
+    "Image::location_icon": {
+                "image_url": url.location_icon,
+                "width": 16,
+                "height": 16,
+    },
+    "Image::search_icon": {
+            "image_url": url.search_icon,
+            "width": 16,
+            "height": 16,
+    },
+
     "Image::locate_icon": {
         "image_url":url.locate_icon,
         "width": 41,

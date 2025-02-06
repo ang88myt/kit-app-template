@@ -35,19 +35,22 @@ class CustomButtonWidget:
     def _build_fn(self):
         """Draw the widget parts and set up the callback."""
 
-        with ui.HStack():
-            # Create the button
-            self.__btn = ui.Button(
-                name="tool_button",
-                text=self.__btn_label,
-                tooltip=self.__tooltip,
-                height=BLOCK_HEIGHT,
-                width=ui.Fraction(2),
-                image_url=self.__image_url,
-                image_width=self.__image_width,
-                image_height=self.__image_height,
-                # visible=True,
-                spacing=self.__spacing,
-                style={"stack_direction": ui.Direction.LEFT_TO_RIGHT},
-                clicked_fn=self.__callback
-            )
+
+        # Create the button
+        self.__btn = ui.Button(
+            name="tool_button",
+            text=self.__btn_label,
+            tooltip=self.__tooltip,
+            height=BLOCK_HEIGHT,
+            width=ui.Fraction(2),
+            image_url=self.__image_url,
+            image_width=self.__image_width,
+            image_height=self.__image_height,
+            # visible=True,
+            spacing=self.__spacing,
+            style={"stack_direction": ui.Direction.LEFT_TO_RIGHT},
+            alignment=ui.Alignment.CENTER,
+            fill_policy=ui.FillPolicy.PRESERVE_ASPECT_FIT,
+            clicked_fn=self.__callback,
+
+        )

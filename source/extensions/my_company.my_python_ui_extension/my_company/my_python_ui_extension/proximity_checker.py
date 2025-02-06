@@ -10,7 +10,7 @@ from collections import defaultdict
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class ProximityChecker:
-    BASE_URL = "https://digital-twin.expangea.com/"
+    BASE_URL = "https://digital-twin-dev.expangea.com/"
     HEADERS = {'X-API-KEY': '2c38e689-8bac-4ec6-9e0e-70e98222dc2d'}
     PRODUCT_GROUPS = ["FOODS", "HPC"]
     CSV_HEADERS = ["food_pallet_id", "hpc_pallet_id", "distance", "food_location_id", "hpc_location_id"]

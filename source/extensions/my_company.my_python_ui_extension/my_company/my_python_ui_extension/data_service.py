@@ -3,25 +3,22 @@
 __all__ = ["DataService"]
 
 from collections import defaultdict
+import omni.kit.commands
+from omni.kit.viewport.utility import get_active_viewport, frame_viewport_selection
 
 import requests
 import re
-#import json
 import carb
-from requests import Response
 
 import omni
 import omni.usd
 
-#from pxr import UsdGeom
 from pxr import Usd, UsdGeom, Gf, Sdf, Kind, UsdShade
 
 from typing import Optional, Tuple, Dict, Any
 import csv
-# import logging
 from typing import List, Dict
-# from datetime import datetime, timedelta
-# import time
+
 
 # from paho.mqtt import client as mqtt_client
 # from .custom_events import CustomEvents
@@ -30,7 +27,7 @@ from typing import List, Dict
 class DataService:
     def __init__(self):
         stage = omni.usd.get_context().get_stage()
-        self.api_base_url = "https://digital-twin.expangea.com/"
+        self.api_base_url = "https://digital-twin-dev.expangea.com/"
         self.headers = {
             'X-API-KEY': '2c38e689-8bac-4ec6-9e0e-70e98222dc2d'
         }
@@ -48,12 +45,7 @@ class DataService:
         self.critical_status_codes = ["NE", "DMG", "EX", "QAF"]
         # Stores critical pallets per rack number
         self.critical_pallets_by_rack = {}
-        self.COLORS = {
-            "DMG": "blue",
-            "NE": "yellow",
-            "QAF": "purple",
-            "EX": "red"
-        }
+
         self.warehouse_code = '5BTG'
         self.floor_no = '3'
     @staticmethod
@@ -496,33 +488,33 @@ class DataService:
         carb.log_info(f"Material {material_path} successfully applied to {prim_path}")
 
     def show_pallet_info(self, pallet_id):
-        endpoint = f"pallet/{pallet_id}/"
-        carb.log_info(f"Fetching stock info from endpoint: {endpoint}")
+        # endpoint = f"pallet/{pallet_id}/"
+        # carb.log_warn(f"Fetching stock info from endpoint: {endpoint}")
 
         _find_prim_then_select(pallet_id)
-
-        stock_info = self.fetch_stock_info(endpoint)
-
-        if stock_info:
-            limited_items = list(stock_info.items())[:11]
-            info_text = "\n".join([f"{key}: {value}" for key, value in limited_items])
-
-            # print(info_text)
-            # self.info_label.text = info_text
-
-            location_id = stock_info.get("rack_location", {}).get("location_id")
-            location_endpoint = f"rack-location/5BTG/{location_id}/"
-            carb.log_info(f"Fetching coordinates from endpoint: {location_endpoint}")
-
-            coordinates = self.fetch_coordinates(location_endpoint)
-            if coordinates:
-                x, y, z = coordinates
-                carb.log_info(x, y, z)
-                _move_camera(x, y, z)
-            else:
-                carb.log_error("Failed to fetch valid coordinates.")
-        else:
-            carb.log_error("Failed to fetch stock info.")
+        _frame_selected_object()
+        # stock_info = self.fetch_stock_info(endpoint)
+        #
+        # if stock_info:
+        #     limited_items = list(stock_info.items())[:11]
+        #     info_text = "\n".join([f"{key}: {value}" for key, value in limited_items])
+        #
+        #     # print(info_text)
+        #     # self.info_label.text = info_text
+        #
+        #     location_id = stock_info.get("rack_location", {}).get("location_id")
+        #     location_endpoint = f"rack-location/5BTG/{location_id}/"
+        #     carb.log_info(f"Fetching coordinates from endpoint: {location_endpoint}")
+        #
+        #     coordinates = self.fetch_coordinates(location_endpoint)
+        #     if coordinates:
+        #         x, y, z = coordinates
+        #         carb.log_info(x, y, z)
+        #         _move_camera(x, y, z)
+        #     else:
+        #         carb.log_error("Failed to fetch valid coordinates.")
+        # else:
+        #     carb.log_error("Failed to fetch stock info.")
 
     def show_location_info(self, location_id):
         endpoint = f"rack-location/5BTG/{location_id}/"
@@ -604,8 +596,8 @@ class DataService:
         space_utilization = {
             "Combined Staging Area": {
                 "Total Items": total_items,
-                "Used Space %": round(used_percentage, 2),
-                "Free Space %": round(free_percentage, 2)
+                "Used Space %": int(used_percentage),
+                "Free Space %": int(free_percentage)
             }
         }
 
@@ -911,4 +903,81 @@ def _isolate_selected_parent(xform_parent_name):
     carb.log_info(f"Isolation applied for: {xform_parent_name}")
 
 
+def _frame_selected_object():
+    """Frames or zooms into the currently selected object in Omniverse."""
 
+    # Get the stage
+    stage = omni.usd.get_context().get_stage()
+
+    # Get the selected prims
+    selection = omni.usd.get_context().get_selection().get_selected_prim_paths()
+
+    if not selection:
+        print("No object selected. Please select an object to frame.")
+        return
+
+    prim_to_frame = Sdf.Path(selection[0])  # Frame the first selected object
+
+    active_viewport = get_active_viewport()
+    if active_viewport:
+        # Frame the selected object using the viewport's built-in function
+        frame_viewport_selection(active_viewport)
+        print(f"Framing object: {prim_to_frame}")
+    else:
+        # If no viewport is active, create a new camera and frame manually
+        default_prim = stage.GetDefaultPrim()
+        root_path = default_prim.GetPath() if default_prim else Sdf.Path.absoluteRootPath
+        camera_path = root_path.AppendChild('New_Camera')
+
+        UsdGeom.Camera.Define(stage, camera_path)
+
+        # Execute the command to frame the object
+        omni.kit.commands.execute(
+            'FramePrimsCommand',
+            prim_to_move=camera_path,
+            prims_to_frame=[prim_to_frame.pathString],
+            time_code=Usd.TimeCode.Default(),
+            aspect_ratio=1.0,
+            zoom=0.6
+        )
+        print(f"Framing object with new camera: {prim_to_frame}")
+
+def _get_selected_prim_hierarchy():
+    """Retrieve the selected prim name and its parent hierarchy."""
+
+    # Get the stage
+    stage = omni.usd.get_context().get_stage()
+
+    # Get selected prim paths
+    selection = omni.usd.get_context().get_selection().get_selected_prim_paths()
+
+    if not selection:
+        print("No object selected.")
+        return
+
+    # Get the first selected prim
+    prim_path = selection[0]
+    prim = stage.GetPrimAtPath(prim_path)
+
+    if not prim.IsValid():
+        print("Invalid prim selected.")
+        return
+
+    # Collect hierarchy names
+    hierarchy = []
+    while prim:
+        hierarchy.append(prim.GetName())  # Store the name
+        prim = stage.GetPrimAtPath(prim.GetPath().GetParentPath())  # Move up in hierarchy
+
+    # Print the hierarchy from root to selected prim
+    hierarchy.reverse()
+    # Ensure the hierarchy has enough elements to extract Rack, Location, SKU, PID
+    if len(hierarchy) < 6:
+        print("Hierarchy does not contain enough elements for Rack, Location, SKU, PID.")
+        return
+    rack, location, sku, pid = hierarchy[2:6]
+
+    return rack, location, sku, pid
+
+
+    # print(" > ".join(hierarchy))

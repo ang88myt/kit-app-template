@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class RackDataHandler:
-    API_BASE_URL = "https://digital-twin.expangea.com/rack/5BTG/3/{rack_number}/"
+    API_BASE_URL = "https://digital-twin-dev.expangea.com/rack/5BTG/3/{rack_number}/"
     HEADERS = {
         "X-API-KEY": "2c38e689-8bac-4ec6-9e0e-70e98222dc2d"
     }
@@ -116,7 +116,7 @@ class RackDataHandler:
         else:
             logger.info(f"Pallet already exists at {pallet_prim_path}")
 
-    def process_racks(self, start_rack=21, end_rack=40):
+    def process_racks(self, start_rack=21, end_rack=41):
         """Process racks and spawn pallets based on API data."""
         for rack_number in range(start_rack, end_rack + 1):
             logger.info(f"Processing rack {rack_number}")
