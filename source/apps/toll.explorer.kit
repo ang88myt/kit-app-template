@@ -145,7 +145,7 @@ template_name = "omni.usd_explorer"
 "omni.kit.window.imageviewer" = {}
 "omni.kit.window.material" = {}  # Material Management and browsing
 "omni.kit.window.material_graph" = {}
-# "omni.kit.window.movie_capture" = {}
+"omni.kit.window.movie_capture" = {}
 "omni.kit.window.preferences" = { order = 1000 } # Execute last so the menu is in the correct place
 "omni.kit.window.privacy" = {}
 "omni.kit.window.property" = {}
@@ -270,7 +270,7 @@ mergeMaterials = false
 [settings.app.viewport]
 boundingBoxes.hideWhenManipulating = true
 createCameraModelRep = true  # Enable creation of camera meshes in USD
-grid.enabled = true
+grid.enabled = false
 outline.enabled = true
 showCameraMenu = false
 showHideMenu = false
@@ -317,11 +317,11 @@ upAxis = 'Z'
 [settings.app.viewport.defaults.hud.viewport]
 camInertiaAmount = 0.0
 camInertiaEnabled = false
-camVelocityMax = 20.0
+camVelocityMax = 13.0
 displayOptions = 32767  # Disable Frame Rate and Resoltion by default
 previewOnPeek = false
 snapToSurface = false
-Viewport0.fillViewport = false
+Viewport0.fillViewport = true
 Viewport1.fillViewport = false
 
 [settings.app.viewport.offsets]
@@ -492,7 +492,7 @@ enable_hotkeys = true
 
 [settings.exts."omni.kit.tool.teleport"]
 basicGizmo = true
-beamVisible = false
+beamVisible = true
 eyeHeight = 175
 max_slope_angle = 30.0
 simple_camera = false
@@ -566,8 +566,8 @@ windowBorder.width = 2
 
 [settings.exts."omni.kit.window.preferences"]
 show_audio = false
-show_rendering = true
-show_resource_monitor = true
+show_rendering = false
+show_resource_monitor = false
 show_tagging = false
 show_thumbnail_generation_mdl = true
 
@@ -575,7 +575,7 @@ show_thumbnail_generation_mdl = true
 blockingGetViewportDrawable = false
 
 [settings.exts."omni.kit.viewport.menubar.camera"]
-expand = true  # Expand the extra-camera settings by default
+expand = false  # Expand the extra-camera settings by default
 showManualExposure = true  # Enable FOV drop-down in viewport ribbon
 showStageCameras = false
 
@@ -583,7 +583,7 @@ showStageCameras = false
 exclude_list = ["Audio"]
 
 [settings.exts."omni.kit.viewport.menubar.framerate"]
-visible = false
+visible = true
 
 [settings.exts."omni.kit.viewport.menubar.lighting"]
 autoLightRig.enableWithoutMenu = true  # Enable adding a light rig whether menu item is loaded/visible or not
@@ -912,7 +912,7 @@ enabled = [
 	"omni.kit.window.material-1.6.2",
 	"omni.kit.window.material_graph-1.8.18",
 	"omni.kit.window.modifier.titlebar-105.2.16",
-	# "omni.kit.window.movie_capture-2.4.2",
+	"omni.kit.window.movie_capture-2.4.2",
 	"omni.kit.window.quicksearch-2.4.4",
 	"omni.kit.window.section-107.0.1",
 	"omni.no_code_ui.authoring-1.0.27",

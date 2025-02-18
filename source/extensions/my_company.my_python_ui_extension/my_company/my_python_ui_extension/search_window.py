@@ -1,19 +1,30 @@
 __all__ = ["SearchWindowPanel"]
 
-import logging
-from collections import defaultdict
-from pxr import UsdGeom
+# import logging
+# from collections import defaultdict
+# from pxr import UsdGeom
 import omni.usd
 import omni.kit
 import omni.ui as ui
 import omni.kit.notification_manager as nm
-from omni.ui import color as cl
+# from omni.ui import color as cl
 from .style import julia_modeler_style, ATTR_LABEL_WIDTH, WIN_WIDTH, WIN_HEIGHT
-from .custom_button import CustomButtonWidget
-from .custom_info_button import CustomInfoWidget
-from .custom_radio_collection import CustomRadioCollection
-from .data_service import DataService,_show_notification, _isolate_selected_parent,_traverse, _get_selected_prim_hierarchy
-
+# from .custom_button import CustomButtonWidget
+# from .custom_info_button import CustomInfoWidget
+# from .custom_radio_collection import CustomRadioCollection
+from .data_service import (DataService,
+                           _show_notification,
+                           _isolate_selected_parent,
+                           _get_selected_prim_hierarchy,
+                           _traverse, _find_prim_then_select,
+                           _frame_selected_object
+                           )
+from omni.kit.widget.searchfield import SearchField
+# from .custom_button import  CustomButtonWidget
+from pxr import Usd, UsdGeom, Gf, Sdf, Kind, UsdShade
+from omni.kit.viewport.utility import get_active_viewport, frame_viewport_selection
+import omni.kit.commands
+import carb
 
 SPACING = 5
 WINDOW_TITLE = ""
@@ -24,13 +35,17 @@ class SearchWindowPanel(ui.Window):
 
     def __init__(self, title: str = "Search Panel",**kwargs):
         super().__init__(title,dock="left", **kwargs)
+
         self.__label_width = ATTR_LABEL_WIDTH
 
         self._data_service = DataService()
-
-        # self.top_level_parents = ['Show All', '/root', '/All_Racks', '/Critical_Items', '/World']
         self.frame.style = julia_modeler_style
         self.frame.set_build_fn(self._build_fn)
+
+        self.matches = []
+        self.previous_hierarchy = None
+        self.hierarchy_items = []
+        self.hierarchy_dict = {}
 
     @property
     def label_width(self):
@@ -54,139 +69,26 @@ class SearchWindowPanel(ui.Window):
 
     def _build_scene(self):
         """Builds the content for the search panel."""
-        with ui.VStack(spacing=10, style={"padding": 8, "background_color": "#1e1e1e", "border_radius": 8}):
+        with ui.VStack(spacing=10,height=5, style={"padding": 8, "background_color": "#1e1e1e", "border_radius": 5}):
             # Title Section
             ui.Label("Warehouse Search", style={"font_size": 18, "font_weight": "bold", "color": "white"})
-            ui.Label("Search for pallets, locations, or SKUs", style={"font_size": 14, "color": "#cccccc"})
-            ui.Spacer(height=10)
-
-            # with ui.ZStack():
-            with ui.HStack(spacing=5):
-                self.search_input = ui.StringField(
-                    placeholder_text="Location or Pallet ID, or SKU",
-                    height=24,
-                    style={
-                        "background_color": "transparent",
-                        "border_radius": 4,
-                        "color": "white",
-                        "font_size": 14
-                    }
-                )
-                # self.search_input.model.set_value("Search here")
-
-                # ui.Image(name="search_icon", width=25, height=25, style={"opacity": 0.5})
-                ui.Button(
-                    image_url="D:\Git\kit-app-template\source\extensions\my_company.my_python_ui_extension\icons\mynaui_search.svg",  # Uses Omniverse built-in icons
-                    width=45,
-                    height=45,
-                    image_width=15,
-                    image_height=15,
-                    alignment=ui.Alignment.CENTER,
-                    fill_policy=ui.FillPolicy.PRESERVE_ASPECT_FIT,
-                    click_fn=self._on_search_clicked
-                )
-                # CustomButtonWidget(
-                #     btn_label="",
-                #     tooltip=f"Search Item",
-                #     image_url="D:/Git/kit-app-template/source/extensions/my_company.my_python_ui_extension/icons/mynaui_search.svg",
-                #     image_width=15,
-                #     image_height=15,
-                #     btn_callback=self._on_search_clicked
-                # )
-
-            # Set the key press function to capture the Enter key
-            # self.search_input.set_key_pressed_fn(self._handle_key_press)
+            ui.Label("Track and manage your assets here", style={"font_size": 14, "color": "#cccccc"})
             # ui.Spacer(height=10)
-        rack, location, sku, pids = _get_selected_prim_hierarchy()
-        total_pids = len(pids)  # Count the total number of PIDs
 
-        ui.Spacer(height=10)
-        ui.Line(style_type_name_override="HeaderLine")
-
-        with ui.VStack(height=150):
-            # Display the total count of PIDs
-            ui.Label(
-                "Total Search Result",
-                style={"font_size": 14, "color": "#888888"},
+            self.search_field = SearchField(
+                on_search_fn=lambda filters: self._filter_by_text("".join(filters) if filters else ""),
+                # on_search_fn=print("test"),
+                show_tokens=False,
+                separator=None,
+                width=250,
+                height=25
             )
-            # Display the location with an image and label in a horizontal stack
-            with ui.HStack(spacing=5, width=10):
-                ui.Image(name="location_icon", width=20, height=20, style={"opacity": 0.5})
-                ui.Label(location, style={"font_size": 18, "color": "#888888"})
 
-            ui.Line(style_type_name_override="HeaderLine")
-
-            # Main collapsable frame for the warehouse
-            with ui.CollapsableFrame(
-                "Warehouse 5BTG",
-                name="warehouse",
-                build_header_fn=self._build_collapsable_header,
-                collapsed=False,
-                style={"font_size": 18, "color": "#888888"},
-            ):
-                with ui.VStack(spacing=5, height=0, name="warehouse_content", align_items=ui.Alignment.CENTER):
-                    # Indent the Rack frame to the right
-                    with ui.HStack():
-                        ui.Spacer(width=35)  # Adjust width for proper indentation
-                        with ui.CollapsableFrame(
-                            rack,
-                            name="rack",
-                            build_header_fn=self._build_collapsable_header,
-                            collapsed=False,
-                            style={"font_size": 18, "color": "#888888"},
-                        ):
-                            # Ensure buttons are visible
-                            with ui.VStack(spacing=15, align_items=ui.Alignment.CENTER):
-
-                                ui.Label(f"Total Found: {total_pids} PIDs", style={"font_size": 14, "color": "#888888"})
-                                # Render a button for each PID in the list
-                                for pid in pids:
-                                    ui.Button(
-                                        pid,
-                                        name=f"PID_{pid}",
-                                        alignment=ui.Alignment.CENTER,
-                                        style={"font_size": 18, "color": "#888888"},
-                                    )
-
-                    # Ensure vertical space is managed properly
-                    ui.Line(style_type_name_override="HeaderLine")
-
-    def _on_search_clicked(self):
-        search_text = self.search_input.model.get_value_as_string()
-        if search_text:
-            print(f"Searching for: {search_text}")
-            pallet_data = self._data_service.fetch_pallet_data(search_text)
-            if pallet_data:
-                _show_notification("Search Result", f"Found data for: {search_text}", "info")
-            else:
-                _show_notification("Search Failed", f"No data found for: {search_text}", "warning")
-        else:
-            _show_notification("Search Error", "Search input is empty.", "warning")
-
-    def _handle_key_press(self, key, *args):
-        """
-        Trigger action only if the Enter key is pressed.
-        The `key` argument is an integer representing the key code of the pressed key.
-        """
-        ENTER_KEY_CODE = 13  # Key code for Enter
-        if key == ENTER_KEY_CODE:
-            # Call a function that prints the user input
-            self._print_user_input()
-
-    def _print_user_input(self):
-        """
-        Fetch the current text in the input field and print it out.
-        """
-        user_text = self.search_input.model.get_value_as_string()
-        if user_text.strip():
-            # You can use print or logging, depending on your preference/environment.
-            print(f"User typed: {user_text}")
-            # Or logging:
-            logging.warning(f"User typed: {user_text}")
-        else:
-            # For an empty string, you might want to show a message or log it
-            print("No input provided.")
-
+            # with ui.ScrollingFrame(height=600,
+            #                        style={"background_color": "#1e1e1e", "border_radius": 6, }
+            #                        ):
+            self.results_container = ui.VStack()
+            ui.Spacer(height=10)
 
     def _build_fn(self):
         with ui.ScrollingFrame(name="window_bg", horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF):
@@ -196,51 +98,307 @@ class SearchWindowPanel(ui.Window):
 
                 self._build_scene()
 
+    def _traverse(self, prim, name):
+        if prim.GetName() == name:
+            return prim
+        for child in prim.GetAllChildren():
+            result = self._traverse(child, name)
+            if result:
+                return result
+        return None
 
-def get_selected_prim_hierarchy():
-    """Retrieve the selected prim name and its parent hierarchy."""
+    def _filter_by_text(self, search_text):
+        if not search_text:
+            print("Search text is empty.")
+            return
 
-    # Get the stage
-    stage = omni.usd.get_context().get_stage()
+        print(f"🔍 Searching for attributes containing: '{search_text}' in '/Root/WH_5BTG'...")
+        stage = omni.usd.get_context().get_stage()
+        if not stage:
+            print("USD Stage not found.")
+            return
 
-    # Get selected prim paths
-    selection = omni.usd.get_context().get_selection().get_selected_prim_paths()
+        root_prim = self._traverse(stage.GetPrimAtPath("/Root"), "WH_5BTG")
+        if not root_prim or not root_prim.IsValid():
+            print(f"❌ Root prim '/Root/WH_5BTG' not found.")
+            return
 
-    if not selection:
-        print("No object selected.")
-        return
+        self.matches = []
+        self.hierarchy_items = []
+        self.hierarchy_dict = {}
 
-    # Get the first selected prim
-    prim_path = selection[0]
-    prim = stage.GetPrimAtPath(prim_path)
+        def search_children(prim):
+            for child in prim.GetAllChildren():
+                for attr in child.GetAttributes():
+                    try:
+                        value = attr.Get()
+                        if isinstance(value, str) and search_text.lower() in value.lower():
+                            hierarchy = child.GetPath().pathString.split('/')
+                            self.matches.append((hierarchy, attr.GetName(), value))
+                            parent_key = '/'.join(hierarchy[:-1])
+                        else:
+                            _show_notification("no found","Non found","WARNING")
+                            if parent_key not in self.hierarchy_dict:
+                                self.hierarchy_dict[parent_key] = []
+                            self.hierarchy_dict[parent_key].append(hierarchy[-1])
+                    except Exception:
+                        continue
+                search_children(child)
 
-    if not prim.IsValid():
-        print("Invalid prim selected.")
-        return
+        search_children(root_prim)
+        self.results_container.clear()
+        with ui.VStack(height=10):
+            with self.results_container:
+                ui.Label(f"Found {len(self.matches)} matches:")
+                for parent, children in self.hierarchy_dict.items():
+                    parent = parent.split('/')
+                    with ui.CollapsableFrame(parent[4], height=0):
+                        for item in children:
+                            ui.Button(
+                                item,
+                                tooltip=f"zoomed {item}",
+                                clicked_fn=lambda h=item: self._select_and_frame_object(h)
+                            )
+        ui.Line(style_type_name_override="HeaderLine")
+        # self._update_results_ui()
 
-    # Collect hierarchy names
-    hierarchy = []
-    while prim:
-        hierarchy.append(prim.GetName())  # Store the name
-        prim = stage.GetPrimAtPath(prim.GetPath().GetParentPath())  # Move up in hierarchy
+    def _update_results_ui(self):
+        print("test")
+        # self.results_container.clear()
+        # with ui.VStack(height=10):
+        #     with self.results_container:
+        #         ui.Label(f"Found {len(self.matches)} matches:")
+        #         for parent, children in self.hierarchy_dict.items():
+        #             parent = parent.split('/')
+        #             with ui.CollapsableFrame(parent[4], height=0):
+        #                 for item in children:
+        #                     ui.Button(
+        #                         item,
+        #                         tooltip=f"zoomed {item}",
+        #                         clicked_fn=lambda h=item: self._select_and_frame_object(h)
+        #                     )
+        # ui.Line(style_type_name_override="HeaderLine")
 
-    # Print the hierarchy from root to selected prim
-    hierarchy.reverse()
-    print(" > ".join(hierarchy))
+    def _select_and_frame_object(self, prim_path):
+        self._find_prim_then_select(prim_path)
+        self._frame_selected_object()
+
+    def _frame_selected_object(self):
+        stage = omni.usd.get_context().get_stage()
+        selection = omni.usd.get_context().get_selection().get_selected_prim_paths()
+
+        if not selection:
+            print("No object selected. Please select an object to frame.")
+            return
+
+        prim_to_frame = Sdf.Path(selection[0])
+        active_viewport = get_active_viewport()
+
+        if active_viewport:
+            frame_viewport_selection(active_viewport)
+            print(f"Framing object: {prim_to_frame}")
+        else:
+            omni.kit.commands.execute(
+                'FramePrimsCommand',
+                prim_to_move=prim_to_frame,
+                prims_to_frame=[prim_to_frame.pathString],
+                time_code=Usd.TimeCode.Default(),
+                aspect_ratio=1.0,
+                zoom=0.6
+            )
+            print(f"Executed framing command for: {prim_to_frame}")
+
+    def _find_prim_by_name(self,stage, name):
+        root_prim = stage.GetPseudoRoot()
+        return self._traverse(root_prim, name)
+
+    def _find_prim_then_select(self, name: str):
+        # Get the stage from the Omniverse context
+        stage = omni.usd.get_context().get_stage()
+
+        # Find the prim by name
+        prim = self._find_prim_by_name(stage, name)
+        if not prim:
+            carb.log_error(f"Prim with name '{name}' not found!")
+            return
+
+        # Get the selection context
+        selection = omni.usd.get_context().get_selection()
+
+        # Select the item
+        selection.clear_selected_prim_paths()
+        selection.set_selected_prim_paths([prim.GetPath().pathString], True)
+
+        carb.log_warn(f"Selected item with name '{name}' at path: '{prim.GetPath()}'")
 
 
-def show_notification(title: str, message: str, status: str):
-    status_map = {
-        "info": nm.NotificationStatus.INFO,
-        "warning": nm.NotificationStatus.WARNING,
-        # "error": nm.NotificationStatus.ERROR
-    }
-    status_enum = status_map.get(status, nm.NotificationStatus.INFO)
-
-    nm.post_notification(
-        text=message,
-        hide_after_timeout=False,
-        duration=0,
-        status=status_enum
-    )
+# import logging
+# from collections import defaultdict
+# from pxr import UsdGeom
+# import omni.usd
+# import omni.kit
+# import omni.ui as ui
+# import omni.kit.notification_manager as nm
+# from omni.ui import color as cl
+# from .style import julia_modeler_style, ATTR_LABEL_WIDTH, WIN_WIDTH, WIN_HEIGHT
+# from .custom_button import CustomButtonWidget
+# from .custom_info_button import CustomInfoWidget
+# from .custom_radio_collection import CustomRadioCollection
+# from .data_service import DataService, _show_notification, _get_selected_prim_hierarchy
+# from omni.kit.widget.searchfield import SearchField
+#
+# SPACING = 5
+# WINDOW_TITLE = ""
+#
+#
+# class SearchWindowPanel(ui.Window):
+#     """Represents the search panel window."""
+#
+#     def __init__(self, title: str = "Search Panel",width=300, height=500, **kwargs):
+#         super().__init__(title, dock="left", **kwargs)
+#         self.__label_width = ATTR_LABEL_WIDTH
+#         self._data_service = DataService()
+#         self.frame.style = julia_modeler_style
+#         self.frame.set_build_fn(self._build_fn)
+#
+#         # Subscribe to selection changes inside the class
+#         usd_context = omni.usd.get_context()
+#         self.stage_event_stream = usd_context.get_stage_event_stream()
+#         self.stage_event_sub = self.stage_event_stream.create_subscription_to_pop(
+#             self.on_selection_changed, name="Selection Update"
+#         )
+#
+#     def destroy(self):
+#         """Cleanup when window is closed."""
+#         self.stage_event_sub = None  # Unsubscribe from event stream
+#         super().destroy()
+#
+#     @property
+#     def label_width(self):
+#         return self.__label_width
+#
+#     @label_width.setter
+#     def label_width(self, value):
+#         self.__label_width = value
+#         self.frame.rebuild()
+#
+#     def on_selection_changed(self, event):
+#         """Triggers update when selection changes."""
+#         if event.type == int(omni.usd.StageEventType.SELECTION_CHANGED):
+#             self.update_ui()
+#
+#     def _build_scene(self):
+#         """Builds the content for the search panel UI."""
+#         with ui.VStack(spacing=10, style={"padding": 8, "background_color": "#1e1e1e", "border_radius": 8}):
+#             # Title Section
+#             ui.Label("Warehouse Search", style={"font_size": 18, "font_weight": "bold", "color": "white"})
+#             ui.Label("Search for pallets, locations, or SKUs", style={"font_size": 14, "color": "#cccccc"})
+#             ui.Spacer(height=10)
+#
+#             # Search Field UI
+#             with ui.VStack():
+#                 ui.Spacer(height=4)
+#                 self.search_field = SearchField(
+#                     on_search_fn=lambda filters: self._on_search_text_changed(self.search_field.get_search_text()),
+#                     show_tokens=False,
+#                     separator=None,
+#                     width=250,
+#                     height=25
+#                 )
+#
+#     def on_search_fn(self, search_text: str):
+#         """Performs a recursive search for matching prims under '/World/SamplePalletForTest'."""
+#         stage = omni.usd.get_context().get_stage()
+#         parent_path = "/Root/WH_5BTG"
+#         parent_prim = stage.GetPrimAtPath(parent_path)
+#
+#         if not parent_prim.IsValid():
+#             print(f"Parent prim {parent_path} not found.")
+#             return []
+#
+#         def traverse_descendants(prim):
+#             """Recursively traverses all children of a prim."""
+#             for child in prim.GetChildren():
+#                 yield child
+#                 yield from traverse_descendants(child)
+#
+#         results = []
+#         for prim in traverse_descendants(parent_prim):
+#             for attr in prim.GetAttributes():
+#                 try:
+#                     value = attr.Get()
+#                 except Exception:
+#                     continue
+#                 if isinstance(value, str) and search_text.lower() in value.lower():
+#                     results.append(prim.GetPath().pathString)
+#                     break
+#
+#         return results
+#
+#
+#     def _on_result_clicked(self, prim_path: str):
+#         """Handles when a search result is clicked."""
+#         self._data_service.show_pallet_info(prim_path)
+#         show_notification("Search", f"Zoomed into: {prim_path}", "info")
+#
+#     def _build_fn(self):
+#         """Builds the main UI layout."""
+#         with ui.ScrollingFrame(name="window_bg",
+#                                # horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF
+#                                ):
+#             with ui.VStack(height=0):
+#                 self._build_scene()
+#
+#
+# # Utility Functions
+# def get_selected_prim_hierarchy():
+#     """Retrieves the selected prim name and its parent hierarchy."""
+#     stage = omni.usd.get_context().get_stage()
+#     selection = omni.usd.get_context().get_selection().get_selected_prim_paths()
+#     if not selection:
+#         print("No object selected.")
+#         return None
+#
+#     prim_path = selection[0]
+#     prim = stage.GetPrimAtPath(prim_path)
+#     if not prim.IsValid():
+#         print("Invalid prim selected.")
+#         return None
+#
+#     hierarchy = []
+#     while prim:
+#         hierarchy.append(prim.GetName())
+#         prim = stage.GetPrimAtPath(prim.GetPath().GetParentPath())
+#
+#     hierarchy.reverse()
+#     print(" > ".join(hierarchy))
+#     return hierarchy
+#
+#
+# def show_notification(title: str, message: str, status: str):
+#     """Displays notifications with different statuses."""
+#     status_map = {
+#         "info": nm.NotificationStatus.INFO,
+#         "warning": nm.NotificationStatus.WARNING,
+#     }
+#     status_enum = status_map.get(status, nm.NotificationStatus.INFO)
+#
+#     nm.post_notification(
+#         text=message,
+#         hide_after_timeout=False,
+#         duration=0,
+#         status=status_enum
+#     )
+#
+# def print_user_properties(selected_prim):
+#     """Prints all attributes that start with 'userProperties:' for the selected prim."""
+#     if not selected_prim.IsValid():
+#         print("Selected prim is not valid.")
+#         return
+#
+#     print(f"\nSelected Prim: {selected_prim.GetPath()}")
+#
+#     for attr in selected_prim.GetAttributes():
+#         if attr.GetName().startswith("userProperties:"):
+#             print(f"{attr.GetName()} = {attr.Get()}")
 

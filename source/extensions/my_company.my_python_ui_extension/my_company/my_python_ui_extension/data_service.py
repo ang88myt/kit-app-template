@@ -487,11 +487,11 @@ class DataService:
 
         carb.log_info(f"Material {material_path} successfully applied to {prim_path}")
 
-    def show_pallet_info(self, pallet_id):
+    def show_pallet_info(self, search_text):
         # endpoint = f"pallet/{pallet_id}/"
         # carb.log_warn(f"Fetching stock info from endpoint: {endpoint}")
 
-        _find_prim_then_select(pallet_id)
+        _find_prim_then_select(search_text)
         _frame_selected_object()
         # stock_info = self.fetch_stock_info(endpoint)
         #
@@ -975,9 +975,9 @@ def _get_selected_prim_hierarchy():
     if len(hierarchy) < 6:
         print("Hierarchy does not contain enough elements for Rack, Location, SKU, PID.")
         return
-    rack, location, sku, pid = hierarchy[2:6]
-
+    wh_code, rack, location, sku, pid = hierarchy[2:7]
+    print(f"WH_Code:{wh_code}, Rack: {rack}, Location: {location}, SKU: {sku}, PID: {pid}")
     return rack, location, sku, pid
 
 
-    # print(" > ".join(hierarchy))
+

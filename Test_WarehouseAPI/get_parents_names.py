@@ -35,10 +35,9 @@ def get_selected_prim_hierarchy():
     if len(hierarchy) < 6:
         print("Hierarchy does not contain enough elements for Rack, Location, SKU, PID.")
         return
-    rack, location, sku, pid = hierarchy[2:6]
-
-    return rack, location, sku, pid
-    print(hierarchy[2:6])
+    wh_code, rack, location, sku, pid = hierarchy[2:7]
+    print(f"WH_Code:{wh_code}, Rack: {rack}, Location: {location}, SKU: {sku}, PID: {pid}")
+    return wh_code, rack, location, sku, pid
 
     # print(" > ".join(hierarchy))
 

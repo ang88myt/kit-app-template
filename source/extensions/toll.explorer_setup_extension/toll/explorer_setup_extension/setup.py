@@ -162,8 +162,8 @@ class SetupExtension(omni.ext.IExt):
 
         # remove the user defined layout so that we always load the default
         # layout when startup
-        with suppress(FileNotFoundError):
-            os.remove(self.layout_user_path)
+        # with suppress(FileNotFoundError):
+        #     os.remove(self.layout_user_path)
 
         # setup the menu and their layout
         self._layout_menu_items = []

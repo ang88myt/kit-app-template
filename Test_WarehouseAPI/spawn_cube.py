@@ -10,11 +10,11 @@
 #
 # # Define the base parameters for the naming convention
 # level = "3"
-# rack_number = "23"
+# rack_number = "40"
 # rack_depth = "1"  # Assuming depth remains constant
 # # Base coordinates for the first column
-# x_start_1 = -2652
-# y_start_1 = 8302
+# x_start_1 = -4108
+# y_start_1 = 1793
 # z_base = 0.0
 #
 # # Distance between columns
@@ -28,8 +28,8 @@
 #
 # # Function to create a rack column
 # def create_rack_column(x_start, y_start, col_number):
-#     z_levels = [0, 220] + [220 + 175 * i for i in range(1, 5)]  # Z increments for 6 levels
-#     # z_levels = [0, 165] + [165 + 155 * i for i in range(1, 6)]  # Z increments for 6 levels
+#     # z_levels = [0, 220] + [220 + 175 * i for i in range(1, 5)]  # Z increments for 6 levels
+#     z_levels = [0, 165] + [165 + 155 * i for i in range(1, 6)]  # Z increments for 6 levels
 #     for rack_level, z in enumerate(z_levels, 1):
 #         xform_name = f"{level}{rack_number}{rack_level}{col_number:02d}{rack_depth}"
 #         xform_prim_path = f"/rack_location/_{xform_name}"
@@ -116,7 +116,7 @@ class RackGenerator:
         self.cube_size = 100  # Adjust the cube size as needed
 
     def create_rack_column(self, x_start, y_start, col_number, depth):
-        z_levels = [0, 220] + [220 + 175 * i for i in range(1, 5)]  # Z increments for 6 levels
+        z_levels = [0, 165] + [165 + 155 * i for i in range(1, 6)]  # Z increments for 6 levels
         for rack_level, z in enumerate(z_levels, 1):
             xform_name = f"{self.level}{self.rack_number}{rack_level}{col_number:02d}{depth}"
             xform_prim_path = f"/rack_location/_{xform_name}"
@@ -163,9 +163,9 @@ class RackGenerator:
 # Usage example with starting coordinates and depth offsets
 rack_generator = RackGenerator(
     level="3",
-    rack_number="35",
-    x_start=-2652.0,    # Starting x-coordinate for depth 1
-    y_start=3518.0,    # Starting y-coordinate
+    rack_number="45",
+    x_start=-4107.66,    # Starting x-coordinate for depth 1
+    y_start=1792.54,    # Starting y-coordinate
     z_base=0.0,
     distance_between_columns=-140,   # Column offset
     depth_offset=135                # Depth 2 offset in x-direction

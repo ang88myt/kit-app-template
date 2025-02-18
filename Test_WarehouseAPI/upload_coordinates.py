@@ -6,7 +6,7 @@ import csv
 import os
 
 class RackLocationUploader:
-    BASE_URL = "https://digital-twin.expangea.com/"
+    BASE_URL = "https://digital-twin-dev.expangea.com/"
     ENDPOINT = "upload-rack-location/"
     HEADERS = {
         'X-API-KEY': '2c38e689-8bac-4ec6-9e0e-70e98222dc2d',
@@ -112,7 +112,7 @@ class RackLocationUploader:
 # Example usage
 warehouse = "5BTG"
 floor_no = "3"
-rack_no = "35"
+rack_no = "40"
 
 uploader = RackLocationUploader(warehouse=warehouse, floor_no=floor_no, rack_no=rack_no)
 uploader.execute()

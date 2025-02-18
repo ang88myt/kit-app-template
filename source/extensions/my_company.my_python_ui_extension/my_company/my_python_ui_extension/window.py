@@ -27,7 +27,7 @@ WINDOW_TITLE = ""
 class Custom_Window(ui.Window):
     """The class that represents the window"""
 
-    def __init__(self, title: str = "Toll L3 Unilever",**kwargs):
+    def __init__(self, title: str = "Review Panel",**kwargs):
         super().__init__(title,dock="left", **kwargs)
         self.__label_width = ATTR_LABEL_WIDTH
 
@@ -61,17 +61,20 @@ class Custom_Window(ui.Window):
     def _build_update_scene(self):
         with ui.CollapsableFrame("UPDATE WAREHOUSE", name="group", build_header_fn=self._build_collapsable_header,collapsed=True):
             with ui.VStack(height=0, spacing=SPACING):
-                CustomPathButtonWidget(label="Upload File",path="C:/Users/admin/Downloads/",btn_label="Upload",btn_callback=self._upload_file)
+                CustomPathButtonWidget(label="Upload File",path="C:/Users/admin/Downloads/",btn_label="Upload",
+                                       btn_callback=_show_notification("Upload", "File uploaded successfully.", "INFO"),
+                                       )
                 ui.Spacer(height=5)
                 CustomButtonWidget(btn_label="Update Scene",
                                    tooltip="Update Warehouse Data",
-                                   btn_callback=self._update_scene)
+                                   clicked_fn=self._update_scene)
             ui.Spacer(height=5)
             ui.Line(style_type_name_override="HeaderLine")
             ui.Spacer(height=5)
 
-    def _upload_file(self):
-        pass
+
+    def _download_scene(self):
+        _show_notification(title="download", message="Downloaded Inventory 12/02/2025", status="INFO")
 
     def _update_scene(self):
         success = self._data_service.spawn_all_pallets()
@@ -79,6 +82,16 @@ class Custom_Window(ui.Window):
             _show_notification("Update Complete", "All pallets have been spawned successfully.", "INFO")
         else:
             _show_notification("Update Failed", "Failed to fetch rack data or spawn pallets.", "WARNING")
+
+    def _build_download_scene(self):
+        with ui.VStack(height=0, spacing=SPACING):
+            ui.Spacer(height=5)
+            CustomButtonWidget(btn_label="Download report file",
+                               tooltip="Download Warehouse Data",
+                               clicked_fn=self._download_scene)
+            ui.Spacer(height=5)
+            ui.Line(style_type_name_override="HeaderLine")
+            ui.Spacer(height=5)
 
     def _on_search_clicked(self):
         search_text = self.search_input.model.get_value_as_string()
@@ -227,7 +240,7 @@ class Custom_Window(ui.Window):
                                                 image_url="D:/Git/kit-app-template/source/extensions/my_company.my_python_ui_extension/icons/locate_icon.svg",
                                                 image_width=15,
                                                 image_height=15,
-                                                btn_callback=lambda p=pallet_id: self._navigate_to_pallet(p)
+                                                clicked_fn=lambda p=pallet_id: self._navigate_to_pallet(p)
                                             )
                                 ui.Spacer(heigh=10)
                                 ui.Line(style_type_name_override="HeaderLine")
@@ -318,7 +331,7 @@ class Custom_Window(ui.Window):
                                     image_url="D:/Git/kit-app-template/source/extensions/my_company.my_python_ui_extension/icons/locate_icon.svg",
                                     image_width=15,
                                     image_height=15,
-                                    btn_callback=lambda p=food_pallet_id: self._navigate_to_pallet(p)
+                                    clicked_fn=lambda p=food_pallet_id: self._navigate_to_pallet(p)
                                 )
             # Add a dividing line at the bottom
             ui.Spacer(heigh=10)
@@ -347,8 +360,8 @@ class Custom_Window(ui.Window):
             group=f"Rack_{violation.get('rack_no')}"
         )
 
-    def _navigate_to_pallet(self, pallet_id):
-        self._data_service.show_pallet_info(pallet_id)
+    def _navigate_to_pallet(self, search_text):
+        self._data_service.show_pallet_info(search_text)
 
     def _build_storage_utilization(self):
         # Get overall storage utilization
@@ -446,11 +459,11 @@ class Custom_Window(ui.Window):
             with ui.VStack(height=0):
 
                 # self._build_update_scene()
-
                 self._build_scene()
                 # self._build_storage_utilization()
                 # self._build_violation_check()
                 # self._build_stock_status()
+                # self._build_download_scene()
                 # self._build_tracking()
 
                 # self._build_search_panel()
