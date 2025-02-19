@@ -75,21 +75,43 @@ url.diag_bg_lines_texture = f"{EXTENSION_FOLDER_PATH}/icons/diagonal_texture_scr
 url.locate_icon = f"{EXTENSION_FOLDER_PATH}/icons/locate_icon.svg"
 url.search_icon = f"{EXTENSION_FOLDER_PATH}/icons/mynaui_search.svg"
 url.location_icon = f"{EXTENSION_FOLDER_PATH}/icons/mdi_location.svg"
+url.pallet_icon = f"{EXTENSION_FOLDER_PATH}/icons/material-symbols-light_pallet-outline.svg"
+url.rack_icon = f"{EXTENSION_FOLDER_PATH}/icons/bi_hdd-rack.png"
+url.sku_icon = f"{EXTENSION_FOLDER_PATH}/icons/fluent_tray-item-remove-24-filled.svg"
+
 # The main style dict
 julia_modeler_style = {
+    "Image::sku_icon": {
+        "image_url": url.sku_icon,
+        "width": 16,
+        "height": 16,
+    },
+
+    "Image::rack_icon": {
+        "image_url": url.rack_icon,
+        "width": 16,
+        "height": 16,
+    },
+
+    "Image::pallet_icon": {
+        "image_url": url.pallet_icon,
+        "width": 16,
+        "height": 16
+    },
+
     "Image::location_icon": {
-                "image_url": url.location_icon,
-                "width": 16,
-                "height": 16,
+        "image_url": url.location_icon,
+        "width": 16,
+        "height": 16,
     },
     "Image::search_icon": {
-            "image_url": url.search_icon,
-            "width": 16,
-            "height": 16,
+        "image_url": url.search_icon,
+        "width": 16,
+        "height": 16,
     },
 
     "Image::locate_icon": {
-        "image_url":url.locate_icon,
+        "image_url": url.locate_icon,
         "width": 41,
         "height": 41,
         # "alignment":ui.Fillpolicy.PRESERVE_ASPECT_FIT,
@@ -145,7 +167,8 @@ julia_modeler_style = {
     },
     "Field::attr_field": {
         "corner_flag": ui.CornerFlag.RIGHT,
-        "font_size": 2,  # fl.field_text_font_size,  # Hack to allow for a smaller field border until field padding works
+        "font_size": 2,
+        # fl.field_text_font_size,  # Hack to allow for a smaller field border until field padding works
     },
     "Field::attribute_color": {
         "font_size": fl.field_text_font_size,

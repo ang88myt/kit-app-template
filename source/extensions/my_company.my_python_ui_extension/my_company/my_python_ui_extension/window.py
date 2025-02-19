@@ -17,9 +17,9 @@ from .data_service import DataService,_show_notification, _isolate_selected_pare
 from .proximity_checker import ProximityChecker
 from .custom_path_button import CustomPathButtonWidget
 # from .custom_radio_collection import CustomRadioCollection
-# from .custom_bool_widget import CustomBoolWidget
+from .custom_bool_widget import CustomBoolWidget
 from .custom_button import  CustomButtonWidget
-
+import carb
 SPACING = 5
 WINDOW_TITLE = ""
 
@@ -59,29 +59,11 @@ class Custom_Window(ui.Window):
 
 
     def _build_update_scene(self):
-        with ui.CollapsableFrame("UPDATE WAREHOUSE", name="group", build_header_fn=self._build_collapsable_header,collapsed=True):
-            with ui.VStack(height=0, spacing=SPACING):
-                CustomPathButtonWidget(label="Upload File",path="C:/Users/admin/Downloads/",btn_label="Upload",
-                                       btn_callback=_show_notification("Upload", "File uploaded successfully.", "INFO"),
-                                       )
-                ui.Spacer(height=5)
-                CustomButtonWidget(btn_label="Update Scene",
-                                   tooltip="Update Warehouse Data",
-                                   clicked_fn=self._update_scene)
-            ui.Spacer(height=5)
-            ui.Line(style_type_name_override="HeaderLine")
-            ui.Spacer(height=5)
+        pass
 
 
     def _download_scene(self):
         _show_notification(title="download", message="Downloaded Inventory 12/02/2025", status="INFO")
-
-    def _update_scene(self):
-        success = self._data_service.spawn_all_pallets()
-        if success:
-            _show_notification("Update Complete", "All pallets have been spawned successfully.", "INFO")
-        else:
-            _show_notification("Update Failed", "Failed to fetch rack data or spawn pallets.", "WARNING")
 
     def _build_download_scene(self):
         with ui.VStack(height=0, spacing=SPACING):
@@ -231,7 +213,7 @@ class Custom_Window(ui.Window):
                                         pallet_id = pallet["pallet_id"]
                                         with ui.HStack(spacing=10):
                                             ui.Label(f"PID: {pallet_id}",
-                                                     style={"font_size": 18, "color": "white"})
+                                                     style={"font_size": 16, "color": "white"})
 
                                             # Add button for locating the pallet
                                             CustomButtonWidget(
@@ -455,18 +437,53 @@ class Custom_Window(ui.Window):
     #         cube_mover.stop_moving()
 
     def _build_fn(self):
-        with ui.ScrollingFrame(name="window_bg", horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF):
-            with ui.VStack(height=0):
+        self.additional_ui_visible = False  # Track visibility state
 
-                # self._build_update_scene()
+        with ui.ScrollingFrame(name="window_bg", horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF):
+            with ui.VStack(height=0) as self.main_container:
                 self._build_scene()
-                # self._build_storage_utilization()
-                # self._build_violation_check()
-                # self._build_stock_status()
+                self._build_update_scene()
+
+                # Button to toggle additional UI
+                self.toggle_button = ui.Button(
+                    "Show Additional UI",
+                    clicked_fn=self._toggle_additional_ui,
+                    height=30
+                )
+
+                # Placeholder for additional UI sections
+                self.additional_ui_container = ui.VStack(visible=False)  # Initially hidden
+        # with ui.ScrollingFrame(name="window_bg", horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF):
+        #     with ui.VStack(height=0):
+        #         self._build_storage_utilization()
+        #         self._build_violation_check()
+        #         self._build_stock_status()
                 # self._build_download_scene()
                 # self._build_tracking()
 
-                # self._build_search_panel()
+    def _toggle_additional_ui(self):
+        """Toggles visibility of additional UI sections after ensuring a valid USD stage exists."""
+
+        # ✅ Ensure the stage is loaded before proceeding
+        usd_context = omni.usd.get_context()
+        stage = usd_context.get_stage()
+
+        if stage is None:
+            carb.log_warn("⚠ No valid USD stage loaded. Cannot update UI.")
+            return  # Exit function safely
+
+        self.additional_ui_visible = not self.additional_ui_visible
+        self.additional_ui_container.visible = self.additional_ui_visible
+
+        # Change button text based on visibility state
+        self.toggle_button.text = "Hide Additional UI" if self.additional_ui_visible else "Show Additional UI"
+
+        if self.additional_ui_visible:
+            self.additional_ui_container.clear()
+            with self.additional_ui_container:
+                self._build_storage_utilization()
+                self._build_violation_check()
+                self._build_stock_status()
 
 
 def show_notification(title: str, message: str, status: str):

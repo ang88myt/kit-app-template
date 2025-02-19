@@ -6,12 +6,9 @@ __all__ = ["SearchWindowPanel"]
 import omni.usd
 import omni.kit
 import omni.ui as ui
-import omni.kit.notification_manager as nm
 # from omni.ui import color as cl
-from .style import julia_modeler_style, ATTR_LABEL_WIDTH, WIN_WIDTH, WIN_HEIGHT
-# from .custom_button import CustomButtonWidget
+from .custom_button import CustomButtonWidget
 # from .custom_info_button import CustomInfoWidget
-# from .custom_radio_collection import CustomRadioCollection
 from .data_service import (DataService,
                            _show_notification,
                            _isolate_selected_parent,
@@ -20,21 +17,21 @@ from .data_service import (DataService,
                            _frame_selected_object
                            )
 from omni.kit.widget.searchfield import SearchField
-# from .custom_button import  CustomButtonWidget
 from pxr import Usd, UsdGeom, Gf, Sdf, Kind, UsdShade
 from omni.kit.viewport.utility import get_active_viewport, frame_viewport_selection
 import omni.kit.commands
 import carb
+# import pathlib
+from .style import julia_modeler_style, ATTR_LABEL_WIDTH, WIN_WIDTH, WIN_HEIGHT
 
 SPACING = 5
 WINDOW_TITLE = ""
 
-
 class SearchWindowPanel(ui.Window):
     """The class that represents the window"""
 
-    def __init__(self, title: str = "Search Panel",**kwargs):
-        super().__init__(title,dock="left", **kwargs)
+    def __init__(self, title: str = "Search Panel", **kwargs):
+        super().__init__(title, dock="left", **kwargs)
 
         self.__label_width = ATTR_LABEL_WIDTH
 
@@ -56,20 +53,24 @@ class SearchWindowPanel(ui.Window):
         self.__label_width = value
         self.frame.rebuild()
 
-    def _build_collapsable_header(self, collapsed, title):
+    def _build_collapsable_header(self, collapsed, title, icon_image="default_icon"):
         """Build a custom title of CollapsableFrame"""
         with ui.VStack():
-            ui.Spacer(height=6)
+            ui.Spacer(height=SPACING)
             with ui.HStack():
-                ui.Label(title, name="collapsable_name")
+                ui.Image(name=icon_image, width=18, height=18)
+                ui.Spacer(width=SPACING)
+                ui.Label(title, name="collapsable_name", style={"font_size": 14, "color": "white", "font_weight": "bold"})
+                ui.Spacer(width=SPACING)
                 image_name = "collapsable_opened" if collapsed else "collapsable_closed"
-                ui.Image(name=image_name, width=10, height=10)
-            ui.Spacer(height=6)
+                ui.Spacer(width=ui.Fraction(2))
+                ui.Image(name=image_name, width=18, height=18)
+            ui.Spacer(height=SPACING)
             # ui.Line(style_type_name_override="HeaderLine")
 
     def _build_scene(self):
         """Builds the content for the search panel."""
-        with ui.VStack(spacing=10,height=5, style={"padding": 8, "background_color": "#1e1e1e", "border_radius": 5}):
+        with ui.VStack(spacing=10, height=5, style={"padding": 8, "background_color": "#1e1e1e", "border_radius": 5}):
             # Title Section
             ui.Label("Warehouse Search", style={"font_size": 18, "font_weight": "bold", "color": "white"})
             ui.Label("Track and manage your assets here", style={"font_size": 14, "color": "#cccccc"})
@@ -83,17 +84,15 @@ class SearchWindowPanel(ui.Window):
                 width=250,
                 height=25
             )
-
             # with ui.ScrollingFrame(height=600,
             #                        style={"background_color": "#1e1e1e", "border_radius": 6, }
             #                        ):
             self.results_container = ui.VStack()
-            ui.Spacer(height=10)
+
 
     def _build_fn(self):
         with ui.ScrollingFrame(name="window_bg", horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF):
             with ui.VStack(height=0):
-
                 # self._build_update_scene()
 
                 self._build_scene()
@@ -137,7 +136,7 @@ class SearchWindowPanel(ui.Window):
                             self.matches.append((hierarchy, attr.GetName(), value))
                             parent_key = '/'.join(hierarchy[:-1])
                         else:
-                            _show_notification("no found","Non found","WARNING")
+
                             if parent_key not in self.hierarchy_dict:
                                 self.hierarchy_dict[parent_key] = []
                             self.hierarchy_dict[parent_key].append(hierarchy[-1])
@@ -146,20 +145,59 @@ class SearchWindowPanel(ui.Window):
                 search_children(child)
 
         search_children(root_prim)
+
         self.results_container.clear()
-        with ui.VStack(height=10):
+        with ui.VStack(height=15):
+
             with self.results_container:
-                ui.Label(f"Found {len(self.matches)} matches:")
-                for parent, children in self.hierarchy_dict.items():
-                    parent = parent.split('/')
-                    with ui.CollapsableFrame(parent[4], height=0):
-                        for item in children:
-                            ui.Button(
-                                item,
-                                tooltip=f"zoomed {item}",
-                                clicked_fn=lambda h=item: self._select_and_frame_object(h)
-                            )
-        ui.Line(style_type_name_override="HeaderLine")
+                if self.matches:
+                    ui.Label(f"{len(self.matches)} result")
+                    for parent, children in self.hierarchy_dict.items():
+                        parent = parent.split('/')
+                        ui.Spacer(height=15)
+                        ui.Line(style_type_name_override="HeaderLine")
+                        ui.Spacer(height=15)
+                        with ui.HStack(height=SPACING):
+                            ui.Image(name="sku_icon", height=20, width=20)
+                            ui.Label(parent[5], style={"font_size": 16, "color": "white", "font_weight": "bold"})
+                        ui.Spacer(height=15)
+                        ui.Line(style_type_name_override="HeaderLine")
+                        with ui.CollapsableFrame(title=parent[4],
+                                                 build_header_fn=lambda collapsed,
+                                                                        title: self._build_collapsable_header(
+                                                     collapsed, title, "location_icon"),
+                                                 icon_image="location_icon",
+                                                 collapsed=True,
+                                                 ):
+                            with ui.CollapsableFrame(title=parent[3],
+                                                     build_header_fn=lambda collapsed,
+                                                                            title: self._build_collapsable_header(
+                                                         collapsed, title, "rack_icon"),
+                                                     icon_image="rack_icon",
+                                                     collapsed=False,
+                                                     ):
+
+                                for item in children:
+                                    # ui.Button(
+                                    #     item,
+                                    #     tooltip=f"zoom in {item}",
+                                    #     clicked_fn=lambda h=item: self._select_and_frame_object(h)
+                                    # )
+                                    CustomButtonWidget(btn_label=item,
+                                                       tooltip=f"zoom in {item}",
+                                                       #image_url=f"{EXTENSION_FOLDER_PATH}/icons/material-symbols-light_pallet-outline.svg",
+                                                       image_url="D:\Git\kit-app-template\source\extensions\my_company.my_python_ui_extension\icons\material-symbols-light_pallet-outline.svg",
+                                                       spacing=2,
+                                                       image_width=16,
+                                                       image_height=16,
+                                                       clicked_fn=lambda h=item: self._select_and_frame_object(h),
+                                                       )
+                else:
+                    ui.Label(f"{len(self.matches)} result")
+                    _show_notification("Search Alert", "Search Item Not found!", "WARNING")
+
+            ui.Line(style_type_name_override="HeaderLine")
+
         # self._update_results_ui()
 
     def _update_results_ui(self):
@@ -208,7 +246,7 @@ class SearchWindowPanel(ui.Window):
             )
             print(f"Executed framing command for: {prim_to_frame}")
 
-    def _find_prim_by_name(self,stage, name):
+    def _find_prim_by_name(self, stage, name):
         root_prim = stage.GetPseudoRoot()
         return self._traverse(root_prim, name)
 
@@ -230,7 +268,6 @@ class SearchWindowPanel(ui.Window):
         selection.set_selected_prim_paths([prim.GetPath().pathString], True)
 
         carb.log_warn(f"Selected item with name '{name}' at path: '{prim.GetPath()}'")
-
 
 # import logging
 # from collections import defaultdict
@@ -401,4 +438,3 @@ class SearchWindowPanel(ui.Window):
 #     for attr in selected_prim.GetAttributes():
 #         if attr.GetName().startswith("userProperties:"):
 #             print(f"{attr.GetName()} = {attr.Get()}")
-

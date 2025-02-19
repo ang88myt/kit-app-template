@@ -48,7 +48,7 @@ class CustomButtonWidget:
             image_height=self.__image_height,
             # visible=True,
             spacing=self.__spacing,
-            style={"stack_direction": ui.Direction.LEFT_TO_RIGHT},
+            style={"stack_direction": ui.Direction.LEFT_TO_RIGHT,"font_size": 16, "color": "white", "font_weight": "bold"},
             alignment=ui.Alignment.CENTER,
             fill_policy=ui.FillPolicy.PRESERVE_ASPECT_FIT,
             clicked_fn=self.__callback,
