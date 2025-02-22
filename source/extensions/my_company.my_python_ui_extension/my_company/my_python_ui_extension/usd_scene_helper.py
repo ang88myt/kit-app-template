@@ -2,7 +2,7 @@ import asyncio
 import carb
 import omni.usd
 from pxr import Usd, UsdGeom, Sdf, Gf
-import omni.kit.notification_manager as nm
+
 class USDSceneHelper:
     """Helper class for managing USD scenes in Omniverse."""
 
@@ -75,18 +75,3 @@ class USDSceneHelper:
         else:
             carb.log_warn(f"⚠ No valid prim found at {prim_path}.")
             return False
-
-    def show_notification(self,title: str, message: str, status: str):
-        status_map = {
-            "info": nm.NotificationStatus.INFO,
-            "warning": nm.NotificationStatus.WARNING,
-            # "error": nm.NotificationStatus.ERROR
-        }
-        status_enum = status_map.get(status, nm.NotificationStatus.INFO)
-
-        nm.post_notification(
-            text=message,
-            hide_after_timeout=False,
-            duration=0,
-            status=status_enum
-        )

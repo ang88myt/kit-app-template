@@ -6,7 +6,6 @@ import omni.ext
 import omni.kit.ui
 import omni.ui as ui
 import carb
-from .usd_scene_helper import USDSceneHelper
 
 from .window import Custom_Window  # Import the main custom window
 from .search_window import SearchWindowPanel  # Import the new search window panel
@@ -19,16 +18,16 @@ class MyExtension(omni.ext.IExt):
     SEARCH_WINDOW_NAME = "Search Panel"
     MENU_PATH = f"Window/{MAIN_WINDOW_NAME}"
     MENU_PATH_SEARCH = f"Window/{SEARCH_WINDOW_NAME}"
-      # ✅ USD File Path (Modify this path as needed)
+
+    # ✅ USD File Path (Modify this path as needed)
     USD_FILE_PATH = "D:/Toll Innovation/TC Level 3 Demo/_Update/TC_Level3_V6.usd"
     def on_startup(self):
         """Called when the extension is starting."""
         self._main_window = None
         self._search_window = None
 
-        self.usd_helper = USDSceneHelper(self.USD_FILE_PATH)  # ✅ Initialize the helper
         # ✅ Load USD file asynchronously at startup
-        asyncio.ensure_future(self.usd_helper.load_stage())
+        asyncio.ensure_future(self._load_usd_stage())
 
         # Register window show functions
         ui.Workspace.set_show_window_fn(self.MAIN_WINDOW_NAME, partial(self.show_main_window, None))
@@ -46,6 +45,23 @@ class MyExtension(omni.ext.IExt):
         # Show both windows at startup
         ui.Workspace.show_window(self.MAIN_WINDOW_NAME)
         ui.Workspace.show_window(self.SEARCH_WINDOW_NAME)
+
+    async def _load_usd_stage(self):
+        """Loads the USD file at startup asynchronously."""
+        usd_context = omni.usd.get_context()
+
+        # ✅ Ensure no other stage is loaded before opening a new one
+        existing_stage = usd_context.get_stage()
+        if existing_stage:
+            carb.log_warn("⚠ A stage is already loaded. Reloading new stage...")
+
+        # ✅ Open the USD stage
+        try:
+            carb.log_info(f"📂 Loading USD file: {self.USD_FILE_PATH}")
+            await usd_context.open_stage_async(self.USD_FILE_PATH)
+            carb.log_info(f"✅ Successfully loaded: {self.USD_FILE_PATH}")
+        except Exception as e:
+            carb.log_error(f"❌ Failed to load USD file: {e}")
 
     def on_shutdown(self):
         """Called when the extension is shutting down."""

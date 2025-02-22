@@ -45,6 +45,16 @@
   },
   {
     "dock_id": 0,
+    "height": 930.0,
+    "position_x": 742.0,
+    "position_y": 21.0,
+    "selected_in_dock": false,
+    "title": "Review Panel",
+    "visible": true,
+    "width": 400.0
+  },
+  {
+    "dock_id": 0,
     "height": 32.0,
     "position_x": 926.0,
     "position_y": 470.0,
@@ -339,7 +349,7 @@
     "position_x": 3.4028234663852886e+38,
     "position_y": 3.4028234663852886e+38,
     "selected_in_dock": false,
-    "title": "omni.ui.scene 2397448481296",
+    "title": "omni.ui.scene 1594330230544",
     "visible": false,
     "width": 210.8000030517578
   },
@@ -349,7 +359,7 @@
     "position_x": 3.4028234663852886e+38,
     "position_y": 3.4028234663852886e+38,
     "selected_in_dock": false,
-    "title": "omni.ui.scene 2397462883664",
+    "title": "omni.ui.scene 1594331359840",
     "visible": false,
     "width": 210.8000030517578
   },
@@ -359,7 +369,7 @@
     "position_x": 3.4028234663852886e+38,
     "position_y": 3.4028234663852886e+38,
     "selected_in_dock": false,
-    "title": "omni.ui.scene 2397462890000",
+    "title": "omni.ui.scene 1594331999440",
     "visible": false,
     "width": 950.0
   },
