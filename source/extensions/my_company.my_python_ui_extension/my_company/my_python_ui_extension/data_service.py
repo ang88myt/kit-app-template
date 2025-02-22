@@ -9,16 +9,14 @@ from omni.kit.viewport.utility import get_active_viewport, frame_viewport_select
 import requests
 import re
 import carb
-
 import omni
 import omni.usd
-
 from pxr import Usd, UsdGeom, Gf, Sdf, Kind, UsdShade
 
 from typing import Optional, Tuple, Dict, Any
 import csv
 from typing import List, Dict
-
+import asyncio
 
 # from paho.mqtt import client as mqtt_client
 # from .custom_events import CustomEvents
@@ -192,7 +190,7 @@ class DataService:
 
     def spawn_all_pallets(self):
         success = True
-        for rack_number in range(19, 41):
+        for rack_number in range(21, 41):
             carb.log_info(f"Processing rack {rack_number}")  # Debug statement
             rack_data = self.fetch_rack_data(self.warehouse_code, self.floor_no, rack_number)
             if not rack_data:
@@ -210,7 +208,7 @@ class DataService:
     def fetch_status_code_data(self):
         critical_pallets_by_rack = {}  # Dictionary to store critical pallets by rack
 
-        for rack_no in range(20, 41):  # Loop through rack numbers 9 to 40
+        for rack_no in range(21, 41):  # Loop through rack numbers 9 to 40
             rack_data = self.fetch_rack_data(self.warehouse_code, self.floor_no, rack_no)
 
             if rack_data and "data" in rack_data:
@@ -408,7 +406,7 @@ class DataService:
         pallet_id = pallet_id.replace(".", "_").lstrip("0")
 
         # Check if the stage is properly initialized
-        if stage is None:
+        if self.stage is None:
             carb.log_error("Stage is not initialized.")
             return
 
@@ -488,33 +486,9 @@ class DataService:
         carb.log_info(f"Material {material_path} successfully applied to {prim_path}")
 
     def show_pallet_info(self, search_text):
-        # endpoint = f"pallet/{pallet_id}/"
-        # carb.log_warn(f"Fetching stock info from endpoint: {endpoint}")
-
         _find_prim_then_select(search_text)
         _frame_selected_object()
-        # stock_info = self.fetch_stock_info(endpoint)
-        #
-        # if stock_info:
-        #     limited_items = list(stock_info.items())[:11]
-        #     info_text = "\n".join([f"{key}: {value}" for key, value in limited_items])
-        #
-        #     # print(info_text)
-        #     # self.info_label.text = info_text
-        #
-        #     location_id = stock_info.get("rack_location", {}).get("location_id")
-        #     location_endpoint = f"rack-location/5BTG/{location_id}/"
-        #     carb.log_info(f"Fetching coordinates from endpoint: {location_endpoint}")
-        #
-        #     coordinates = self.fetch_coordinates(location_endpoint)
-        #     if coordinates:
-        #         x, y, z = coordinates
-        #         carb.log_info(x, y, z)
-        #         _move_camera(x, y, z)
-        #     else:
-        #         carb.log_error("Failed to fetch valid coordinates.")
-        # else:
-        #     carb.log_error("Failed to fetch stock info.")
+
 
     def show_location_info(self, location_id):
         endpoint = f"rack-location/5BTG/{location_id}/"
@@ -540,7 +514,7 @@ class DataService:
         used_slots = 0
 
         # Loop through racks 19 to 40 to count used and free storage slots
-        for rack_num in range(19, 41):
+        for rack_num in range(21, 41):
             rack_data = self.fetch_rack_data(self.warehouse_code,self.floor_no, rack_num)
             if not rack_data:
                 continue  # Skip if no data is found for the rack
@@ -978,6 +952,5 @@ def _get_selected_prim_hierarchy():
     wh_code, rack, location, sku, pid = hierarchy[2:7]
     print(f"WH_Code:{wh_code}, Rack: {rack}, Location: {location}, SKU: {sku}, PID: {pid}")
     return rack, location, sku, pid
-
 
 

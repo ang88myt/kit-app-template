@@ -15,7 +15,7 @@ class ProximityChecker:
     PRODUCT_GROUPS = ["FOODS", "HPC"]
     CSV_HEADERS = ["food_pallet_id", "hpc_pallet_id", "distance", "food_location_id", "hpc_location_id"]
 
-    def __init__(self, racks_range=(21, 40), distance_threshold=200.0):
+    def __init__(self, racks_range=(21, 41), distance_threshold=200.0):
         self.racks_range = racks_range
         self.distance_threshold = distance_threshold
         self.violations = []
@@ -56,7 +56,7 @@ class ProximityChecker:
         """Perform proximity check between FOODS and HPC pallets across all racks."""
         violations_dict = defaultdict(list)
 
-        for rack_no in range(self.racks_range[0], self.racks_range[1] + 1):
+        for rack_no in range(self.racks_range[0], self.racks_range[1]):
             rack_data = self.fetch_rack_data(rack_no)
             if not rack_data:
                 logging.warning(f"No data found for rack {rack_no}. Skipping...")

@@ -1,3 +1,158 @@
+# import omni.usd
+# from pxr import Usd, UsdGeom, Gf, Sdf, Kind
+# import logging
+# import requests
+# import json
+# import csv
+#
+# # Configure logging
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
+#
+# class RackDataHandler:
+#     API_BASE_URL = "https://digital-twin-dev.expangea.com/rack/5BTG/3/{rack_number}/"
+#     HEADERS = {"X-API-KEY": "2c38e689-8bac-4ec6-9e0e-70e98222dc2d"}
+#
+#     def __init__(self):
+#         self.stage = omni.usd.get_context().get_stage()
+#         self.PALLET_USD_PATH = "D:/Toll Innovation/TC Level 3 Demo/_Update/Pallet_Asm_A04_120x122x75cm_PR_V_NVD_01.usd"
+#         self.missing_coordinates_file = "/Temp/missing_coordinates.csv"
+#
+#     def fetch_rack_data(self, rack_number):
+#         """Fetch data from the API for a specific rack number."""
+#         try:
+#             response = requests.post(self.API_BASE_URL.format(rack_number=rack_number), headers=self.HEADERS)
+#             response.raise_for_status()
+#             return response.json()
+#         except requests.exceptions.RequestException as e:
+#             logger.error(f"❌ API Error for rack {rack_number}: {e}")
+#             return None
+#
+#     def spawn_pallet_at_location(self, rack_number, location, pallet_id, product_dict):
+#         """Spawn a pallet at a specific location in Omniverse."""
+#         if not location:
+#             logger.error("❌ Location is None, cannot spawn pallet.")
+#             return
+#
+#         location_id = location.get("location_id", "unknown")
+#         coordinates = location.get("coordinates", {})
+#
+#         # Define USD hierarchy paths
+#         pallet_prim_path = self._get_pallet_prim_path(rack_number, location_id, product_dict.get("product", "UNKNOWN_PRODUCT"), pallet_id)
+#
+#         try:
+#             # Ensure hierarchy exists
+#             location_xform = self._ensure_xform_exists(pallet_prim_path.GetParentPath())
+#
+#             # Apply transformation if coordinates are valid
+#             if self._is_valid_coordinates(coordinates):
+#                 self._set_xform_op(location_xform, UsdGeom.XformOp.TypeTranslate, coordinates)
+#                 self._set_xform_op(location_xform, UsdGeom.XformOp.TypeRotateXYZ, {"x": 0.0, "y": 0.0, "z": 90.0})
+#             else:
+#                 self._log_missing_coordinates(rack_number, location_id, pallet_id, product_dict.get("product", "UNKNOWN_PRODUCT"), coordinates)
+#
+#             # Create or reference the pallet prim
+#             self._create_or_reference_pallet_prim(pallet_prim_path)
+#
+#             # Write product attributes to the pallet
+#             self._write_product_attributes(pallet_prim_path, product_dict)
+#
+#             logger.info(f"✅ Spawned pallet {pallet_id} at location {location_id}")
+#
+#         except Exception as e:
+#             logger.error(f"⚠ Unexpected error while spawning pallet at {location_id}: {e}")
+#
+#     def spawn_all_pallets(self):
+#         """Fetch and spawn pallets for all racks in the range."""
+#         for rack_number in range(21, 41):
+#             rack_data = self.fetch_rack_data(rack_number)
+#             if not rack_data:
+#                 continue
+#
+#             for location in rack_data.get("data", {}).get("rack_locations", []):
+#                 for pallet in location.get("pallets", []):
+#                     self.spawn_pallet_at_location(rack_number, location, pallet.get("pallet_id", "unknown"), pallet.get("inventory", {}))
+#
+#     def _get_pallet_prim_path(self, rack_number, location_id, product_code, pallet_id):
+#         """Construct the USD path for the pallet."""
+#         return Sdf.Path(f"/Root/WH_5BTG/RACK_{rack_number}/LOCATION_{location_id}/SKU_{product_code}/{pallet_id}")
+#
+#     def _ensure_xform_exists(self, path):
+#         """Ensure a USD Xform exists at the given path."""
+#         xform = UsdGeom.Xform.Get(self.stage, path)
+#         return xform if xform else UsdGeom.Xform.Define(self.stage, path)
+#
+#     def _is_valid_coordinates(self, coordinates):
+#         """Check if all required coordinates exist."""
+#         return all(k in coordinates for k in ["x", "y", "z"])
+#
+#     def _log_missing_coordinates(self, rack_number, location_id, pallet_id, product_code, coordinates):
+#         """Log missing coordinates to a CSV file."""
+#         logger.error(f"⚠ Missing coordinates for location {location_id} in rack {rack_number}.")
+#         try:
+#             with open(self.missing_coordinates_file, "a", newline="") as csvfile:
+#                 csv.writer(csvfile).writerow([rack_number, location_id, pallet_id, product_code, json.dumps(coordinates)])
+#             logger.info("📄 Logged missing coordinates to CSV.")
+#         except Exception as csv_e:
+#             logger.error(f"❌ Failed to write missing coordinates: {csv_e}")
+#
+#     def _set_xform_op(self, xform, op_type, coordinates):
+#         """Apply a transformation operation to the Xform."""
+#         coord_vec = Gf.Vec3d(coordinates["x"], coordinates["y"], coordinates["z"])
+#         op = next((o for o in xform.GetOrderedXformOps() if o.GetOpType() == op_type), None)
+#         if op:
+#             op.Set(coord_vec)
+#         else:
+#             new_op = xform.AddTranslateOp() if op_type == UsdGeom.XformOp.TypeTranslate else xform.AddRotateXYZOp()
+#             new_op.Set(coord_vec)
+#
+#     def _create_or_reference_pallet_prim(self, pallet_prim_path):
+#         """Create a pallet prim if it does not exist, or add a reference to it."""
+#         if not pallet_prim_path.IsAbsolutePath():
+#             logger.error(f"❌ Invalid path: {pallet_prim_path}")
+#             return
+#
+#         prim = self.stage.GetPrimAtPath(pallet_prim_path)
+#         if not prim.IsValid():
+#             pallet_prim = self.stage.DefinePrim(pallet_prim_path, "Xform")
+#             pallet_prim.GetReferences().AddReference(self.PALLET_USD_PATH)
+#             Usd.ModelAPI(pallet_prim).SetKind(Kind.Tokens.assembly)
+#             logger.info(f"🔹 Created pallet at {pallet_prim_path}")
+#         else:
+#             logger.info(f"🔹 Pallet already exists at {pallet_prim_path}")
+#
+#     def _write_product_attributes(self, pallet_prim_path, product_dict):
+#         """Write product attributes to the USD pallet prim."""
+#         pallet_prim = self.stage.GetPrimAtPath(pallet_prim_path)
+#         if not pallet_prim.IsValid():
+#             logger.error(f"❌ Invalid pallet prim: {pallet_prim_path}")
+#             return
+#
+#         for key, value in product_dict.items():
+#             attr_name = f"userProperties:{key}"
+#             usd_attr = pallet_prim.GetAttribute(attr_name)
+#             if not usd_attr:
+#                 usd_attr = pallet_prim.CreateAttribute(attr_name, Sdf.ValueTypeNames.String)
+#             usd_attr.Set(str(value))
+#
+#     def process_racks(self, start_rack=21, end_rack=40):
+#         """Process racks and spawn pallets based on API data."""
+#         for rack_number in range(start_rack, end_rack + 1):
+#             logger.info(f"🔄 Processing rack {rack_number}")
+#             rack_data = self.fetch_rack_data(rack_number)
+#             if not rack_data:
+#                 continue
+#
+#             for location in rack_data.get("data", {}).get("rack_locations", []):
+#                 for pallet in location.get("pallets", []):
+#                     self.spawn_pallet_at_location(rack_number, location, pallet.get("pallet_id", "unknown"), pallet.get("inventory", {}))
+
+# Run script
+# rack_handler = RackDataHandler()
+# rack_handler.process_racks()
+
+
+###########################################################################################################
 import omni.usd
 from pxr import Usd, UsdGeom, Gf, Sdf, Kind
 import logging
@@ -199,7 +354,8 @@ class RackDataHandler:
                         self.spawn_pallet_at_location(rack_number, location, pallet.get("pallet_id", "unknown"), product_dict)
                 else:
                     logger.error(f"No pallets found for location {location.get('location_id', 'unknown')} in rack {rack_number}.")
+#
+# # Usage
+# rack_handler = RackDataHandler()
+# rack_handler.process_racks()
 
-# Usage
-rack_handler = RackDataHandler()
-rack_handler.process_racks()

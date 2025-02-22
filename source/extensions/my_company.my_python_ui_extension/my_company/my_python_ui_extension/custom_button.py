@@ -5,7 +5,7 @@ import omni.ui as ui
 from omni.ui import color as cl
 from .style import BLOCK_HEIGHT
 
-class CustomButtonWidget:
+class CustomButtonWidget():
     """A widget that displays a button and can trigger a callback function."""
 
     def __init__(self, btn_label: str, tooltip: str, clicked_fn: Callable,
@@ -34,7 +34,6 @@ class CustomButtonWidget:
 
     def _build_fn(self):
         """Draw the widget parts and set up the callback."""
-
 
         # Create the button
         self.__btn = ui.Button(

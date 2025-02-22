@@ -6,6 +6,7 @@ import omni.ext
 import omni.kit.ui
 import omni.ui as ui
 import carb
+from .usd_scene_helper import USDSceneHelper
 
 from .window import Custom_Window  # Import the main custom window
 from .search_window import SearchWindowPanel  # Import the new search window panel
@@ -18,11 +19,16 @@ class MyExtension(omni.ext.IExt):
     SEARCH_WINDOW_NAME = "Search Panel"
     MENU_PATH = f"Window/{MAIN_WINDOW_NAME}"
     MENU_PATH_SEARCH = f"Window/{SEARCH_WINDOW_NAME}"
-
+      # ✅ USD File Path (Modify this path as needed)
+    USD_FILE_PATH = "D:/Toll Innovation/TC Level 3 Demo/_Update/TC_Level3_V6.usd"
     def on_startup(self):
         """Called when the extension is starting."""
         self._main_window = None
         self._search_window = None
+
+        self.usd_helper = USDSceneHelper(self.USD_FILE_PATH)  # ✅ Initialize the helper
+        # ✅ Load USD file asynchronously at startup
+        asyncio.ensure_future(self.usd_helper.load_stage())
 
         # Register window show functions
         ui.Workspace.set_show_window_fn(self.MAIN_WINDOW_NAME, partial(self.show_main_window, None))
