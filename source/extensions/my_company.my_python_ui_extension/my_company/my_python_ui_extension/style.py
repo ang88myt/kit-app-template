@@ -141,7 +141,17 @@ julia_modeler_style = {
         "width": 41,
         "height": 41
     },
-
+    "Button::upload_new_button": {
+        "background_color": cl(0, 0.4, 0.91, 1.0),  # Light blue background
+        "margin_height": 0,  # No extra vertical margin
+        "margin_width": 6,  # Adds spacing between buttons
+        "border_width": 2,  # Thicker border for better contrast
+        "border_radius": 4,  # Rounded corners
+        "font_size": 14,  # Standard font size
+        "width": 200,
+        "height":50
+        # "font_weight": "bold",  # Makes text stand outt
+    },
     "Button::tool_button": {
         "background_color": cl.field_bg,
         "margin_height": 0,

@@ -11,10 +11,7 @@ from .custom_button import CustomButtonWidget
 # from .custom_info_button import CustomInfoWidget
 from .data_service import (DataService,
                            _show_notification,
-                           _isolate_selected_parent,
-                           _get_selected_prim_hierarchy,
-                           _traverse, _find_prim_then_select,
-                           _frame_selected_object
+                           _delete_existing_pallets
                            )
 from omni.kit.widget.searchfield import SearchField
 from pxr import Usd, UsdGeom, Gf, Sdf, Kind, UsdShade
@@ -23,6 +20,12 @@ import omni.kit.commands
 import carb
 # import pathlib
 from .style import julia_modeler_style, ATTR_LABEL_WIDTH, WIN_WIDTH, WIN_HEIGHT
+from .upload_new_inventory import ExcelUploader
+from omni.kit.widget.options_button import OptionsButton
+from omni.kit.widget.options_menu import OptionItem, OptionCustom, OptionSeparator, OptionLabelMenuItemDelegate
+from typing import Optional
+from .spawn_pallets import RackDataHandler
+from .upload_new_inventory import ExcelUploader
 
 SPACING = 5
 WINDOW_TITLE = ""
@@ -32,9 +35,9 @@ class SearchWindowPanel(ui.Window):
 
     def __init__(self, title: str = "Search Panel", **kwargs):
         super().__init__(title, dock="left", **kwargs)
-
+        self._option_button: Optional[OptionsButton] = None
         self.__label_width = ATTR_LABEL_WIDTH
-
+        self._excel_uploader = ExcelUploader()
         self._data_service = DataService()
         self.frame.style = julia_modeler_style
         self.frame.set_build_fn(self._build_fn)
@@ -43,6 +46,9 @@ class SearchWindowPanel(ui.Window):
         self.previous_hierarchy = None
         self.hierarchy_items = []
         self.hierarchy_dict = {}
+        self.search_field = ""
+        self.excel_uploader = ExcelUploader()
+        self._rack_data_handler = RackDataHandler()
 
     @property
     def label_width(self):
@@ -69,16 +75,36 @@ class SearchWindowPanel(ui.Window):
             # ui.Line(style_type_name_override="HeaderLine")
 
     def _build_scene(self):
+        option_items = [
+            OptionItem("Show version history",
+                       on_value_changed_fn=print("test")),
+            OptionSeparator(),
+            OptionItem("Export",
+                       on_value_changed_fn=print("test")),
+            OptionSeparator(),
+            OptionItem("Rename",
+                       on_value_changed_fn=print("test")),
+        ]
+
         """Builds the content for the search panel."""
         with ui.VStack(spacing=10, height=5, style={"padding": 8, "background_color": "#1e1e1e", "border_radius": 5}):
             # Title Section
-            ui.Label("Warehouse Search", style={"font_size": 18, "font_weight": "bold", "color": "white"})
+            ui.Button(
+                "Upload New",
+                name="tool_button",
+                tooltip="Update Inventory Report",
+                style=julia_modeler_style["Button::upload_new_button"],
+                clicked_fn=self._upload_new_inventory
+            )
+            with ui.HStack():
+                ui.Label("Warehouse Search", style={"font_size": 18, "font_weight": "bold", "color": "white"})
+                self._option_button = OptionsButton(option_items, width=30, height=30)
+
             ui.Label("Track and manage your assets here", style={"font_size": 14, "color": "#cccccc"})
             # ui.Spacer(height=10)
 
             self.search_field = SearchField(
                 on_search_fn=lambda filters: self._filter_by_text("".join(filters) if filters else ""),
-                # on_search_fn=print("test"),
                 show_tokens=False,
                 separator=None,
                 width=250,
@@ -89,6 +115,13 @@ class SearchWindowPanel(ui.Window):
             #                        ):
             self.results_container = ui.VStack()
 
+    def _upload_new_inventory(self):
+        self.excel_uploader.upload_success_callback = self._on_excel_upload_success
+        self.excel_uploader.show_upload_dialog()
+
+    def _on_excel_upload_success(self):
+        _delete_existing_pallets()  # Ensure this function is defined or is a method
+        self._rack_data_handler.process_racks()
 
     def _build_fn(self):
         with ui.ScrollingFrame(name="window_bg", horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF):
@@ -161,7 +194,7 @@ class SearchWindowPanel(ui.Window):
                             ui.Image(name="sku_icon", height=20, width=20)
                             ui.Label(parent[5], style={"font_size": 16, "color": "white", "font_weight": "bold"})
                         ui.Spacer(height=15)
-                        ui.Line(style_type_name_override="HeaderLine")
+
                         with ui.CollapsableFrame(title=parent[4],
                                                  build_header_fn=lambda collapsed,
                                                                         title: self._build_collapsable_header(

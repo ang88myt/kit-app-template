@@ -21,6 +21,7 @@ class MyExtension(omni.ext.IExt):
 
     # ✅ USD File Path (Modify this path as needed)
     USD_FILE_PATH = "D:/Toll Innovation/TC Level 3 Demo/_Update/TC_Level3_V6.usd"
+
     def on_startup(self):
         """Called when the extension is starting."""
         self._main_window = None
@@ -47,15 +48,18 @@ class MyExtension(omni.ext.IExt):
         ui.Workspace.show_window(self.SEARCH_WINDOW_NAME)
 
     async def _load_usd_stage(self):
-        """Loads the USD file at startup asynchronously."""
+        """Loads the USD file at startup asynchronously only if it's not already loaded."""
         usd_context = omni.usd.get_context()
-
-        # ✅ Ensure no other stage is loaded before opening a new one
         existing_stage = usd_context.get_stage()
-        if existing_stage:
-            carb.log_warn("⚠ A stage is already loaded. Reloading new stage...")
 
-        # ✅ Open the USD stage
+        # ✅ Check if the stage exists and has a valid layer
+        if existing_stage:
+            root_layer = existing_stage.GetRootLayer()
+            if root_layer and root_layer.identifier == self.USD_FILE_PATH:
+                carb.log_info(f"⚡ USD file {self.USD_FILE_PATH} is already loaded. No need to reload.")
+                return  # ✅ Skip loading if the stage is already the same file
+
+        # ✅ Otherwise, load the new stage
         try:
             carb.log_info(f"📂 Loading USD file: {self.USD_FILE_PATH}")
             await usd_context.open_stage_async(self.USD_FILE_PATH)
@@ -139,22 +143,39 @@ class MyExtension(omni.ext.IExt):
             self._main_window.visible = False
             carb.log_warn("Main window hidden successfully.")
 
-    def show_search_window(self, menu, value):
-        """Show or hide the search window."""
-        carb.log_info(f"Attempting to {'show' if value else 'hide'} the search window. Current window: {self._search_window}")
+    # def show_search_window(self, menu, value):
+    #     """Show or hide the search window."""
+    #     carb.log_info(f"Attempting to {'show' if value else 'hide'} the search window. Current window: {self._search_window}")
+    #
+    #     if value:
+    #         if not self._search_window:
+    #             try:
+    #                 carb.log_info("Creating a new search window instance...")
+    #                 self._search_window = SearchWindowPanel(title=self.SEARCH_WINDOW_NAME)
+    #                 self._search_window.set_visibility_changed_fn(partial(self._visibility_changed_fn, window_type="search"))
+    #                 carb.log_warn("Search window created successfully.")
+    #             except Exception as e:
+    #                 carb.log_error(f"Failed to create search window: {e}")
+    #         if self._search_window:
+    #             self._search_window.visible = True
+    #             carb.log_warn("Search window set to visible.")
+    #     elif self._search_window:
+    #         self._search_window.visible = False
+    #         carb.log_warn("Search window hidden successfully.")
 
+    def show_search_window(self, menu, value):
+        """Show or hide the search window persistently."""
         if value:
             if not self._search_window:
                 try:
-                    carb.log_info("Creating a new search window instance...")
                     self._search_window = SearchWindowPanel(title=self.SEARCH_WINDOW_NAME)
-                    self._search_window.set_visibility_changed_fn(partial(self._visibility_changed_fn, window_type="search"))
-                    carb.log_warn("Search window created successfully.")
+
+                    self._search_window.set_visibility_changed_fn(
+                        lambda visible: self.show_search_window(menu, visible))
                 except Exception as e:
-                    carb.log_error(f"Failed to create search window: {e}")
+                    carb.log_error(f"Failed to create Search Window: {e}")
+
             if self._search_window:
                 self._search_window.visible = True
-                carb.log_warn("Search window set to visible.")
         elif self._search_window:
             self._search_window.visible = False
-            carb.log_warn("Search window hidden successfully.")

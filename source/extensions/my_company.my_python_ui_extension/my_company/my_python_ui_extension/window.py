@@ -12,17 +12,18 @@ from .style import julia_modeler_style, ATTR_LABEL_WIDTH, WIN_WIDTH, WIN_HEIGHT
 # from .custom_button import CustomButtonWidget
 # from .custom_info_button import CustomInfoWidget
 # from .custom_radio_collection import CustomRadioCollection
-from .data_service import DataService,_show_notification, _isolate_selected_parent,_traverse, _frame_selected_object
+from .data_service import DataService, _show_notification, _delete_existing_pallets
 # from .cube_mover_data import CubeMoverDataLayer
 from .proximity_checker import ProximityChecker
 from .custom_path_button import CustomPathButtonWidget
 # from .custom_radio_collection import CustomRadioCollection
 from .custom_bool_widget import CustomBoolWidget
-from .custom_button import  CustomButtonWidget
+from .custom_button import CustomButtonWidget
 import omni.kit.commands
 from .spawn_pallets import RackDataHandler
 
 import carb
+
 SPACING = 5
 WINDOW_TITLE = ""
 
@@ -30,8 +31,8 @@ WINDOW_TITLE = ""
 class Custom_Window(ui.Window):
     """The class that represents the window"""
 
-    def __init__(self, title: str = "Review Panel",**kwargs):
-        super().__init__(title,dock="left", **kwargs)
+    def __init__(self, title: str = "Review Panel", **kwargs):
+        super().__init__(title, dock="left", **kwargs)
         self.__label_width = ATTR_LABEL_WIDTH
         self._data_service = DataService()
         self._rack_data_handler = RackDataHandler()
@@ -61,10 +62,8 @@ class Custom_Window(ui.Window):
             ui.Spacer(height=5)
             # ui.Line(style_type_name_override="HeaderLine")
 
-
     def _build_update_scene(self):
         pass
-
 
     def _download_scene(self):
         _show_notification(title="download", message="Downloaded Inventory 12/02/2025", status="INFO")
@@ -91,31 +90,29 @@ class Custom_Window(ui.Window):
         else:
             _show_notification("Search Error", "Search input is empty.", "warning")
 
-
     def _build_scene(self):
         """Build the widgets for the 'Overview' scene."""
         with ui.VStack(spacing=SPACING):
             ui.Spacer(height=10)
             # Overview Header
-            ui.Label("Overview", style={"font_size": 22, "color": "white", "font_weight": "bold"})
+            ui.Label("Overview", style={"font_size": 20, "color": "white", "font_weight": "bold"})
             ui.Line(style_type_name_override="HeaderLine")
-            ui.Spacer(height=10)
+        ui.Spacer(height=30)
 
     def _build_stock_status(self):
         '''Critical Items Tracking Section'''
         critical_status_count, critical_pallets_by_rack = self._data_service.fetch_status_code_data()
-        total_critical_count = sum(critical_status_count.values())
+
         pallets_by_status = defaultdict(list)
         for rack_no, pallets in critical_pallets_by_rack.items():
             for pallet in pallets:
                 stock_status_code = pallet["stock_status_code"]
                 pallets_by_status[stock_status_code].append(pallet)
 
-
         with ui.VStack(spacing=8):
             # Critical items with icons and labels
             with ui.VStack(spacing=SPACING):
-                ui.Label("Critical Items Tracking", style={"font_size": 18, "color": "white"})
+                ui.Label("Critical Items Tracking", style={"font_size": 16, "color": "white"})
                 ui.Spacer(height=6)
 
                 # Create a collapsible section for each type of critical item
@@ -128,7 +125,8 @@ class Custom_Window(ui.Window):
                     with ui.HStack(spacing=10):
                         ui.Image(name=icon, width=41, height=41)
                         count = critical_status_count.get(status_code_key, 0)
-                        with ui.CollapsableFrame(f'{label} : {count}', name="group",build_header_fn=self._build_collapsable_header, collapsed=True,):
+                        with ui.CollapsableFrame(f'{label} : {count}', name="group",
+                                                 build_header_fn=self._build_collapsable_header, collapsed=True, ):
                             with ui.VStack(spacing=10):
                                 # ui.Label(
                                 #     f"{count} ",
@@ -139,8 +137,10 @@ class Custom_Window(ui.Window):
                                 if status_code_key in pallets_by_status:
                                     for pallet in pallets_by_status[status_code_key]:
                                         pallet_id = pallet["pallet_id"]
+                                        location_id = pallet["location_id"]
+
                                         with ui.HStack(spacing=10):
-                                            ui.Label(f"PID: {pallet_id}",
+                                            ui.Label(f"{pallet_id}",
                                                      style={"font_size": 16, "color": "white"})
 
                                             # Add button for locating the pallet
@@ -155,7 +155,6 @@ class Custom_Window(ui.Window):
                                 ui.Spacer(heigh=10)
                                 ui.Line(style_type_name_override="HeaderLine")
                                 ui.Spacer(heigh=10)
-
 
     def _isolate(self, is_check: bool, status_code: str):
         """Toggle isolation mode for Xform parent objects of a specific status code."""
@@ -197,11 +196,10 @@ class Custom_Window(ui.Window):
 
         logging.info(f"Isolation {'applied' if is_check else 'removed'} for status: {status_code}.")
 
-
     def _build_violation_check(self):
         """Build the UI for proximity violations with clear explanations."""
         # Initialize the ProximityChecker
-        pro_checker = ProximityChecker(racks_range=(21, 39), distance_threshold=200.0)
+        pro_checker = ProximityChecker(racks_range=(21, 41), distance_threshold=200.0)
         violations = pro_checker.proximity_check_all_racks()
 
         # Organize violations by food pallet
@@ -223,15 +221,12 @@ class Custom_Window(ui.Window):
             with ui.HStack(spacing=SPACING):
                 ui.Image(name="violation_icon", width=41, height=41)  # Add a meaningful icon for violations
                 with ui.CollapsableFrame(f'Proximity Violations : {total_violations}', name="group",
-                                         build_header_fn=self._build_collapsable_header):
-
+                                         build_header_fn=self._build_collapsable_header, collapsed=True):
                     with ui.VStack(spacing=SPACING):
-
-
                         # Display individual violations
                         for food_pallet_id, hpc_pallets in food_pallets_with_hpc.items():
                             with ui.HStack(spacing=SPACING):
-                                ui.Label(f"PID: {food_pallet_id}", style={"font_size": 18, "color": "white"})
+                                ui.Label(f"{food_pallet_id}", style={"font_size": 16, "color": "white"})
                                 ui.Spacer(width=10)
                                 # ui.Image(name="locate_icon", width=14, height=14)
 
@@ -247,7 +242,6 @@ class Custom_Window(ui.Window):
             ui.Spacer(heigh=10)
             ui.Line(style_type_name_override="HeaderLine")
             ui.Spacer(height=10)
-
 
     def _spawn_violation_cubes(self, violation):
         food_coordinates = self._data_service.fetch_coordinates(f"pallet/{violation['food_pallet_id']}/")
@@ -270,8 +264,8 @@ class Custom_Window(ui.Window):
             group=f"Rack_{violation.get('rack_no')}"
         )
 
-    def _navigate_to_pallet(self, search_text):
-        self._data_service.show_pallet_info(search_text)
+    def _navigate_to_pallet(self, pallet_id):
+        self._data_service.show_pallet_info(pallet_id)
 
     def _build_storage_utilization(self):
         # Get overall storage utilization
@@ -280,12 +274,11 @@ class Custom_Window(ui.Window):
         # Get staging area utilization
         staging_area = self._data_service.calculate_staging_space_utilization()
         ui.Label("Storage Capacity", style={"font_size": 14, "color": "white"})
-        ui.Spacer(height=10)
-        # Rack Space Usage
 
+        # Rack Space Usage
         with ui.HStack(spacing=SPACING):
             ui.Label("Racks Space Usage",
-                     style={"font_size": 18, "color": "white","alignment": ui.Alignment.LEFT})
+                     style={"font_size": 18, "color": "white", "alignment": ui.Alignment.LEFT})
             ui.Label(f'{used_percentage}% used',
                      style={"font_size": 18, "color": "gray", "alignment": ui.Alignment.RIGHT})
         ui.Spacer(height=10)
@@ -293,12 +286,14 @@ class Custom_Window(ui.Window):
             progress_bar = ui.ProgressBar(style={"color": "lightblue"})
             progress_bar.model.set_value(round(free_percentage) / 100)
         ui.Spacer(height=10)
-        # # Staging Area Usage
+        # Staging Area Usage
         for area, stats in staging_area.items():
             with ui.HStack(spacing=SPACING):
                 area_used_percentage = stats['Used Space %']
                 area_free_percentage = stats['Free Space %']
-                ui.Label(f"Staging Area Usage", style={"font_size": 18, "color": "whiye","alignment": ui.Alignment.LEFT})
+                ui.Label(f"Staging Area Usage",
+                         style={"font_size": 18, "color": "whiye", "alignment": ui.Alignment.LEFT})
+
                 ui.Label(f'{area_used_percentage}% used',
                          style={"font_size": 18, "color": "gray", "alignment": ui.Alignment.RIGHT})
             ui.Spacer(height=10)
@@ -308,7 +303,7 @@ class Custom_Window(ui.Window):
                 ui.Spacer(width=10)
 
         with ui.VStack(spacing=SPACING):
-            ui.Spacer(heigh=10)
+            ui.Spacer(height=10)
             ui.Line(style_type_name_override="HeaderLine")
             ui.Spacer(height=10)
 
@@ -339,6 +334,7 @@ class Custom_Window(ui.Window):
                     with self.main_container:
                         self.toggle_button = ui.Button(
                             "Update Review",
+                            name="tool_button",
                             tooltip="Update Inventory Report",
                             clicked_fn=self._toggle_additional_ui
                         )
@@ -349,22 +345,17 @@ class Custom_Window(ui.Window):
                 self.additional_ui_container = ui.VStack(visible=False)  # Initially hidden
         # with ui.ScrollingFrame(name="window_bg", horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF):
         #     with ui.VStack(height=0):
+        #         self._build_scene()
         #         self._build_storage_utilization()
         #         self._build_violation_check()
         #         self._build_stock_status()
-                # self._build_download_scene()
-                # self._build_tracking()
+
+        # self._build_update_scene()
+        # self._build_download_scene()
+        # self._build_tracking()
 
     def _toggle_additional_ui(self):
         """Toggles visibility of additional UI sections after ensuring a valid USD stage exists."""
-
-        # ✅ Ensure the USD stage is loaded before proceeding
-        usd_context = omni.usd.get_context()
-        stage = usd_context.get_stage()
-
-        if stage is None:
-            carb.log_warn("⚠ No valid USD stage loaded. Cannot update UI.")
-            return  # Exit function safely
 
         # ✅ Ensure UI elements exist before modifying them
         if not hasattr(self, "additional_ui_container") or self.additional_ui_container is None:
@@ -376,45 +367,22 @@ class Custom_Window(ui.Window):
 
         # ✅ Update button text dynamically
         self.toggle_button.text = "Clear Review" if self.additional_ui_visible else "Update Review"
-
-        # ✅ If "Clear Review" is pressed, delete `/Root`, `/Critical_Items`, `/ProximityViolations`
-        if not self.additional_ui_visible:
-            paths_to_delete = []
-
-            # ✅ Check and add each prim to delete list
-            for prim_path in ["/Root", "/Critical_Items", "/ProximityViolations"]:
-                from pxr import Sdf
-                prim = stage.GetPrimAtPath(prim_path)
-                if prim and prim.IsValid():
-                    paths_to_delete.append(Sdf.Path(prim_path))
-                else:
-                    carb.log_warn(f"⚠ `{prim_path}` prim not found in the scene.")
-
-            # ✅ Delete all valid prims
-            if paths_to_delete:
-                carb.log_info(f"🗑 Deleting: {', '.join(map(str, paths_to_delete))}...")
-                omni.kit.commands.execute("DeletePrims", paths=paths_to_delete)
-            else:
-                carb.log_warn("⚠ No valid prims found to delete.")
-
+        if self.toggle_button.text == "Clear Review":
+            carb.log_info("pallets deleted")
+        else:
+            carb.log_info("delete and spawn pallets")
         # ✅ If "Update Review" is pressed, rebuild the additional UI
         if self.additional_ui_visible:
-            # self._rack_data_handler.process_racks()
+
             if not hasattr(self, "additional_ui_container") or self.additional_ui_container is None:
                 carb.log_error("❌ additional_ui_container is missing! Cannot rebuild UI.")
                 return
 
             self.additional_ui_container.clear()
             with self.additional_ui_container:
-                try:
-                    if not self._build_storage_utilization():
-                        carb.log_error("⚠ Failed to load Storage Utilization UI.")
-                    if not self._build_violation_check():
-                        carb.log_error("⚠ Failed to load Violation Check UI.")
-                    if not self._build_stock_status():
-                        carb.log_error("⚠ Failed to load Stock Status UI.")
-                except AttributeError as e:
-                    carb.log_error(f"❌ UI build functions missing: {e}")
+                self._build_storage_utilization()
+                self._build_violation_check()
+                self._build_stock_status()
 
 
 def show_notification(title: str, message: str, status: str):
@@ -431,4 +399,3 @@ def show_notification(title: str, message: str, status: str):
         duration=0,
         status=status_enum
     )
-

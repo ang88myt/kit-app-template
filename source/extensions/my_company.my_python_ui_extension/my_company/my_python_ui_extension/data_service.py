@@ -1,4 +1,3 @@
-
 # data_service.py
 __all__ = ["DataService"]
 
@@ -26,13 +25,13 @@ from typing import List, Dict
 # logger = logging.getLogger(__name__)
 class DataService:
     def __init__(self):
-        stage = omni.usd.get_context().get_stage()
+        # stage = omni.usd.get_context().get_stage()
         self.api_base_url = "https://digital-twin-dev.expangea.com/"
         self.headers = {
             'X-API-KEY': '2c38e689-8bac-4ec6-9e0e-70e98222dc2d'
         }
-        self.stage = stage
-        self.status_counters=0
+        # self.stage = stage
+        self.status_counters = 0
         self.session = requests.Session()
         self.result_dict = {}
         self.pallet_usd_path = "D:/Toll Innovation/TC Level 3 Demo/_Update/Pallet_Asm_A04_120x122x75cm_PR_V_NVD_01.usd"
@@ -48,6 +47,7 @@ class DataService:
 
         self.warehouse_code = '5BTG'
         self.floor_no = '3'
+
     @staticmethod
     def manage_extension():
         try:
@@ -87,7 +87,6 @@ class DataService:
             carb.log_error(f"Error occurred during API request: {e}")
             return {}  # Return an empty dict to indicate failure
 
-
     def fetch_stock_info(self, endpoint: str) -> dict:
         api_url = self.construct_api_url(endpoint)
         response = self.handle_api_request(api_url)
@@ -125,7 +124,8 @@ class DataService:
             carb.log_info(f"Coordinates: x={coordinates.get('x')}, y={coordinates.get('y')}, z={coordinates.get('z')}")
 
         # Validate coordinates
-        if not isinstance(coordinates, dict) or not all(k in coordinates and coordinates[k] is not None for k in ('x', 'y', 'z')):
+        if not isinstance(coordinates, dict) or not all(
+            k in coordinates and coordinates[k] is not None for k in ('x', 'y', 'z')):
             carb.log_warn(f"No valid coordinates found at {endpoint}. Skipping.")
             return None
 
@@ -247,21 +247,21 @@ class DataService:
 
                             # Check stock status code and assign material path accordingly
                             if stock_status_code == "DMG":
-                                material_path = "/Environment/Looks/Glass_Color_Mat/Red_Glass" #DMG
+                                material_path = "/Environment/Looks/Glass_Color_Mat/Red_Glass"  #DMG
                             elif stock_status_code == "NE":
-                                material_path = "/Environment/Looks/Glass_Color_Mat/Yellow_Glass" #NE
+                                material_path = "/Environment/Looks/Glass_Color_Mat/Yellow_Glass"  #NE
                             elif stock_status_code == "QAF":
-                                material_path = "/Environment/Looks/Glass_Color_Mat/Cyan_Glass" #QAF
+                                material_path = "/Environment/Looks/Glass_Color_Mat/Cyan_Glass"  #QAF
                             else:
-                                material_path = "/Environment/Looks/Glass_Color_Mat/Blue_Glass" #EX
+                                material_path = "/Environment/Looks/Glass_Color_Mat/Blue_Glass"  #EX
 
                             # Fetch coordinates for the pallet
                             endpoint = f"pallet/{pallet_id}/"
                             coordinates = self.fetch_coordinates(endpoint)
 
                             # Spawn the cube with the appropriate material based on stock status code
-                            self.spawn_cube( prim_name=f"Critical_Items",group=stock_status_code,
-                                             location_id=location_id, pallet_id=pallet_id, coordinates=coordinates,
+                            self.spawn_cube(prim_name=f"Critical_Items", group=stock_status_code,
+                                            location_id=location_id, pallet_id=pallet_id, coordinates=coordinates,
                                             material_path=material_path)
 
                             # Set flag to True if a critical item is found
@@ -297,8 +297,7 @@ class DataService:
         for status_code, count in self.critical_status_count.items():
             carb.log_warn(f"{status_code}: {count}")
 
-    def check_expiry_date(self, date=None, other_date=None,rack_no=None,material_path=None):
-
+    def check_expiry_date(self, date=None, other_date=None, rack_no=None, material_path=None):
 
         # Check which endpoint to use based on the presence of the dates
         if other_date:
@@ -341,7 +340,7 @@ class DataService:
                 carb.log_warn(f"Pallet ID: {pallet_id}, Location ID: {location_id}, Rack No: {rack_no}, "
                               f"Balance Shelf Life (days): {balance_shelf_life_days}, Floor No: {floor_no}, Coordinates: ({coordinates['x']}, {coordinates['y']}, {coordinates['z']})")
 
-                self.spawn_cube(pallet_id, coordinates, date, other_date,material_path=material_path)
+                self.spawn_cube(pallet_id, coordinates, date, other_date, material_path=material_path)
             else:
                 carb.log_warn(f"Duplicate location_id {location_id} detected, skipping...")
 
@@ -451,7 +450,8 @@ class DataService:
                 self._apply_material_to_prim(prim_path=cube_prim_path_str, material_path=material_path)
 
             # Log the creation of the cube
-            carb.log_warn(f"Spawned cube for Pallet Rack {group} under {pallet_id} under {prim_name} at coordinates {coordinates}")
+            carb.log_warn(
+                f"Spawned cube for Pallet Rack {group} under {pallet_id} under {prim_name} at coordinates {coordinates}")
         else:
             carb.log_warn(f"Cube for Pallet {pallet_id} already exists under {prim_name}.")
 
@@ -472,13 +472,14 @@ class DataService:
     def _apply_material_to_prim(self, prim_path: str, material_path: str):
         """Apply a material to the specified prim."""
         # Get the material prim from the stage
-        material_prim = self.stage.GetPrimAtPath(material_path)
+        stage = omni.usd.get_context().get_stage()
+        material_prim = stage.GetPrimAtPath(material_path)
         if not material_prim.IsValid():
             carb.log_error(f"Material at {material_path} not found or invalid.")
             return
 
         # Get the target prim where the material will be applied
-        prim = self.stage.GetPrimAtPath(Sdf.Path(prim_path))
+        prim = stage.GetPrimAtPath(Sdf.Path(prim_path))
         if not prim.IsValid():
             carb.log_error(f"Prim at {prim_path} not found or invalid.")
             return
@@ -489,11 +490,10 @@ class DataService:
 
         carb.log_info(f"Material {material_path} successfully applied to {prim_path}")
 
-    def show_pallet_info(self, search_text):
-        # endpoint = f"pallet/{pallet_id}/"
-        # carb.log_warn(f"Fetching stock info from endpoint: {endpoint}")
+    def show_pallet_info(self, pallet_id):
 
-        _find_prim_then_select(search_text)
+        _find_prim_then_select(pallet_id)
+        # _select_child_two_levels_below_at_xyz(location_id["x"], location_id["y"], location_id["y"])
         _frame_selected_object()
         # stock_info = self.fetch_stock_info(endpoint)
         #
@@ -543,7 +543,7 @@ class DataService:
 
         # Loop through racks 19 to 40 to count used and free storage slots
         for rack_num in range(21, 41):
-            rack_data = self.fetch_rack_data(self.warehouse_code,self.floor_no, rack_num)
+            rack_data = self.fetch_rack_data(self.warehouse_code, self.floor_no, rack_num)
             if not rack_data:
                 continue  # Skip if no data is found for the rack
 
@@ -564,10 +564,11 @@ class DataService:
         return round(used_percentage), round(free_percentage)
 
     def calculate_staging_space_utilization(self):
+        stage = omni.usd.get_context().get_stage()
         stage_path = "/World/Non_Rack_Areas"
         """Calculate used and free space percentages in combined staging areas."""
         # stage = omni.usd.get_context().get_stage()
-        if not self.stage:
+        if not stage:
             carb.log_error("No valid stage loaded.")
             return
 
@@ -578,7 +579,7 @@ class DataService:
 
         for area in staging_areas:
             area_path = f"{stage_path}/{area}"
-            area_prim = self.stage.GetPrimAtPath(area_path)
+            area_prim = stage.GetPrimAtPath(area_path)
             if not area_prim.IsValid():
                 carb.log_error(f"Staging area '{area}' not found.")
                 continue
@@ -604,25 +605,24 @@ class DataService:
         }
 
         return space_utilization
-    def update_warehouse(self):
-        pass
 
     def close(self):
         self.session.close()
         carb.log_info("API connection closed")
 
-
     def _ensure_xform_exists(self, xform_path: Sdf.Path, coordinates=None):
         """Ensure an Xform exists at the specified path, and optionally set its translation."""
-        xform = UsdGeom.Xform.Get(self.stage, xform_path)
+        stage = omni.usd.get_context().get_stage()
+        xform = UsdGeom.Xform.Get(stage, xform_path)
         if not xform:
-            xform = UsdGeom.Xform.Define(self.stage, xform_path)
+            xform = UsdGeom.Xform.Define(stage, xform_path)
         if coordinates:
             translate_op = next(
                 (op for op in xform.GetOrderedXformOps() if op.GetOpType() == UsdGeom.XformOp.TypeTranslate), None)
             if not translate_op:
                 translate_op = xform.AddTranslateOp()
             translate_op.Set(Gf.Vec3d(coordinates[0], coordinates[1], coordinates[2]))
+
 
 def _apply_material_to_prim(stage, prim_path, material_path):
     """Applies the specified material to the given prim."""
@@ -646,16 +646,17 @@ def _apply_material_to_prim(stage, prim_path, material_path):
 def _move_camera(x: float, y: float, z: float):
     xform_path = "/Environment/Camera"
     view_camera_path = "/Environment/Camera/Camera_001/Camera_001"
-    new_xyz_location = Gf.Vec3d(x , y + -200, z + 75)
+    new_xyz_location = Gf.Vec3d(x, y + -200, z + 75)
     new_rotation = Gf.Vec3f(80, 0.0, 0.0)
     focal_length = 20
 
     _move_xform_and_set_view(xform_path, view_camera_path, new_xyz_location, new_rotation, focal_length=focal_length)
-    carb.log_warn(f"Moved camera to location: {new_xyz_location}, with rotation: {new_rotation}, focal length: {focal_length}")
+    carb.log_warn(
+        f"Moved camera to location: {new_xyz_location}, with rotation: {new_rotation}, focal length: {focal_length}")
 
 
 def _move_xform_and_set_view(xform_path: str, view_camera_path: str, new_location: Optional[Gf.Vec3f] = None,
-                            new_rotation: Optional[Gf.Vec3f] = None, focal_length: float = 20.0):
+                             new_rotation: Optional[Gf.Vec3f] = None, focal_length: float = 20.0):
     xform_api = _get_xform_by_path(xform_path)
     if not xform_api:
         carb.log_warn(f"Camera xform at '{xform_path}' not found or invalid!")
@@ -767,16 +768,72 @@ def _load_usd_file(file_path, ref_prim_path):
     except Exception as e:
         carb.log_error(f"An error occurred while referencing the USD file: {str(e)}")
 
+
+def _select_child_two_levels_below_at_xyz(target_x, target_y, target_z, threshold=0.001):
+    """
+    Finds a prim whose translation is near the target XYZ and then selects
+    the child that is two levels below that prim.
+    """
+    usd_context = omni.usd.get_context()
+    stage = usd_context.get_stage()
+    if not stage:
+        carb.log_error("❌ No valid USD stage loaded!")
+        return
+
+    target = Gf.Vec3d(target_x, target_y, target_z)
+
+    def traverse_for_location(prim):
+        if prim and prim.IsValid():
+            xform = UsdGeom.Xform(prim)
+            if xform:
+                # Check if the prim has a translate op
+                for op in xform.GetOrderedXformOps():
+                    if op.GetOpType() == UsdGeom.XformOp.TypeTranslate:
+                        trans = op.Get()
+                        if trans and (Gf.Vec3d(trans) - target).GetLength() < threshold:
+                            return prim
+            # Continue to search in children if not found
+            for child in prim.GetChildren():
+                found = traverse_for_location(child)
+                if found:
+                    return found
+        return None
+
+    root = stage.GetPseudoRoot()
+    found_prim = traverse_for_location(root)
+    if not found_prim:
+        carb.log_warn("⚠ No prim found near the target location!")
+        return
+
+    # Now, select the child two levels below found_prim
+    children = found_prim.GetChildren()
+    if not children:
+        carb.log_warn(f"⚠ Prim {found_prim.GetPath()} has no children!")
+        return
+
+    first_child = children[0]
+    second_children = first_child.GetChildren()
+    if not second_children:
+        carb.log_warn(f"⚠ Child {first_child.GetPath()} has no children (no second level)!")
+        return
+
+    target_child = second_children[0]
+    prim_path = str(target_child.GetPath())
+    usd_context.get_selection().set_selected_prim_paths([prim_path], True)
+    carb.log_info(f"✅ Selected child two levels below prim at {found_prim.GetPath()}: {prim_path}")
+
+
 def _apply_material_to_prim(self, prim_path: str, material_path: str):
     """Apply a material to the specified prim."""
+    stage = omni.usd.get_context().get_stage()
     # Get the material prim from the stage
-    material_prim = self.stage.GetPrimAtPath(material_path)
+    material_prim = stage.GetPrimAtPath(material_path)
     if not material_prim.IsValid():
         carb.log_error(f"Material at {material_path} not found or invalid.")
         return
 
     # Get the target prim where the material will be applied
-    prim = self.stage.GetPrimAtPath(Sdf.Path(prim_path))
+    prim = stage.GetPrimAtPath(Sdf.Path(prim_path))
     if not prim.IsValid():
         carb.log_error(f"Prim at {prim_path} not found or invalid.")
         return
@@ -786,6 +843,33 @@ def _apply_material_to_prim(self, prim_path: str, material_path: str):
     material_binding.Bind(UsdShade.Material(material_prim))
 
     carb.log_info(f"Material {material_path} successfully applied to {prim_path}")
+
+
+def _delete_existing_pallets():
+    # ✅ Ensure the USD stage is loaded before proceeding
+    stage = omni.usd.get_context().get_stage()
+
+    if stage is None:
+        carb.log_warn("⚠ No valid USD stage loaded. Cannot update UI.")
+        return  # Exit function safely
+    # ✅ If "Clear Review" is pressed, delete `/Root`, `/Critical_Items`, `/ProximityViolations`
+
+    paths_to_delete = []
+    # ✅ Check and add each prim to delete list
+    for prim_path in ["/Root", "/Critical_Items", "/ProximityViolations"]:
+        from pxr import Sdf
+        prim = stage.GetPrimAtPath(prim_path)
+        if prim and prim.IsValid():
+            paths_to_delete.append(Sdf.Path(prim_path))
+        else:
+            carb.log_warn(f"⚠ `{prim_path}` prim not found in the scene.")
+
+    # ✅ Delete all valid prims
+    if paths_to_delete:
+        carb.log_info(f"🗑 Deleting: {', '.join(map(str, paths_to_delete))}...")
+        omni.kit.commands.execute("DeletePrims", paths=paths_to_delete)
+    else:
+        carb.log_warn("⚠ No valid prims found to delete.")
 
 
 def _show_notification(title: str, message: str, status: str):
@@ -944,6 +1028,7 @@ def _frame_selected_object():
         )
         print(f"Framing object with new camera: {prim_to_frame}")
 
+
 def _get_selected_prim_hierarchy():
     """Retrieve the selected prim name and its parent hierarchy."""
 
@@ -980,6 +1065,3 @@ def _get_selected_prim_hierarchy():
     wh_code, rack, location, sku, pid = hierarchy[2:7]
     print(f"WH_Code:{wh_code}, Rack: {rack}, Location: {location}, SKU: {sku}, PID: {pid}")
     return rack, location, sku, pid
-
-
-
