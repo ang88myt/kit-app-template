@@ -273,7 +273,9 @@ class Custom_Window(ui.Window):
 
         # Get staging area utilization
         staging_area = self._data_service.calculate_staging_space_utilization()
-        ui.Label("Storage Capacity", style={"font_size": 14, "color": "white"})
+        with ui.VStack():
+            ui.Spacer(height=10)
+            ui.Label("Storage Capacity", style={"font_size": 14, "color": "white"})
 
         # Rack Space Usage
         with ui.HStack(spacing=SPACING):

@@ -87,15 +87,18 @@ class SearchWindowPanel(ui.Window):
         ]
 
         """Builds the content for the search panel."""
-        with ui.VStack(spacing=10, height=5, style={"padding": 8, "background_color": "#1e1e1e", "border_radius": 5}):
+        with ui.VStack(spacing=10, height=5, style={"background_color": "#1e1e1e", "border_radius": 5}):
             # Title Section
-            ui.Button(
-                "Upload New",
-                name="tool_button",
-                tooltip="Update Inventory Report",
-                style=julia_modeler_style["Button::upload_new_button"],
-                clicked_fn=self._upload_new_inventory
-            )
+            with ui.HStack():
+                ui.Label("")
+                ui.Button(
+                    "Upload New",
+                    name="tool_button",
+                    tooltip="Update Inventory Report",
+                    style=julia_modeler_style["Button::upload_new_button"],
+                    height=42,
+                    clicked_fn=self._upload_new_inventory
+                )
             with ui.HStack():
                 ui.Label("Warehouse Search", style={"font_size": 18, "font_weight": "bold", "color": "white"})
                 self._option_button = OptionsButton(option_items, width=30, height=30)
@@ -107,7 +110,7 @@ class SearchWindowPanel(ui.Window):
                 on_search_fn=lambda filters: self._filter_by_text("".join(filters) if filters else ""),
                 show_tokens=False,
                 separator=None,
-                width=250,
+                width=ui.Fraction(2),
                 height=25
             )
             # with ui.ScrollingFrame(height=600,

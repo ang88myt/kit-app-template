@@ -4,16 +4,40 @@
       {
         "children": [
           {
-            "dock_id": 1,
-            "dock_tab_bar_enabled": true,
-            "dock_tab_bar_visible": true,
-            "height": 951.0,
-            "position_x": 0.0,
-            "position_y": 26.0,
-            "selected_in_dock": true,
-            "title": "Review Panel",
-            "visible": true,
-            "width": 288.0
+            "children": [
+              {
+                "dock_id": 3,
+                "dock_tab_bar_enabled": true,
+                "dock_tab_bar_visible": true,
+                "height": 1311.0,
+                "position_x": 0.0,
+                "position_y": 26.0,
+                "selected_in_dock": true,
+                "title": "Review Panel",
+                "visible": true,
+                "width": 338.0
+              }
+            ],
+            "dock_id": 3,
+            "position": "LEFT"
+          },
+          {
+            "children": [
+              {
+                "dock_id": 4,
+                "dock_tab_bar_enabled": true,
+                "dock_tab_bar_visible": false,
+                "height": 1311.0,
+                "position_x": 340.0,
+                "position_y": 26.0,
+                "selected_in_dock": true,
+                "title": "Viewport",
+                "visible": true,
+                "width": 1866.0
+              }
+            ],
+            "dock_id": 4,
+            "position": "RIGHT"
           }
         ],
         "dock_id": 1,
@@ -24,14 +48,14 @@
           {
             "dock_id": 2,
             "dock_tab_bar_enabled": true,
-            "dock_tab_bar_visible": false,
-            "height": 951.0,
-            "position_x": 290.0,
+            "dock_tab_bar_visible": true,
+            "height": 1311.0,
+            "position_x": 2208.0,
             "position_y": 26.0,
             "selected_in_dock": true,
-            "title": "Viewport",
+            "title": "Search Panel",
             "visible": true,
-            "width": 1630.0
+            "width": 352.0
           }
         ],
         "dock_id": 2,
@@ -42,23 +66,23 @@
   },
   {
     "dock_id": 0,
-    "height": 293.0,
+    "height": 394.0,
     "position_x": 0.0,
-    "position_y": 684.0,
+    "position_y": 943.0,
     "selected_in_dock": false,
     "title": "Content",
     "visible": false,
-    "width": 1342.0
+    "width": 1790.0
   },
   {
     "dock_id": 0,
-    "height": 487.0,
-    "position_x": 1344.0,
-    "position_y": 490.0,
+    "height": 654.0,
+    "position_x": 1792.0,
+    "position_y": 683.0,
     "selected_in_dock": false,
     "title": "Property",
     "visible": false,
-    "width": 576.0
+    "width": 768.0
   },
   {
     "dock_id": 0,
@@ -72,49 +96,49 @@
   },
   {
     "dock_id": 0,
-    "height": 486.0,
-    "position_x": 1344.0,
-    "position_y": 2.0,
+    "height": 655.0,
+    "position_x": 1792.0,
+    "position_y": 26.0,
     "selected_in_dock": false,
     "title": "Stage",
     "visible": false,
-    "width": 576.0
+    "width": 768.0
   },
   {
     "dock_id": 0,
-    "height": 486.0,
-    "position_x": 1344.0,
-    "position_y": 2.0,
+    "height": 655.0,
+    "position_x": 1792.0,
+    "position_y": 26.0,
     "selected_in_dock": false,
     "title": "Layer",
     "visible": false,
-    "width": 576.0
+    "width": 768.0
   },
   {
     "dock_id": 0,
-    "height": 680.0,
+    "height": 915.0,
     "position_x": 0.0,
-    "position_y": 2.0,
+    "position_y": 26.0,
     "selected_in_dock": false,
     "title": "Main ToolBar",
     "visible": false,
-    "width": 670.0
+    "width": 894.0
   },
   {
     "dock_id": 0,
-    "height": 293.0,
+    "height": 394.0,
     "position_x": 0.0,
-    "position_y": 2.0,
+    "position_y": 26.0,
     "selected_in_dock": false,
     "title": "Console",
     "visible": false,
-    "width": 1342.0
+    "width": 1790.0
   },
   {
     "dock_id": 0,
     "height": 800.0,
-    "position_x": 342.0,
-    "position_y": 86.0,
+    "position_x": 360.0,
+    "position_y": 140.0,
     "selected_in_dock": false,
     "title": "Chat USD",
     "visible": false,
@@ -122,13 +146,13 @@
   },
   {
     "dock_id": 0,
-    "height": 951.0,
-    "position_x": 1630.0,
-    "position_y": 26.0,
+    "height": 600.0,
+    "position_x": 2017.0,
+    "position_y": 67.0,
     "selected_in_dock": false,
-    "title": "Search Panel",
-    "visible": true,
-    "width": 290.0
+    "title": "Waypoints",
+    "visible": false,
+    "width": 180.0
   },
   {
     "dock_id": 0,
@@ -326,7 +350,7 @@
     "position_x": 3.4028234663852886e+38,
     "position_y": 3.4028234663852886e+38,
     "selected_in_dock": false,
-    "title": "omni.ui.scene 1605036749600",
+    "title": "omni.ui.scene 1841303817056",
     "visible": false,
     "width": 210.8000030517578
   },
@@ -336,19 +360,19 @@
     "position_x": 3.4028234663852886e+38,
     "position_y": 3.4028234663852886e+38,
     "selected_in_dock": false,
-    "title": "omni.ui.scene 1605036767552",
+    "title": "omni.ui.scene 1841304794928",
     "visible": false,
     "width": 210.8000030517578
   },
   {
     "dock_id": 0,
-    "height": 750.0,
+    "height": 900.0,
     "position_x": 3.4028234663852886e+38,
     "position_y": 3.4028234663852886e+38,
     "selected_in_dock": false,
-    "title": "omni.ui.scene 1605036773888",
+    "title": "omni.ui.scene 1841304796512",
     "visible": false,
-    "width": 450.0
+    "width": 550.0
   },
   {
     "dock_id": 0,
@@ -357,16 +381,6 @@
     "position_y": 3.4028234663852886e+38,
     "selected_in_dock": false,
     "title": "Markups",
-    "visible": false,
-    "width": 180.0
-  },
-  {
-    "dock_id": 0,
-    "height": 600.0,
-    "position_x": 3.4028234663852886e+38,
-    "position_y": 3.4028234663852886e+38,
-    "selected_in_dock": false,
-    "title": "Waypoints",
     "visible": false,
     "width": 180.0
   }

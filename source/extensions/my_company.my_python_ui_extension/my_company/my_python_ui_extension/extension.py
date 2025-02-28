@@ -20,7 +20,7 @@ class MyExtension(omni.ext.IExt):
     MENU_PATH_SEARCH = f"Window/{SEARCH_WINDOW_NAME}"
 
     # ✅ USD File Path (Modify this path as needed)
-    USD_FILE_PATH = "D:/Toll Innovation/TC Level 3 Demo/_Update/TC_Level3_V6.usd"
+    USD_FILE_PATH = "D:/Toll Innovation/TC Level 3 Demo/_Update/Unilever_Templete_Stage.usda"
 
     def on_startup(self):
         """Called when the extension is starting."""
@@ -143,26 +143,6 @@ class MyExtension(omni.ext.IExt):
             self._main_window.visible = False
             carb.log_warn("Main window hidden successfully.")
 
-    # def show_search_window(self, menu, value):
-    #     """Show or hide the search window."""
-    #     carb.log_info(f"Attempting to {'show' if value else 'hide'} the search window. Current window: {self._search_window}")
-    #
-    #     if value:
-    #         if not self._search_window:
-    #             try:
-    #                 carb.log_info("Creating a new search window instance...")
-    #                 self._search_window = SearchWindowPanel(title=self.SEARCH_WINDOW_NAME)
-    #                 self._search_window.set_visibility_changed_fn(partial(self._visibility_changed_fn, window_type="search"))
-    #                 carb.log_warn("Search window created successfully.")
-    #             except Exception as e:
-    #                 carb.log_error(f"Failed to create search window: {e}")
-    #         if self._search_window:
-    #             self._search_window.visible = True
-    #             carb.log_warn("Search window set to visible.")
-    #     elif self._search_window:
-    #         self._search_window.visible = False
-    #         carb.log_warn("Search window hidden successfully.")
-
     def show_search_window(self, menu, value):
         """Show or hide the search window persistently."""
         if value:
@@ -172,10 +152,15 @@ class MyExtension(omni.ext.IExt):
 
                     self._search_window.set_visibility_changed_fn(
                         lambda visible: self.show_search_window(menu, visible))
+                    carb.log_warn("Search window created successfully.")
+                    # self._search_window.set_visibility_changed_fn(partial(self._visibility_changed_fn, window_type="search"))
+
                 except Exception as e:
                     carb.log_error(f"Failed to create Search Window: {e}")
 
             if self._search_window:
                 self._search_window.visible = True
+                carb.log_warn("Search window set to visible.")
         elif self._search_window:
             self._search_window.visible = False
+            carb.log_warn("Search window hidden successfully.")
