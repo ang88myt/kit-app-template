@@ -42,7 +42,7 @@ cl.revert_arrow_enabled = cl(.25, .5, .75, 1.0)
 cl.revert_arrow_disabled = cl(.35, .35, .35, 1.0)
 cl.transparent = cl(0, 0, 0, 0)
 cl.progress_fill_used = cl(1.0, 0.0, 0.0, 1.0)  # Red for used
-cl.progress_fill_free = cl(0.0, 1.0, 0.0, 1.0)  # Green for free
+cl.progress_fill_free = cl(0.0, 0.65, 0.96, 1.0)  # blue for free
 
 fl.main_label_attr_hspacing = 10
 fl.attr_label_v_spacing = 3

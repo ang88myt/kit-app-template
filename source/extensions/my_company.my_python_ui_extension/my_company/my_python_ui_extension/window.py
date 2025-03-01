@@ -273,41 +273,42 @@ class Custom_Window(ui.Window):
 
         # Get staging area utilization
         staging_area = self._data_service.calculate_staging_space_utilization()
+
         with ui.VStack():
-            ui.Spacer(height=10)
-            ui.Label("Storage Capacity", style={"font_size": 14, "color": "white"})
-
-        # Rack Space Usage
-        with ui.HStack(spacing=SPACING):
-            ui.Label("Racks Space Usage",
-                     style={"font_size": 18, "color": "white", "alignment": ui.Alignment.LEFT})
-            ui.Label(f'{used_percentage}% used',
-                     style={"font_size": 18, "color": "gray", "alignment": ui.Alignment.RIGHT})
-        ui.Spacer(height=10)
-        with ui.HStack(spacing=SPACING):
-            progress_bar = ui.ProgressBar(style={"color": "lightblue"})
-            progress_bar.model.set_value(round(free_percentage) / 100)
-        ui.Spacer(height=10)
-        # Staging Area Usage
-        for area, stats in staging_area.items():
+            ui.Spacer(height=30)
+            ui.Label("Storage Capacity", style={"font_size": 16, "color": "white"})
+            ui.Spacer(height=30)
+            # Rack Space Usage
             with ui.HStack(spacing=SPACING):
-                area_used_percentage = stats['Used Space %']
-                area_free_percentage = stats['Free Space %']
-                ui.Label(f"Staging Area Usage",
-                         style={"font_size": 18, "color": "whiye", "alignment": ui.Alignment.LEFT})
-
-                ui.Label(f'{area_used_percentage}% used',
+                ui.Label("Racks Space Usage",
+                         style={"font_size": 18, "color": "white", "alignment": ui.Alignment.LEFT})
+                ui.Label(f'{used_percentage}% used',
                          style={"font_size": 18, "color": "gray", "alignment": ui.Alignment.RIGHT})
-            ui.Spacer(height=10)
-            with ui.VStack():
-                progress_bar = ui.ProgressBar(style={"color": "lightblue"})
-                progress_bar.model.set_value(area_free_percentage / 100)
-                ui.Spacer(width=10)
+            ui.Spacer(height=15)
+            with ui.HStack(spacing=SPACING):
+                progress_bar = ui.ProgressBar(style={"color": "lightblue","height": 60})
+                progress_bar.model.set_value(round(free_percentage) / 100)
+            ui.Spacer(height=15)
+            # Staging Area Usage
+            for area, stats in staging_area.items():
+                with ui.HStack(spacing=SPACING):
+                    area_used_percentage = stats['Used Space %']
+                    area_free_percentage = stats['Free Space %']
+                    ui.Label(f"Staging Area Usage",
+                             style={"font_size": 18, "color": "white", "alignment": ui.Alignment.LEFT})
 
-        with ui.VStack(spacing=SPACING):
-            ui.Spacer(height=10)
-            ui.Line(style_type_name_override="HeaderLine")
-            ui.Spacer(height=10)
+                    ui.Label(f'{area_used_percentage}% used',
+                             style={"font_size": 18, "color": "gray", "alignment": ui.Alignment.RIGHT})
+                ui.Spacer(height=15)
+                with ui.VStack():
+                    progress_bar = ui.ProgressBar(style={"color": "lightblue", "height": 60})
+                    progress_bar.model.set_value(area_free_percentage / 100)
+                    ui.Spacer(width=10)
+
+            with ui.VStack(spacing=SPACING):
+                ui.Spacer(height=10)
+                ui.Line(style_type_name_override="HeaderLine")
+                ui.Spacer(height=10)
 
     # def _cbx_on_value_change(self, is_checked):
     #     api_url = "https://digital-twin.expangea.com/device/Cube/"

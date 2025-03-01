@@ -86,7 +86,7 @@ class ProximityChecker:
         """Return the count of unique Food pallets involved in violations."""
         return len({violation["food_pallet_id"] for violation in self.violations})
 
-    def save_violations_to_csv(self, filename="violations.csv"):
+    def save_violations_to_csv(self, filename="source/extensions/my_company.my_python_ui_extension/docs/violations.csv"):
         """Save the violations data to a CSV file."""
         with open(filename, mode="w", newline="") as file:
             writer = csv.writer(file)

@@ -15,7 +15,7 @@
                 "selected_in_dock": true,
                 "title": "Review Panel",
                 "visible": true,
-                "width": 338.0
+                "width": 335.0
               }
             ],
             "dock_id": 3,
@@ -28,7 +28,7 @@
                 "dock_tab_bar_enabled": true,
                 "dock_tab_bar_visible": false,
                 "height": 1311.0,
-                "position_x": 340.0,
+                "position_x": 337.0,
                 "position_y": 26.0,
                 "selected_in_dock": true,
                 "title": "Viewport",
@@ -50,12 +50,12 @@
             "dock_tab_bar_enabled": true,
             "dock_tab_bar_visible": true,
             "height": 1311.0,
-            "position_x": 2208.0,
+            "position_x": 2205.0,
             "position_y": 26.0,
             "selected_in_dock": true,
             "title": "Search Panel",
             "visible": true,
-            "width": 352.0
+            "width": 355.0
           }
         ],
         "dock_id": 2,
@@ -100,16 +100,6 @@
     "position_x": 1792.0,
     "position_y": 26.0,
     "selected_in_dock": false,
-    "title": "Stage",
-    "visible": false,
-    "width": 768.0
-  },
-  {
-    "dock_id": 0,
-    "height": 655.0,
-    "position_x": 1792.0,
-    "position_y": 26.0,
-    "selected_in_dock": false,
     "title": "Layer",
     "visible": false,
     "width": 768.0
@@ -147,12 +137,32 @@
   {
     "dock_id": 0,
     "height": 600.0,
-    "position_x": 2017.0,
-    "position_y": 67.0,
+    "position_x": 780.0,
+    "position_y": 384.0,
     "selected_in_dock": false,
-    "title": "Waypoints",
+    "title": "Select Excel File to Upload",
     "visible": false,
-    "width": 180.0
+    "width": 1000.0
+  },
+  {
+    "dock_id": 0,
+    "height": 72.0,
+    "position_x": 1787.0,
+    "position_y": 1249.0,
+    "selected_in_dock": false,
+    "title": "6bad0b02-f5a3-11ef-b60b-aa3b760be919",
+    "visible": false,
+    "width": 400.0
+  },
+  {
+    "dock_id": 0,
+    "height": 800.0,
+    "position_x": 1792.0,
+    "position_y": 26.0,
+    "selected_in_dock": false,
+    "title": "Stage",
+    "visible": false,
+    "width": 600.0
   },
   {
     "dock_id": 0,
@@ -350,29 +360,9 @@
     "position_x": 3.4028234663852886e+38,
     "position_y": 3.4028234663852886e+38,
     "selected_in_dock": false,
-    "title": "omni.ui.scene 1841303817056",
+    "title": "omni.ui.scene 2000469300848",
     "visible": false,
     "width": 210.8000030517578
-  },
-  {
-    "dock_id": 0,
-    "height": 114.0,
-    "position_x": 3.4028234663852886e+38,
-    "position_y": 3.4028234663852886e+38,
-    "selected_in_dock": false,
-    "title": "omni.ui.scene 1841304794928",
-    "visible": false,
-    "width": 210.8000030517578
-  },
-  {
-    "dock_id": 0,
-    "height": 900.0,
-    "position_x": 3.4028234663852886e+38,
-    "position_y": 3.4028234663852886e+38,
-    "selected_in_dock": false,
-    "title": "omni.ui.scene 1841304796512",
-    "visible": false,
-    "width": 550.0
   },
   {
     "dock_id": 0,
@@ -381,6 +371,16 @@
     "position_y": 3.4028234663852886e+38,
     "selected_in_dock": false,
     "title": "Markups",
+    "visible": false,
+    "width": 180.0
+  },
+  {
+    "dock_id": 0,
+    "height": 600.0,
+    "position_x": 3.4028234663852886e+38,
+    "position_y": 3.4028234663852886e+38,
+    "selected_in_dock": false,
+    "title": "Waypoints",
     "visible": false,
     "width": 180.0
   }

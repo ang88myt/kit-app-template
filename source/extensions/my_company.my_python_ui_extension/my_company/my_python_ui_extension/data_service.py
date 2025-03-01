@@ -278,7 +278,7 @@ class DataService:
             for rack_no, pallets in critical_pallets_by_rack.items()
             for pallet in pallets
         ]
-        save_to_csv(flat_data_for_csv, "critical_pallets_by_rack.csv")
+        save_to_csv(flat_data_for_csv, "source/extensions/my_company.my_python_ui_extension/docs/critical_pallets_by_rack.csv")
 
         return self.critical_status_count, critical_pallets_by_rack
 
