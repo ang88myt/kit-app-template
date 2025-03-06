@@ -1,3 +1,5 @@
+__all__ = ["ExcelUploader"]
+
 import omni.ui as ui
 import carb
 import omni.client
@@ -8,9 +10,9 @@ from omni.kit.window.filepicker import FilePickerDialog
 from .data_service import _show_notification
 
 # API Endpoint and headers
-UPLOAD_URL = "https://digital-twin-dev.expangea.com/warehouse/5BTG/"
+UPLOAD_URL = "https://digital-twin-dev.expangea.com/warehouse/5BTG/?upload-inventory&debug"
 HEADERS = {
-    "X-API-KEY": "2c38e689-8bac-4ec6-9e0e-70e98222dc2d"  # Replace with your actual API key if required
+    "X-API-KEY": "2c38e689-8bac-4ec6-9e0e-70e98222dc2d"
 }
 
 class ExcelUploader:
@@ -45,13 +47,18 @@ class ExcelUploader:
         """Uploads the Excel file to the API endpoint."""
         try:
             carb.log_info(f"📤 Uploading file: {file_path}")
+            # Open the file in binary mode
             with open(file_path, "rb") as file:
                 files = {"file": (filename, file, "application/vnd.ms-excel")}
                 response = requests.post(UPLOAD_URL, headers=HEADERS, files=files)
             if response.status_code == 200:
                 carb.log_info(f"✔ Upload Successful: {filename}")
-                _show_notification("Success!!", "New Inventory data Uploaded.", "INFO")
-                # Invoke the success callback if defined
+                _show_notification(f"Upload Successful: {filename}",
+                                   "Please wait while pallets are loading into the scene!",
+                                   "INFO",
+                                   20
+                                   )
+                # Invoke the success callback if one is provided
                 if self.upload_success_callback:
                     self.upload_success_callback()
             else:

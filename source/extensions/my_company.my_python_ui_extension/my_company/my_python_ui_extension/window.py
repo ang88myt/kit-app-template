@@ -21,9 +21,13 @@ from .custom_bool_widget import CustomBoolWidget
 from .custom_button import CustomButtonWidget
 import omni.kit.commands
 from .spawn_pallets import RackDataHandler
-
+import pathlib
+import omni.kit.app
 import carb
 
+EXTENSION_FOLDER_PATH = pathlib.Path(
+    omni.kit.app.get_app().get_extension_manager().get_extension_path_by_module(__name__)
+)
 SPACING = 5
 WINDOW_TITLE = ""
 
@@ -97,6 +101,7 @@ class Custom_Window(ui.Window):
             # Overview Header
             ui.Label("Overview", style={"font_size": 20, "color": "white", "font_weight": "bold"})
             ui.Line(style_type_name_override="HeaderLine")
+            ui.Button("Test", clicked_fn=lambda: print(EXTENSION_FOLDER_PATH))
         ui.Spacer(height=30)
 
     def _build_stock_status(self):

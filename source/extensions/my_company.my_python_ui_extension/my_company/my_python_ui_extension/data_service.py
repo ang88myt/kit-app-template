@@ -872,7 +872,7 @@ def _delete_existing_pallets():
         carb.log_warn("⚠ No valid prims found to delete.")
 
 
-def _show_notification(title: str, message: str, status: str):
+def _show_notification(title: str, message: str, status: str, duration: int):
     # Map the status to the appropriate NotificationStatus
     status_mapping = {
         "INFO": omni.kit.notification_manager.NotificationStatus.INFO,
@@ -887,7 +887,7 @@ def _show_notification(title: str, message: str, status: str):
     omni.kit.notification_manager.post_notification(
         text=f"{title}: {message}",
         hide_after_timeout=True,
-        duration=5,
+        duration=duration,
         status=notification_status,
         button_infos=[ok_button]
     )

@@ -112,7 +112,7 @@ class RackLocationUploader:
 # Example usage
 warehouse = "5BTG"
 floor_no = "3"
-rack_no = "40"
+rack_no = "26"
 
 uploader = RackLocationUploader(warehouse=warehouse, floor_no=floor_no, rack_no=rack_no)
 uploader.execute()

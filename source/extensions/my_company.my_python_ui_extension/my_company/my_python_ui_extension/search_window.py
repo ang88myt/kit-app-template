@@ -26,6 +26,7 @@ from omni.kit.widget.options_menu import OptionItem, OptionCustom, OptionSeparat
 from typing import Optional
 from .spawn_pallets import RackDataHandler
 from .upload_new_inventory import ExcelUploader
+import asyncio
 
 SPACING = 5
 WINDOW_TITLE = ""
@@ -124,8 +125,9 @@ class SearchWindowPanel(ui.Window):
 
     def _on_excel_upload_success(self):
         _delete_existing_pallets()  # Ensure this function is defined or is a method
-        self._rack_data_handler.process_racks()
+        # self._rack_data_handler.process_racks()
 
+        # asyncio.ensure_future(self._rack_data_handler.process_racks_async())
     def _build_fn(self):
         with ui.ScrollingFrame(name="window_bg", horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF):
             with ui.VStack(height=0):
