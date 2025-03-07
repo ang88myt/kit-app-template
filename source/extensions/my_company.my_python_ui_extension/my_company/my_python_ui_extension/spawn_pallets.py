@@ -5,7 +5,7 @@ from pxr import Usd, UsdGeom, Gf, Sdf, Kind
 import logging
 import json
 import csv
-
+from .data_service import save_to_csv
 import pathlib
 import omni.kit.app
 
@@ -113,17 +113,26 @@ class RackDataHandler:
                 self._set_xform_op(xform, UsdGeom.XformOp.TypeRotateXYZ, {"x": 0.0, "y": 0.0, "z": 90.0})
             else:  # Ensure this is preceded by a valid `if` or loop condition
                 logger.error(f"No valid coordinates found for location {location_id}")
-                TEMP_DIR = EXTENSION_FOLDER_PATH.joinpath("temp")
-                TEMP_DIR.mkdir(parents=True, exist_ok=True)  # Create the temp folder if it doesn’t exist
-
-                MISSING_COORDS_FILE = TEMP_DIR.joinpath("missing_coordinates.csv")
-                try:
-                    with MISSING_COORDS_FILE.open("a", newline="", encoding="utf-8") as csvfile:
-                        writer = csv.writer(csvfile)
-                        writer.writerow([rack_number, location_id, pallet_id, product_code, json.dumps(coordinates)])
-                    logger.info(f"Missing coordinates logged to {MISSING_COORDS_FILE}")
-                except Exception as csv_e:
-                    logger.exception(f"Failed to write to CSV: {csv_e}")
+                missing_data = [{
+                    "rack_number": rack_number,
+                    "location_id": location_id,
+                    "pallet_id": pallet_id,
+                    "product": product_code,
+                    "coordinates": json.dumps(coordinates)
+                }]
+                # csv_file = str(EXTENSION_FOLDER_PATH.joinpath("doc\\missing_coordinates.csv"))
+                save_to_csv(missing_data,
+                            "source/extensions/my_company.my_python_ui_extension/docs/missing_coordinates.csv",
+                            group_by_key="location_id"
+                            )
+                # MISSING_COORDS_FILE = TEMP_DIR.joinpath("missing_coordinates.csv")
+                # try:
+                #     with MISSING_COORDS_FILE.open("a", newline="", encoding="utf-8") as csvfile:
+                #         writer = csv.writer(csvfile)
+                #         writer.writerow([rack_number, location_id, pallet_id, product_code, json.dumps(coordinates)])
+                #     logger.info(f"Missing coordinates logged to {MISSING_COORDS_FILE}")
+                # except Exception as csv_e:
+                #     logger.exception(f"Failed to write to CSV: {csv_e}")
 
             # Create or reference the pallet prim
             self._create_or_reference_pallet_prim(pallet_prim_path)

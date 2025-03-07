@@ -127,7 +127,7 @@ class SearchWindowPanel(ui.Window):
         _delete_existing_pallets()  # Ensure this function is defined or is a method
         # self._rack_data_handler.process_racks()
 
-        # asyncio.ensure_future(self._rack_data_handler.process_racks_async())
+        asyncio.ensure_future(self._rack_data_handler.process_racks_async())
     def _build_fn(self):
         with ui.ScrollingFrame(name="window_bg", horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF):
             with ui.VStack(height=0):
@@ -216,11 +216,6 @@ class SearchWindowPanel(ui.Window):
                                                      ):
 
                                 for item in children:
-                                    # ui.Button(
-                                    #     item,
-                                    #     tooltip=f"zoom in {item}",
-                                    #     clicked_fn=lambda h=item: self._select_and_frame_object(h)
-                                    # )
                                     CustomButtonWidget(btn_label=item,
                                                        tooltip=f"zoom in {item}",
                                                        #image_url=f"{EXTENSION_FOLDER_PATH}/icons/material-symbols-light_pallet-outline.svg",
@@ -237,23 +232,6 @@ class SearchWindowPanel(ui.Window):
             ui.Line(style_type_name_override="HeaderLine")
 
         # self._update_results_ui()
-
-    def _update_results_ui(self):
-        print("test")
-        # self.results_container.clear()
-        # with ui.VStack(height=10):
-        #     with self.results_container:
-        #         ui.Label(f"Found {len(self.matches)} matches:")
-        #         for parent, children in self.hierarchy_dict.items():
-        #             parent = parent.split('/')
-        #             with ui.CollapsableFrame(parent[4], height=0):
-        #                 for item in children:
-        #                     ui.Button(
-        #                         item,
-        #                         tooltip=f"zoomed {item}",
-        #                         clicked_fn=lambda h=item: self._select_and_frame_object(h)
-        #                     )
-        # ui.Line(style_type_name_override="HeaderLine")
 
     def _select_and_frame_object(self, prim_path):
         self._find_prim_then_select(prim_path)
