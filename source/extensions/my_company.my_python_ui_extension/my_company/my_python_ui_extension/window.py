@@ -101,7 +101,7 @@ class Custom_Window(ui.Window):
             # Overview Header
             ui.Label("Overview", style={"font_size": 20, "color": "white", "font_weight": "bold"})
             ui.Line(style_type_name_override="HeaderLine")
-            ui.Button("Test", clicked_fn=lambda: print(EXTENSION_FOLDER_PATH))
+
         ui.Spacer(height=30)
 
     def _build_stock_status(self):
