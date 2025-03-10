@@ -15,7 +15,7 @@
                 "selected_in_dock": true,
                 "title": "Review Panel",
                 "visible": true,
-                "width": 334.0
+                "width": 328.0
               }
             ],
             "dock_id": 3,
@@ -28,7 +28,7 @@
                 "dock_tab_bar_enabled": true,
                 "dock_tab_bar_visible": false,
                 "height": 1311.0,
-                "position_x": 336.0,
+                "position_x": 330.0,
                 "position_y": 26.0,
                 "selected_in_dock": true,
                 "title": "Viewport",
@@ -50,12 +50,12 @@
             "dock_tab_bar_enabled": true,
             "dock_tab_bar_visible": true,
             "height": 1311.0,
-            "position_x": 2204.0,
+            "position_x": 2198.0,
             "position_y": 26.0,
             "selected_in_dock": true,
             "title": "Search Panel",
             "visible": true,
-            "width": 356.0
+            "width": 362.0
           }
         ],
         "dock_id": 2,
@@ -73,6 +73,16 @@
     "title": "Content",
     "visible": false,
     "width": 1790.0
+  },
+  {
+    "dock_id": 0,
+    "height": 654.0,
+    "position_x": 1792.0,
+    "position_y": 683.0,
+    "selected_in_dock": false,
+    "title": "Property",
+    "visible": false,
+    "width": 768.0
   },
   {
     "dock_id": 0,
@@ -136,83 +146,13 @@
   },
   {
     "dock_id": 0,
-    "height": 88.0,
-    "position_x": 1786.0,
-    "position_y": 1233.0,
+    "height": 72.0,
+    "position_x": 1780.0,
+    "position_y": 1249.0,
     "selected_in_dock": false,
-    "title": "cc091842-f7f2-11ef-b60b-aa3b760be919",
-    "visible": false,
-    "width": 400.0
-  },
-  {
-    "dock_id": 0,
-    "height": 88.0,
-    "position_x": 1786.0,
-    "position_y": 1233.0,
-    "selected_in_dock": false,
-    "title": "4c2e48b0-f7f3-11ef-98a7-aa3b760be919",
-    "visible": false,
-    "width": 400.0
-  },
-  {
-    "dock_id": 0,
-    "height": 88.0,
-    "position_x": 1786.0,
-    "position_y": 1233.0,
-    "selected_in_dock": false,
-    "title": "8e299c9f-f7f3-11ef-b082-aa3b760be919",
-    "visible": false,
-    "width": 400.0
-  },
-  {
-    "dock_id": 0,
-    "height": 88.0,
-    "position_x": 1786.0,
-    "position_y": 1233.0,
-    "selected_in_dock": false,
-    "title": "f0b96c89-f7f3-11ef-b8f9-aa3b760be919",
-    "visible": false,
-    "width": 400.0
-  },
-  {
-    "dock_id": 0,
-    "height": 800.0,
-    "position_x": 630.0,
-    "position_y": 284.0,
-    "selected_in_dock": false,
-    "title": "Extensions",
+    "title": "bca18f7e-fb31-11ef-b60b-a83b760bc93a",
     "visible": true,
-    "width": 1300.0
-  },
-  {
-    "dock_id": 0,
-    "height": 600.0,
-    "position_x": 780.0,
-    "position_y": 384.0,
-    "selected_in_dock": false,
-    "title": "Select Excel File to Upload",
-    "visible": false,
-    "width": 1000.0
-  },
-  {
-    "dock_id": 0,
-    "height": 88.0,
-    "position_x": 1786.0,
-    "position_y": 1233.0,
-    "selected_in_dock": false,
-    "title": "d7cdcc77-f7f4-11ef-9aea-aa3b760be919",
-    "visible": false,
     "width": 400.0
-  },
-  {
-    "dock_id": 0,
-    "height": 654.0,
-    "position_x": 1792.0,
-    "position_y": 683.0,
-    "selected_in_dock": false,
-    "title": "Property",
-    "visible": false,
-    "width": 768.0
   },
   {
     "dock_id": 0,
@@ -410,9 +350,29 @@
     "position_x": 3.4028234663852886e+38,
     "position_y": 3.4028234663852886e+38,
     "selected_in_dock": false,
-    "title": "omni.ui.scene 3125440978656",
+    "title": "omni.ui.scene 1832661798688",
     "visible": false,
     "width": 210.8000030517578
+  },
+  {
+    "dock_id": 0,
+    "height": 114.0,
+    "position_x": 3.4028234663852886e+38,
+    "position_y": 3.4028234663852886e+38,
+    "selected_in_dock": false,
+    "title": "omni.ui.scene 1832662756560",
+    "visible": false,
+    "width": 210.8000030517578
+  },
+  {
+    "dock_id": 0,
+    "height": 900.0,
+    "position_x": 3.4028234663852886e+38,
+    "position_y": 3.4028234663852886e+38,
+    "selected_in_dock": false,
+    "title": "omni.ui.scene 1832664058864",
+    "visible": false,
+    "width": 550.0
   },
   {
     "dock_id": 0,
