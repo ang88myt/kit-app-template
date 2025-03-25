@@ -20,7 +20,7 @@ class MyExtension(omni.ext.IExt):
     MENU_PATH_SEARCH = f"Window/{SEARCH_WINDOW_NAME}"
 
     # ✅ USD File Path (Modify this path as needed)
-    USD_FILE_PATH = "source/extensions/my_company.my_python_ui_extension/usd/Unilever_Templete_Stage.usd"
+    USD_FILE_PATH = "C:/Unilever_5BTG/Unilever_Templete_Stage.usd"
 
     def on_startup(self):
         """Called when the extension is starting."""

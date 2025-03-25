@@ -22,7 +22,7 @@ class RackDataHandler:
     HEADERS = {"X-API-KEY": "2c38e689-8bac-4ec6-9e0e-70e98222dc2d"}
 
     def __init__(self):
-        self.PALLET_USD_PATH = "D:/Unilever_5BTG/Pallet_Asm_A04_120x122x75cm_PR_V_NVD_01.usd"
+        self.PALLET_USD_PATH = "C:/Unilever_5BTG/Pallet_Asm_A04_120x122x75cm_PR_V_NVD_01.usd"
 
     async def fetch_rack_data_async(self, rack_number: int, session: aiohttp.ClientSession) -> dict:
         """Fetch data from the API asynchronously for a given rack number."""

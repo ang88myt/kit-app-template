@@ -124,10 +124,10 @@ class SearchWindowPanel(ui.Window):
         self.excel_uploader.show_upload_dialog()
 
     def _on_excel_upload_success(self):
+        _show_notification(title="Loading!", message="Please wait whhile inventory data is loading.",status="INFO", duration=20)
         _delete_existing_pallets()  # Ensure this function is defined or is a method
-        # self._rack_data_handler.process_racks()
-
         asyncio.ensure_future(self._rack_data_handler.process_racks_async())
+
     def _build_fn(self):
         with ui.ScrollingFrame(name="window_bg", horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF):
             with ui.VStack(height=0):
