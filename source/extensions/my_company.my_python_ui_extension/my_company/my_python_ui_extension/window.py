@@ -157,9 +157,9 @@ class Custom_Window(ui.Window):
                                                 image_height=15,
                                                 clicked_fn=lambda p=pallet_id: self._navigate_to_pallet(p)
                                             )
-                                ui.Spacer(heigh=10)
+                                ui.Spacer(height=10)
                                 ui.Line(style_type_name_override="HeaderLine")
-                                ui.Spacer(heigh=10)
+                                ui.Spacer(height=10)
 
     def _isolate(self, is_check: bool, status_code: str):
         """Toggle isolation mode for Xform parent objects of a specific status code."""

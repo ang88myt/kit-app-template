@@ -9,13 +9,13 @@
                 "dock_id": 3,
                 "dock_tab_bar_enabled": true,
                 "dock_tab_bar_visible": true,
-                "height": 1311.0,
+                "height": 951.0,
                 "position_x": 0.0,
                 "position_y": 26.0,
                 "selected_in_dock": true,
                 "title": "Review Panel",
                 "visible": true,
-                "width": 328.0
+                "width": 316.0
               }
             ],
             "dock_id": 3,
@@ -27,13 +27,13 @@
                 "dock_id": 4,
                 "dock_tab_bar_enabled": true,
                 "dock_tab_bar_visible": false,
-                "height": 1311.0,
-                "position_x": 330.0,
+                "height": 951.0,
+                "position_x": 318.0,
                 "position_y": 26.0,
                 "selected_in_dock": true,
                 "title": "Viewport",
                 "visible": true,
-                "width": 1866.0
+                "width": 1328.0
               }
             ],
             "dock_id": 4,
@@ -49,13 +49,13 @@
             "dock_id": 2,
             "dock_tab_bar_enabled": true,
             "dock_tab_bar_visible": true,
-            "height": 1311.0,
-            "position_x": 2198.0,
+            "height": 951.0,
+            "position_x": 1648.0,
             "position_y": 26.0,
             "selected_in_dock": true,
             "title": "Search Panel",
             "visible": true,
-            "width": 362.0
+            "width": 272.0
           }
         ],
         "dock_id": 2,
@@ -66,23 +66,23 @@
   },
   {
     "dock_id": 0,
-    "height": 394.0,
+    "height": 286.0,
     "position_x": 0.0,
-    "position_y": 943.0,
+    "position_y": 691.0,
     "selected_in_dock": false,
     "title": "Content",
     "visible": false,
-    "width": 1790.0
+    "width": 1342.0
   },
   {
     "dock_id": 0,
-    "height": 654.0,
-    "position_x": 1792.0,
-    "position_y": 683.0,
+    "height": 475.0,
+    "position_x": 1344.0,
+    "position_y": 502.0,
     "selected_in_dock": false,
     "title": "Property",
     "visible": false,
-    "width": 768.0
+    "width": 576.0
   },
   {
     "dock_id": 0,
@@ -96,62 +96,82 @@
   },
   {
     "dock_id": 0,
-    "height": 655.0,
-    "position_x": 1792.0,
+    "height": 474.0,
+    "position_x": 1344.0,
     "position_y": 26.0,
     "selected_in_dock": false,
     "title": "Stage",
     "visible": false,
-    "width": 768.0
+    "width": 576.0
   },
   {
     "dock_id": 0,
-    "height": 655.0,
-    "position_x": 1792.0,
+    "height": 474.0,
+    "position_x": 1344.0,
     "position_y": 26.0,
     "selected_in_dock": false,
     "title": "Layer",
     "visible": false,
-    "width": 768.0
+    "width": 576.0
   },
   {
     "dock_id": 0,
-    "height": 915.0,
+    "height": 663.0,
     "position_x": 0.0,
     "position_y": 26.0,
     "selected_in_dock": false,
     "title": "Main ToolBar",
     "visible": false,
-    "width": 894.0
+    "width": 670.0
   },
   {
     "dock_id": 0,
-    "height": 394.0,
+    "height": 286.0,
     "position_x": 0.0,
     "position_y": 26.0,
     "selected_in_dock": false,
     "title": "Console",
     "visible": false,
-    "width": 1790.0
+    "width": 1342.0
   },
   {
     "dock_id": 0,
     "height": 800.0,
-    "position_x": 360.0,
-    "position_y": 140.0,
+    "position_x": 342.0,
+    "position_y": 86.0,
     "selected_in_dock": false,
-    "title": "Chat USD",
+    "title": "AI Agent",
     "visible": false,
     "width": 1200.0
   },
   {
     "dock_id": 0,
-    "height": 72.0,
-    "position_x": 1780.0,
-    "position_y": 1249.0,
+    "height": 600.0,
+    "position_x": 460.0,
+    "position_y": 204.0,
     "selected_in_dock": false,
-    "title": "bca18f7e-fb31-11ef-b60b-a83b760bc93a",
-    "visible": true,
+    "title": "Select Excel File to Upload",
+    "visible": false,
+    "width": 1000.0
+  },
+  {
+    "dock_id": 0,
+    "height": 72.0,
+    "position_x": 1230.0,
+    "position_y": 796.0,
+    "selected_in_dock": false,
+    "title": "0d350b15-09c1-11f0-838a-f4b3016a58f0",
+    "visible": false,
+    "width": 400.0
+  },
+  {
+    "dock_id": 0,
+    "height": 88.0,
+    "position_x": 1230.0,
+    "position_y": 873.0,
+    "selected_in_dock": false,
+    "title": "0d312726-09c1-11f0-839e-f4b3016a58f0",
+    "visible": false,
     "width": 400.0
   },
   {
@@ -176,6 +196,26 @@
   },
   {
     "dock_id": 0,
+    "height": 700.0,
+    "position_x": 3.4028234663852886e+38,
+    "position_y": 3.4028234663852886e+38,
+    "selected_in_dock": false,
+    "title": "Asset Validator",
+    "visible": false,
+    "width": 1200.0
+  },
+  {
+    "dock_id": 0,
+    "height": 355.0,
+    "position_x": 3.4028234663852886e+38,
+    "position_y": 3.4028234663852886e+38,
+    "selected_in_dock": false,
+    "title": "Configurator Publisher",
+    "visible": false,
+    "width": 800.0
+  },
+  {
+    "dock_id": 0,
     "height": 225.0,
     "position_x": 3.4028234663852886e+38,
     "position_y": 3.4028234663852886e+38,
@@ -196,43 +236,13 @@
   },
   {
     "dock_id": 0,
-    "height": 600.0,
+    "height": 190.0,
     "position_x": 3.4028234663852886e+38,
     "position_y": 3.4028234663852886e+38,
     "selected_in_dock": false,
-    "title": "Distribute Tool",
+    "title": "Design Render Settings",
     "visible": false,
-    "width": 400.0
-  },
-  {
-    "dock_id": 0,
-    "height": 600.0,
-    "position_x": 3.4028234663852886e+38,
-    "position_y": 3.4028234663852886e+38,
-    "selected_in_dock": false,
-    "title": "Merge Meshes",
-    "visible": false,
-    "width": 400.0
-  },
-  {
-    "dock_id": 0,
-    "height": 700.0,
-    "position_x": 3.4028234663852886e+38,
-    "position_y": 3.4028234663852886e+38,
-    "selected_in_dock": false,
-    "title": "Asset Validator",
-    "visible": false,
-    "width": 1200.0
-  },
-  {
-    "dock_id": 0,
-    "height": 355.0,
-    "position_x": 3.4028234663852886e+38,
-    "position_y": 3.4028234663852886e+38,
-    "selected_in_dock": false,
-    "title": "Configurator Publisher",
-    "visible": false,
-    "width": 800.0
+    "width": 0.0
   },
   {
     "dock_id": 0,
@@ -316,16 +326,6 @@
   },
   {
     "dock_id": 0,
-    "height": 190.0,
-    "position_x": 3.4028234663852886e+38,
-    "position_y": 3.4028234663852886e+38,
-    "selected_in_dock": false,
-    "title": "Design Render Settings",
-    "visible": false,
-    "width": 0.0
-  },
-  {
-    "dock_id": 0,
     "height": 540.0,
     "position_x": 3.4028234663852886e+38,
     "position_y": 3.4028234663852886e+38,
@@ -350,29 +350,9 @@
     "position_x": 3.4028234663852886e+38,
     "position_y": 3.4028234663852886e+38,
     "selected_in_dock": false,
-    "title": "omni.ui.scene 1832661798688",
+    "title": "omni.ui.scene 2638569635248",
     "visible": false,
     "width": 210.8000030517578
-  },
-  {
-    "dock_id": 0,
-    "height": 114.0,
-    "position_x": 3.4028234663852886e+38,
-    "position_y": 3.4028234663852886e+38,
-    "selected_in_dock": false,
-    "title": "omni.ui.scene 1832662756560",
-    "visible": false,
-    "width": 210.8000030517578
-  },
-  {
-    "dock_id": 0,
-    "height": 900.0,
-    "position_x": 3.4028234663852886e+38,
-    "position_y": 3.4028234663852886e+38,
-    "selected_in_dock": false,
-    "title": "omni.ui.scene 1832664058864",
-    "visible": false,
-    "width": 550.0
   },
   {
     "dock_id": 0,
