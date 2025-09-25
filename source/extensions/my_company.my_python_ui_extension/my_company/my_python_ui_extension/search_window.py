@@ -78,13 +78,13 @@ class SearchWindowPanel(ui.Window):
     def _build_scene(self):
         option_items = [
             OptionItem("Show version history",
-                       on_value_changed_fn=print("test")),
+                       on_value_changed_fn=lambda: print("test")),
             OptionSeparator(),
             OptionItem("Export",
-                       on_value_changed_fn=print("test")),
+                       on_value_changed_fn=lambda: print("test")),
             OptionSeparator(),
             OptionItem("Rename",
-                       on_value_changed_fn=print("test")),
+                       on_value_changed_fn=lambda: print("test")),
         ]
 
         """Builds the content for the search panel."""

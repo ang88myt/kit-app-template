@@ -10,7 +10,7 @@ from omni.kit.window.filepicker import FilePickerDialog
 from .data_service import _show_notification
 
 # API Endpoint and headers
-UPLOAD_URL = "https://digital-twin-dev.expangea.com/warehouse/5BTG/?upload-inventory&debug"
+UPLOAD_URL = "https://digital-twin-dev.expangea.com/warehouse/5BTG/?upload-inventory"
 HEADERS = {
     "X-API-KEY": "2c38e689-8bac-4ec6-9e0e-70e98222dc2d"
 }

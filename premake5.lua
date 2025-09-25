@@ -15,3 +15,5 @@ repo_build.prebuild_copy {
 }
 
 -- Apps: for each app generate batch files and a project based on kit files (e.g. my_name.my_app.kit)
+define_app("tol.poc_agent.kit")
+define_app("tol.poc_agent_streaming.kit")

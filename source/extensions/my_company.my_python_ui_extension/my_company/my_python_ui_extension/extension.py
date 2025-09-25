@@ -22,6 +22,7 @@ class MyExtension(omni.ext.IExt):
     # ✅ USD File Path (Modify this path as needed)
     USD_FILE_PATH = "source/extensions/my_company.my_python_ui_extension/usd/Unilever_Templete_Stage.usd"
 
+
     def on_startup(self):
         """Called when the extension is starting."""
         self._main_window = None

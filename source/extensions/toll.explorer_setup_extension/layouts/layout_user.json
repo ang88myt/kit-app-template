@@ -9,13 +9,13 @@
                 "dock_id": 3,
                 "dock_tab_bar_enabled": true,
                 "dock_tab_bar_visible": true,
-                "height": 1311.0,
+                "height": 915.0,
                 "position_x": 0.0,
                 "position_y": 26.0,
                 "selected_in_dock": true,
                 "title": "Review Panel",
                 "visible": true,
-                "width": 328.0
+                "width": 241.0
               }
             ],
             "dock_id": 3,
@@ -27,13 +27,13 @@
                 "dock_id": 4,
                 "dock_tab_bar_enabled": true,
                 "dock_tab_bar_visible": false,
-                "height": 1311.0,
-                "position_x": 330.0,
+                "height": 915.0,
+                "position_x": 243.0,
                 "position_y": 26.0,
                 "selected_in_dock": true,
                 "title": "Viewport",
                 "visible": true,
-                "width": 1866.0
+                "width": 1372.0
               }
             ],
             "dock_id": 4,
@@ -49,13 +49,13 @@
             "dock_id": 2,
             "dock_tab_bar_enabled": true,
             "dock_tab_bar_visible": true,
-            "height": 1311.0,
-            "position_x": 2198.0,
+            "height": 915.0,
+            "position_x": 1617.0,
             "position_y": 26.0,
             "selected_in_dock": true,
             "title": "Search Panel",
             "visible": true,
-            "width": 362.0
+            "width": 267.0
           }
         ],
         "dock_id": 2,
@@ -66,23 +66,23 @@
   },
   {
     "dock_id": 0,
-    "height": 394.0,
+    "height": 275.0,
     "position_x": 0.0,
-    "position_y": 943.0,
+    "position_y": 666.0,
     "selected_in_dock": false,
     "title": "Content",
     "visible": false,
-    "width": 1790.0
+    "width": 1317.0
   },
   {
     "dock_id": 0,
-    "height": 654.0,
-    "position_x": 1792.0,
-    "position_y": 683.0,
+    "height": 457.0,
+    "position_x": 1319.0,
+    "position_y": 484.0,
     "selected_in_dock": false,
     "title": "Property",
     "visible": false,
-    "width": 768.0
+    "width": 565.0
   },
   {
     "dock_id": 0,
@@ -96,49 +96,49 @@
   },
   {
     "dock_id": 0,
-    "height": 655.0,
-    "position_x": 1792.0,
+    "height": 456.0,
+    "position_x": 1319.0,
     "position_y": 26.0,
     "selected_in_dock": false,
     "title": "Stage",
     "visible": false,
-    "width": 768.0
+    "width": 565.0
   },
   {
     "dock_id": 0,
-    "height": 655.0,
-    "position_x": 1792.0,
+    "height": 456.0,
+    "position_x": 1319.0,
     "position_y": 26.0,
     "selected_in_dock": false,
     "title": "Layer",
     "visible": false,
-    "width": 768.0
+    "width": 565.0
   },
   {
     "dock_id": 0,
-    "height": 915.0,
+    "height": 638.0,
     "position_x": 0.0,
     "position_y": 26.0,
     "selected_in_dock": false,
     "title": "Main ToolBar",
     "visible": false,
-    "width": 894.0
+    "width": 658.0
   },
   {
     "dock_id": 0,
-    "height": 394.0,
+    "height": 275.0,
     "position_x": 0.0,
     "position_y": 26.0,
     "selected_in_dock": false,
     "title": "Console",
     "visible": false,
-    "width": 1790.0
+    "width": 1317.0
   },
   {
     "dock_id": 0,
     "height": 800.0,
-    "position_x": 360.0,
-    "position_y": 140.0,
+    "position_x": 342.0,
+    "position_y": 86.0,
     "selected_in_dock": false,
     "title": "Chat USD",
     "visible": false,
@@ -146,12 +146,22 @@
   },
   {
     "dock_id": 0,
-    "height": 72.0,
-    "position_x": 1780.0,
-    "position_y": 1249.0,
+    "height": 600.0,
+    "position_x": 442.0,
+    "position_y": 186.0,
     "selected_in_dock": false,
-    "title": "bca18f7e-fb31-11ef-b60b-a83b760bc93a",
-    "visible": true,
+    "title": "Select Excel File to Upload",
+    "visible": false,
+    "width": 1000.0
+  },
+  {
+    "dock_id": 0,
+    "height": 72.0,
+    "position_x": 1199.0,
+    "position_y": 853.0,
+    "selected_in_dock": false,
+    "title": "751ab69e-1685-11f0-b60b-a83b760bc93a",
+    "visible": false,
     "width": 400.0
   },
   {
@@ -350,17 +360,7 @@
     "position_x": 3.4028234663852886e+38,
     "position_y": 3.4028234663852886e+38,
     "selected_in_dock": false,
-    "title": "omni.ui.scene 1832661798688",
-    "visible": false,
-    "width": 210.8000030517578
-  },
-  {
-    "dock_id": 0,
-    "height": 114.0,
-    "position_x": 3.4028234663852886e+38,
-    "position_y": 3.4028234663852886e+38,
-    "selected_in_dock": false,
-    "title": "omni.ui.scene 1832662756560",
+    "title": "omni.ui.scene 2017351870768",
     "visible": false,
     "width": 210.8000030517578
   },
@@ -370,7 +370,7 @@
     "position_x": 3.4028234663852886e+38,
     "position_y": 3.4028234663852886e+38,
     "selected_in_dock": false,
-    "title": "omni.ui.scene 1832664058864",
+    "title": "omni.ui.scene 2017352165680",
     "visible": false,
     "width": 550.0
   },
